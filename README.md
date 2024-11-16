@@ -11,6 +11,8 @@
 9. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
 10. Content discovery (browse by genre).
 11. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
+12. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usae).
+13. No distractions -- it does what it needs to do and nothing else.
 
 No support for cover images. Wanted to keep memory footprint down and performance lightning fast. Besides, who judges books by the cover?
 
