@@ -1,0 +1,16 @@
+aiofiles==24.1.0
+fastapi==0.115.4
+fastapi_limiter==0.1.6
+isbnlib==3.10.14
+passlib==1.7.4
+Pillow==11.0.0
+pydantic==1.10.2
+PyMySQL==1.1.1
+python_jose==3.3.0
+redis==4.5.5
+rich==13.9.4
+SQLAlchemy==2.0.31
+uvicorn==0.32.0
+gunicorn==23.0.0
+
+

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+		<title>uBiblio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
+		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+							<ul class="links">
+							<li><a href="/">Book Search</a></li>
+							<li><a href="/genre/">Browse by Genre</a></li>
+								<li><a href="/wishlist/">Wishlist</a></li>
+							<li><a href="/readingLists">Reading Lists</a></li>
+						</ul>
+						<ul class="actions stacked">
+							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
+						</ul>
+					</nav>
+
+				<!-- Banner -->
+					<!-- Two -->
+							<section id="two">
+								<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+  <!-- Search Input-->
+		
+<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Summary</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+{% for book in books %}
+		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.summary }}</td></tr>
+{% endfor %}
+      <!-- more table rows here -->
+
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+								</div>
+								
+								
+							</section>
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							
+							<ul class="copyright">
+								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
+
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+

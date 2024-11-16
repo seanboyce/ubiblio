@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>uBiblio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
+		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<ul class="links">
+							<li><a href="/">Book Search</a></li>
+							<li><a href="/genre/">Browse by Genre</a></li>
+							<li><a href="/wishlist/">Wishlist</a></li>
+							<li><a href="/readingLists">Reading Lists</a></li>
+						</ul>
+						<ul class="actions stacked">
+							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
+						</ul>
+					</nav>
+
+				<!-- Banner -->
+					<!-- Two -->
+							<section id="two">
+								<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<h1>Add a New Book</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+{% if book %} 									
+<form action="/add_book" method="post">
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+    <p>
+        <p><label for="">Title</label></p>
+        <input type="text" name="title" value="{{ book.title }}" required>
+    </p>
+    <p>
+        <p><label for="">Author</label></p>
+        <input type="text" name="author" value="{{ book.author }}">
+    </p>
+    <p>
+        <p><label for="">Summary</label></p>
+        <input type="text" name="summary" value="{{ book.summary }}">
+    </p>
+    <p>
+        <p><label for="">Cover Image</label></p>
+        <input type="text" name="coverImage" value="{{ book.coverImage }}">
+    </p>
+    <p>
+        <p><label for="">Genre</label></p>
+        <select name="genre" id="genre">
+  <option value="Sci-Fi">Sci-Fi</option>
+  <option value="Fantasy">Fantasy</option>
+<option value="Classic">Classic</option>
+			<option value="Reference">Reference</option>
+			<option value="Young Adult">Young Adult</option>
+			<option value="Historical Fiction">Historical Fiction</option>
+			<option value="Mystery">Mystery</option>
+			<option value="Anthology">Anthology</option>
+			<option value="Horror">Horror</option>
+			<option value="Romance">Romance</option>
+			<option value="Animal Fiction">Animal Fiction</option>
+</select>
+    </p>
+            </div>
+    <div style="width:30%; min-width: 300px; float:left;">
+    <p>
+        <p><label for="">Library</label></p>
+        <input type="text" name="library" value="{{ library }}">
+    </p>
+
+    <p>
+        <p><label for="">Shelf</label></p>
+        <input type="text" name="shelf" value="{{ shelf }}" >
+    </p>
+
+    <p>
+        <p><label for="">Collection</label></p>
+        <input type="text" name="collection" value="{{ collection }}" >
+    </p>
+    <p>
+        <p><label for="">ISBN</label></p>
+        <input type="text" name="ISBN" value="{{ book.ISBN }}" >
+    </p>
+    <p>
+        <p><label for="">Notes</label></p>
+        <input type="text" name="notes" value="{{ notes }}" >
+    </p>
+    
+        <p>
+        <p><label for="">Owned</label></p>
+<select name="owned" id="owned">
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+<p>
+        <p><label for="">Withdrawn</label></p>
+        <select name="withdrawn" id="withdrawn">
+			<option value="False">False</option>
+  <option value="True">True</option>
+  
+</select>
+    </p>
+    </div>
+    </div>
+    <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
+    
+</form>
+{% endif %}
+
+{% if not book %} 
+<form action="/add_book" method="post">
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+    <p>
+        <p><label for="">Title</label></p>
+        <input type="text" name="title" value="{{ title }}" required>
+    </p>
+    <p>
+        <p><label for="">Author</label></p>
+        <input type="text" name="author" value="{{ author }}">
+    </p>
+    <p>
+        <p><label for="">Summary</label></p>
+        <input type="text" name="summary" value="{{ summary }}">
+    </p>
+    <p>
+        <p><label for="">Cover Image</label></p>
+        <input type="text" name="coverImage" value="{{ coverImage }}">
+    </p>
+    <p>
+        <p><label for="">Genre</label></p>
+        <select name="genre" id="genre">
+  <option value="Sci-Fi">Sci-Fi</option>
+  <option value="Fantasy">Fantasy</option>
+<option value="Classic">Classic</option>
+			<option value="Reference">Reference</option>
+			<option value="Young Adult">Young Adult</option>
+			<option value="Historical Fiction">Historical Fiction</option>
+			<option value="Mystery">Mystery</option>
+			<option value="Anthology">Anthology</option>
+			<option value="Horror">Horror</option>
+			<option value="Romance">Romance</option>
+			<option value="Animal Fiction">Animal Fiction</option>
+</select>
+    </p>
+            </div>
+    <div style="width:30%; min-width: 300px; float:left;">
+    <p>
+        <p><label for="">Library</label></p>
+        <input type="text" name="library" value="{{ library }}">
+    </p>
+
+    <p>
+        <p><label for="">Shelf</label></p>
+        <input type="text" name="shelf" value="{{ shelf }}" >
+    </p>
+
+    <p>
+        <p><label for="">Collection</label></p>
+        <input type="text" name="collection" value="{{ collection }}" >
+    </p>
+    <p>
+        <p><label for="">ISBN</label></p>
+        <input type="text" name="ISBN" value="{{ ISBN }}" >
+    </p>
+    <p>
+        <p><label for="">Notes</label></p>
+        <input type="text" name="notes" value="{{ notes }}" >
+    </p>
+    
+        <p>
+        <p><label for="">Owned</label></p>
+<select name="owned" id="owned">
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+<p>
+        <p><label for="">Withdrawn</label></p>
+<select name="withdrawn" id="withdrawn">
+	<option value="False">False</option>
+  <option value="True">True</option>
+  
+</select>
+    </p>
+    </div>
+    </div>
+    <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
+    
+</form>
+{% endif %}
+<hr>
+</div>
+
+								</div>
+								
+								
+							</section>
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							
+							<ul class="copyright">
+								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
+
+	</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+	
+	
+	<style>
+.accordion {
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #ccc;
+  color:#242943 !important;
+  border-color:#242943;
+  box-shadow: inset 0 0 0 2px #242943;
+}
+
+
+.tablebutton{
+line-height:0.5em;
+height:1.5em;
+padding: 0 1em 0 1em;}
+
+button:hover{
+color:#242943;
+border-color:#242943;
+}
+
+.accordion:after {
+  content: '\002B';
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+
+.active:after {
+  content: "\2212";
+}
+
+.panel {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+	
+		<title>uBiblio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
+		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<ul class="links">
+							<li><a href="/">Book Search</a></li>
+							<li><a href="/genre/">Browse by Genre</a></li>
+							<li><a href="/wishlist/">Wishlist</a></li>
+							<li><a href="/readingLists">Reading Lists</a></li>
+						</ul>
+						<ul class="actions stacked">
+							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
+						</ul>
+					</nav>
+
+				<!-- Banner -->
+					<!-- Two -->
+<div class="inner" style = "padding: 20px 0 5em 5em;">
+<div style="display:block; clear:both; float:none;">
+<h3><strong><u>Book Details</strong></u></h3>
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">								
+
+		
+		<p><strong>Title</strong>:  {{ book.title}}</p>
+        <p><strong>Author</strong>:  {{ book.author}}</p>
+        <p><strong>Summary</strong>:  {{ book.summary}}</p>
+        <p><strong>Genre</strong>:  {{ book.genre}}</p>
+        <p><strong>Library</strong>:  {{ book.library}}</p>
+		<p><strong>Shelf</strong>:  {{book.shelf}}</p>
+
+                                </div>
+    <div style="width:30%; min-width: 280px; float:left;">
+        <p><strong>Collection</strong>:  {{ book.collection}}</p>
+        <p><strong>ISBN</strong>:  {{ book.ISBN}}</p>
+		<p><strong>Notes</strong>:  {{book.notes}}</p>
+		<p><strong>Owned</strong>:  {{ book.owned}}</p>
+		<p><strong>Withdrawn</strong>:  {{ book.withdrawn}}</p>
+
+		</div>
+		<div style= "display:block; clear:both;float:none;">
+		<a style = "border:none; margin-right:25px;" href = "/"> <button style ="margin-bottom:25px;">Back</button></a><a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Update</button></a><a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
+     </div>  
+	<div style= "display:block; clear:both;float:none;">
+		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:30px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:30px;">Remove from Reading List</button></a>
+	</div>
+	<div style= "display:block; clear:both;float:none;">
+		<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Are you sure?')) return false;"><button style="margin-top:30px;">Delete</button></a>
+	</div>
+    </div>
+      <!-- more table rows here -->
+
+<hr>
+
+
+
+<div style="display:block; clear:both; float:none;">
+
+</div>
+
+
+<hr>
+
+</div>
+
+								</div>
+								
+								
+							</section>
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							
+							<ul class="copyright">
+								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+
+
+	</body>
+</html>
+
+
+
