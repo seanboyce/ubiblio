@@ -607,8 +607,6 @@ class bookForm:
     async def is_valid(self):
         if not self.title:
             self.errors.append("At least a title is required to create a book.")
-       # if len(self.email)>0 and not (self.email.__contains__("@")):
-       #     self.errors.append("The entered email is invalid.")
         if not self.errors:
             return True
         return False 
