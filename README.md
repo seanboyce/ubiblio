@@ -69,6 +69,7 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 
 1. If I have hundreds of books in a genre, content discovery with "browse by genre" is a bit cumbersome. When a genre is selected, I could display authors + a textbox with summary of their works. Then clicking that leads to a deisplay of all books of that genre by that author. This would let me scale to thousands of books more easily. Not high priority. The software is basically done.
 2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
+3. Forgot to add an endpoint to display all withdrawn books, so I can put them away all in one fell swoop. This one I'll probably get around to.
 
 # HTML Theme
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
