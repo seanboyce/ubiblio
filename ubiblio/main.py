@@ -486,7 +486,20 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
         return RedirectResponse(url='/searchbooks')
     if not user:
         return "You are not logged in. Login to withdraw books."
-
+        
+@app.get("/withdrawn", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+async def wdList(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if user:
+        db = SessionLocal()
+        books = crud.browseWithdrawn(db)
+        db.close()
+        context = {
+        "books": books,
+        "request": request
+    }
+        return templates.TemplateResponse("readinglist.html", context)
+    if not user:
+        return "You are not logged in. Login to see withdrawn books."
 # --------------------------------------------------------------------------
 # Browse by Genre
 # --------------------------------------------------------------------------
