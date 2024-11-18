@@ -7,7 +7,7 @@
 5. Autopopulate a book's fields by entering an ISBN (just access /isbn/[your-isbn])
 6. Reading list management for each user
 7. Book wishlist (just set owned=False, then update to True when you buy it)
-8. Withdraw and return books
+8. Withdraw and return books. Display a list of withdrawn books (to help put them away).
 9. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
 10. Content discovery (browse by genre).
 11. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
@@ -69,7 +69,6 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 
 1. If I have hundreds of books in a genre, content discovery with "browse by genre" is a bit cumbersome. When a genre is selected, I could display authors + a textbox with summary of their works. Then clicking that leads to a deisplay of all books of that genre by that author. This would let me scale to thousands of books more easily. Not high priority. The software is basically done.
 2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
-3. Forgot to add an endpoint to display all withdrawn books, so I can put them away all in one fell swoop. This one I'll probably get around to.
 
 # HTML Theme
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
