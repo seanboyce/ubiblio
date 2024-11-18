@@ -92,7 +92,10 @@ def browseBooksByGenre(db: Session, genre):
 
 def browseWishlist(db: Session):
     return db.query(models.Book).filter(models.Book.owned == False)
-
+    
+def browseWithdrawn(db: Session):
+    return db.query(models.Book).filter(models.Book.withdrawn == True)
+    
 def getGenres(db: Session):
     genres = []
     for value in db.query(models.Book.genre).distinct():
