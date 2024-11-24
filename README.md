@@ -34,6 +34,8 @@ I realize this is a little inconvenient, but I wanted something fully self-hoste
 
 # Running:
 
+Before you begin, you will need to install redis-server. Some perhaps useful instructions here: https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04
+
 You can run it with either uvicorn or gunicorn. Uvicorn is good for running it locally with no SSL for testing:
 
 $uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload
