@@ -4,7 +4,7 @@
 2. Remove books
 3. Update books
 4. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
-5. Autopopulate a book's fields by entering an ISBN (just access /isbn/[your-isbn])
+5. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
 6. Reading list management for each user
 7. Book wishlist (just set owned=False, then update to True when you buy it)
 8. Withdraw and return books. Display a list of withdrawn books (to help put them away).
@@ -60,7 +60,7 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 
 # Why this exists:
 
-1. It took about a day to build.
+1. It took about a day to build (well, at least until I thought of a few more features...).
 2. I wanted something fast to manage a few hundred books. I tried Koha and others but the huge memory footprint (~4GB) made them expensive to self-host. This application runs with less than 100MB of memory, so I can cram it on a server that hosts lots of other stuff.
 3. I wanted a way to quickly check if I own books from my phone, while visiting book sales / stores. Also a way to get a list of books I want. Since I read in English and French, but live in country where neither are common languages, this was a super important feature for me. Opportunities to buy a lot of books are few and far-between for me, so I have to carpe the diem pretty optimally.
 
