@@ -252,7 +252,7 @@ def index(request: Request):
 async def favicon():
     return FileResponse(favicon_path)
 # --------------------------------------------------------------------------
-# Customers
+# CRUD on Books
 # --------------------------------------------------------------------------
 @app.get("/add_book", dependencies=[Depends(RateLimiter(times=3, seconds=2))], response_class=HTMLResponse)
 def add_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -315,11 +315,9 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
     if user:
         db = SessionLocal()
         book = crud.getBookById(db,bookId)
-        ##images = crud.getImages(db, customerId)
         db.close()
         context = {
         "book": book,
-        ##"images": images,
         "request": request
     }
         return templates.TemplateResponse("bookDetails.html", context)
