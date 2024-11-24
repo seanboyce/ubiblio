@@ -418,6 +418,14 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
     except Exception as e:
         print(e)
         return "ISBN code not found for this book."
+
+@app.get("/addisbn", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if user.isAdmin == True:
+        return templates.TemplateResponse("addisbn.html", context)
+    if not user.isAdmin == True:
+        return "You are not authorized to add books. Only an admin can do this."
+
 # --------------------------------------------------------------------------
 # Reading Lists
 # --------------------------------------------------------------------------
