@@ -20,6 +20,8 @@ No support for cover images. Wanted to keep memory footprint down and performanc
 
 # Setup:
 
+I wrote this for Python 3.10.12. A good first step is to install that to a venv.
+
 Use pip to install the requirements in requirements.txt
 
 Open main.py and add a secret key for JWT. Don't tell it to anyone. This is so authenticaton works. One way to generate this key is to open up a command line (linux) and enter: 
