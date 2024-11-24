@@ -26,7 +26,7 @@ $openssl rand -hex 32
 
 The output will be a 32-byte (64 character) hex string. Use it to populate the variable "SECRET_KEY"
 
-Next, since I don't feel like adding the whole user registration / lost password flow, go to the end of main.py. There some code commented out that defines user accounts. Change the passwords and uncomment the code. Run the application, and visit the /setip endpoint. Now open main.py again and comment out the code or delete the whole block. The passwords are hashed in the DB, and not stored plaintext. Don't lose them.
+Next, since I don't feel like adding the whole user registration / lost password flow, go to the end of main.py. There some code commented out that defines user accounts. Change the passwords and uncomment the code. Run the application, and visit the /setup endpoint. Now open main.py again and comment out the code or delete the whole block. The passwords are hashed in the DB, and not stored plaintext. Don't lose them. Although you can manually delete the user from the DB and add back the /setup endpoint to reset a password if you must.
 
 I realize this is a little inconvenient, but I wanted something fully self-hosted. Registration / password recovery depends on email, which is a pain to host myself.
 
