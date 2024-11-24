@@ -1,3 +1,5 @@
+(Screenshots at the end of this document)
+
 # Features:
 
 1. Add books
@@ -72,3 +74,5 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 
 # HTML Theme
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
+
+![Screenshot of the menu system]([https://github.com/seanboyce/ubiblio/blob/main/ubiblio_menu.png])
