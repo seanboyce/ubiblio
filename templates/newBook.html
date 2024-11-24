@@ -48,9 +48,6 @@
 {% endfor %}
 <h1>Add a New Book</h1>
 
-{% for error in errors %}
-    <p style="color: red">{{ error }}</p>
-{% endfor %}
 {% if book %} 									
 <form action="/add_book" method="post">
 <div style="display:block; clear:both; float:none;">
