@@ -46,11 +46,11 @@
 {% for error in errors %}
     <p style="color: red">{{ error }}</p>
 {% endfor %}
-<h1>Add a New Book by ISBN</h1>
-
-
-<p><input type="text" name="isbnLink" value="" /></p>
-<button onclick="isbn();" >Submit</button>						
+<h1>Add a New Book by ISBN</h1>									
+<form onsubmit="isbn();return false;">
+<input type="text" name="isbnLink" value="" /></p>
+    <input type="submit" value="Submit">
+</form>		
 <hr>
 </div>
 
