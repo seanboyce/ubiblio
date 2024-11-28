@@ -48,8 +48,11 @@
 {% endfor %}
 <h1>Add a New Book</h1>
 
+{% if addISBN %} 
+<a style ="text-decoration:none !important; border:none;" onclick = "document.bookExistsAdder.action = '/addanotherisbn';document.bookExistsAdder.submit();"><button>Approve & Add Another</button></a>
+{% endif %}
 {% if book %} 									
-<form action="/add_book" method="post">
+<form id ="bookExistsAdder" name = "bookExistsAdder" action="/add_book" method="post">
 <div style="display:block; clear:both; float:none;">
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
     <p>
