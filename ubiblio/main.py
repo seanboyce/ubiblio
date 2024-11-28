@@ -391,7 +391,7 @@ def searchCust(request: Request, user: schemas.User = Depends(get_current_user_f
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
-@app.get("/isbn/{isbn}", dependencies=[Depends(RateLimiter(times=1, seconds=2))], response_class=HTMLResponse)
+@app.get("/isbn/{isbn}", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -402,11 +402,10 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
                 summary = desc(isbn)
                 summary = summary.replace('\n', ' ')
             except: summary=""
-            #try:
-            #    cover = cover(isbn)
-            #except: cover= "None"
+            addISBN = [0]
             book = schemas.BookCreate(title=title, author=author, summary=summary, ISBN=isbn)
             context = {
+            "addISBN": addISBN,
         "book": book,
         "request": request
     }
@@ -414,10 +413,14 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
-        print(e)
-        return "ISBN code not found for this book."
+        errors = ["ISBN not found -- try another."]
+        context = {
+        "errors": errors,
+        "request": request
+    }
+        return templates.TemplateResponse("addisbn.html", context)
 
-@app.get("/addisbn", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/addisbn", dependencies=[Depends(RateLimiter(times=2, seconds=1))], response_class=HTMLResponse)
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user.isAdmin == True:
         context = {
@@ -426,7 +429,25 @@ async def addIsbn(request: Request, user: schemas.User = Depends(get_current_use
         return templates.TemplateResponse("addisbn.html", context)
     if not user.isAdmin == True:
         return "You are not authorized to add books. Only an admin can do this."
-
+        
+@app.post("/addanotherisbn", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if user.isAdmin == True:
+        #Add book
+        form = bookForm(request)
+        await form.load_data()
+        if await form.is_valid():
+            db = SessionLocal()
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, coverImage=form.coverImage, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            crud.createBook(db, newBook)
+            books = crud.getBooks(db)
+            db.close()
+            context = {
+        "request": request
+    }
+        return templates.TemplateResponse("addisbn.html", context)
+    if not user.isAdmin == True:
+        return "You are not authorized to add books. Only an admin can do this."
 # --------------------------------------------------------------------------
 # Reading Lists
 # --------------------------------------------------------------------------
