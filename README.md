@@ -1,5 +1,3 @@
-(Screenshots at the end of this document)
-
 # Features:
 
 1. Add books
@@ -18,6 +16,9 @@
 
 No support for cover images. Wanted to keep memory footprint down and performance lightning fast. Besides, who judges books by the cover?
 
+# Setup
+
+![Setup has moved to it's own file to keep things organized](https://github.com/seanboyce/ubiblio/blob/main/SETUP.md)
 
 # Why this exists:
 
