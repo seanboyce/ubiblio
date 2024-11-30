@@ -27,11 +27,17 @@ No support for cover images. Wanted to keep memory footprint down and performanc
 3. I wanted a way to quickly check if I own books from my phone, while visiting book sales / stores. Also a way to get a list of books I want. Since I read in English and French, but live in country where neither are common languages, this was a super important feature for me. Opportunities to buy a lot of books are few and far-between for me, so I have to carpe the diem pretty optimally.
 
 
-# To Do:
+# To Do (in no particular order):
 
 1. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
 2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
 3. ~~Better barcode scanner workflow when adding by ISBN.~~ Done! Now when you add a book by ISBN, you can quickly add another. Thak you WikoSiko for suggesting this feature!
+4. Right now search is just author || title. Adding a few checkboxes beneath the search to select what you're searching through would be nice.
+5. Search by a specific location would be nice -- can be another interface.
+6. Limited backend customization -- a few custom fields for books that can be renamed through the UI (default:hidden)
+7. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
+8. Storing who withdrew a book instead of simply whether it is withdrawn or not, e.g. for when you reluctantly let other people use your personal library.
+
 
 # HTML Theme
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
