@@ -47,7 +47,7 @@ Note that this example above does not enable SSL. It will accept all incoming co
 
 gunicorn will launch multiple instances of uvicorn as needed to support even more concurrent users. You need to add the paths to your cert files and choose a port. Certs from letsencrypt are just fine :) 
 
-python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker --certfile= --keyfile=
+> python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker --certfile= --keyfile=
 
 # Password Recovery
 
@@ -73,4 +73,10 @@ For setting up a reverse proxy: https://www.digitalocean.com/community/tutorials
 
 A good tutorial on production deployment with venv+fastapi+gunicorn: https://docs.vultr.com/how-to-deploy-fastapi-applications-with-gunicorn-and-nginx-on-ubuntu-20-04
 
+# Notes on DDoS Resistance
 
+DDoS resistance is provided by fastapi_limiter. It sets a pretty restrictive rate limit by IP address. It keeps these in a small, fast redis database in-memory. These rate limits are set by endpoint in main.py -- I have attempted to set agressive but reasonable limits, but they are easy to change if you need.
+
+You can still get DDoSed if you put this system online. This just increases the resources required to perform an attack -- e.g. it limits the resources spent dealing with a particular IP address that's bombarding you. So far I've been fine without using any sort of CDN, but there are no guarantees here (short of keeping it on your LAN, I suppose).
+
+This also limits login attempts per IP address per second quite aggressively.
