@@ -22,15 +22,16 @@ No support for cover images. Wanted to keep memory footprint down and performanc
 
 # Why this exists:
 
-1. It took about a day to build (well, at least until I thought of a few more features...).
+1. It took about a day to build (well, at least until I thought of a few more features. Then other people suggested features... and so on.).
 2. I wanted something fast to manage a few hundred books. I tried Koha and others but the huge memory footprint (~4GB) made them expensive to self-host. This application runs with less than 100MB of memory, so I can cram it on a server that hosts lots of other stuff.
 3. I wanted a way to quickly check if I own books from my phone, while visiting book sales / stores. Also a way to get a list of books I want. Since I read in English and French, but live in country where neither are common languages, this was a super important feature for me. Opportunities to buy a lot of books are few and far-between for me, so I have to carpe the diem pretty optimally.
 
 
 # To Do:
 
-1. If I have hundreds of books in a genre, content discovery with "browse by genre" is a bit cumbersome. When a genre is selected, I could display authors + a textbox with summary of their works. Then clicking that leads to a deisplay of all books of that genre by that author. This would let me scale to thousands of books more easily. Not high priority. The software is basically done.
+1. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
 2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
+3. ~~Better barcode scanner workflow when adding by ISBN.~~ Done! Now when you add a book by ISBN, you can quickly add another. Thak you WikoSiko for suggesting this feature!
 
 # HTML Theme
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
