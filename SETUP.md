@@ -23,6 +23,8 @@ NB: Users have reported success running ubiblio on Windows. I just don't know ho
 7. Go to the end of main.py. You will note a code block that defines an API endpoint that sets up user accounts, it is commended out. Add your desired usernames and passwords Note: the passwords will be securely stored as hashes.
 8. Proceed to first-time launch!
 
+   Optional: The login tokens expire after 2 hours by default. If you want to change this behavior, change the number of minutes after ACCESS_TOKEN_EXPIRE_MINUTES in main.py. If you never want tokens to expire, just set the number of minutes to some arbitrarily large number.
+
 # First Time Setup
 
 1. Open a browser, connect, ignore the login, and access /setup. This sets up the initial accounts.
