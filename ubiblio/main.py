@@ -380,7 +380,29 @@ def searchCust(request: Request, user: schemas.User = Depends(get_current_user_f
     except Exception as e:
         db.close()
         return "An error has occured."
+@app.post("/searchBooksByAuthor", dependencies=[Depends(RateLimiter(times=4, seconds=1))], response_class=HTMLResponse)
+def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0):
+    try:
+        db = SessionLocal()
+        books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip)))
+        books = json.dumps(books)
+        db.close()
+        return books       
+    except Exception as e:
+        db.close()
+        return "An error has occured."
 
+@app.post("/searchBooksByTitle", dependencies=[Depends(RateLimiter(times=4, seconds=1))], response_class=HTMLResponse)
+def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0):
+    try:
+        db = SessionLocal()
+        books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip)))
+        books = json.dumps(books)
+        db.close()
+        return books       
+    except Exception as e:
+        db.close()
+        return "An error has occured."
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
