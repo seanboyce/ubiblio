@@ -32,11 +32,12 @@ No support for cover images. Wanted to keep memory footprint down and performanc
 1. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
 2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
 3. ~~Better barcode scanner workflow when adding by ISBN.~~ Done! Now when you add a book by ISBN, you can quickly add another. Thak you WikoSiko for suggesting this feature!
-4. Right now search is just author || title. Adding a few checkboxes beneath the search to select what you're searching through would be nice.
+4. ~~Right now search is just author || title. Adding a few checkboxes beneath the search to select what you're searching through would be nice.~~ Done! You can search by title, author, or both (default). This should help support larger libraries.
 5. Search by a specific location would be nice -- can be another interface.
 6. Limited backend customization -- a few custom fields for books that can be renamed through the UI (default:hidden)
 7. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
 8. Storing who withdrew a book instead of simply whether it is withdrawn or not, e.g. for when you reluctantly let other people use your personal library.
+9. ~~Better UI for asking you to log in after your JWT login expires, e.g. boot you back to login instead of a NOT AUTHORIZED error.~~ If your login expires, you're now brought back to the login instead of just receiving an error.
 
 
 # HTML Theme
