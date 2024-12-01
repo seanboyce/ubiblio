@@ -86,7 +86,15 @@ def searchBooks(db: Session, title, author, skip: int, limit: int = 50):
     return db.query(models.Book).filter(
     or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
-    
+
+def searchBooksbyAuthor(db: Session, author, skip: int, limit: int = 50):
+    return db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
+
+def searchBooksbyTitle(db: Session, title, skip: int, limit: int = 50):
+    return db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True)) .limit(limit).offset(skip).all()    
+
 def browseBooksByGenre(db: Session, genre):
     return db.query(models.Book).filter(models.Book.genre == genre)
 
