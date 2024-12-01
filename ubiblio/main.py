@@ -110,11 +110,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         scheme, param = get_authorization_scheme_param(authorization)
         if not authorization or scheme.lower() != "bearer":
             if self.auto_error:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
+                raise HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/"})
             else:
                 return None
         return param
@@ -141,10 +137,7 @@ def authenticate_user(username: str, plain_password: str) -> schemas.User:
 
 
 def decode_token(token: str) -> schemas.User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED, 
-        detail="Could not validate credentials."
-    )
+    credentials_exception = HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/"})
     token = token.removeprefix("Bearer").strip()
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -189,7 +182,7 @@ def login_for_access_token(
 ) -> Dict[str, str]:
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
+        raise HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/"})
     access_token = create_access_token(data={"username": user.username})
     
     # Set an HttpOnly cookie in the response. `httponly=True` prevents 
