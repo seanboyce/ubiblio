@@ -17,8 +17,17 @@ function search(skip) {
 //reset pagination on new search
 if (skip<1){pagination=0;}
 searchTerm = $("#searchboxInput").val();
+var searchAuthor = document.getElementById("titleSearch").checked; 
+var searchTitle = document.getElementById("authorSearch").checked; 
 if(searchTerm === undefined){searchTerm=""}
-$.post("/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip,function(data, status){
+if (searchTitle !== true){
+	var searchEndpoint = "/searchBooksByTitle?title="+searchTerm+"&skip="+skip;
+} else if (searchAuthor !== true){
+	var searchEndpoint = "/searchBooksByAuthor?author="+searchTerm+"&skip="+skip;
+} else {
+    var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip;
+}
+$.post(searchEndpoint+skip,function(data, status){
     itemdata = jQuery.parseJSON(data);
     $("#tablebody").empty();
     $("#pagination").empty();
