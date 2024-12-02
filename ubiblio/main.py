@@ -22,8 +22,16 @@ from fastapi_limiter.depends import RateLimiter
 import json
 from datetime import datetime
 from isbnlib import *
+from .vars import *
 
 console = Console()
+
+def get_rate_limiter(times: int, seconds: int):
+    if USE_REDIS:
+        return Depends(RateLimiter(times, seconds))
+    else:
+        return Depends(lambda: None)
+
 
 # --------------------------------------------------------------------------
 # Setup FastAPI
@@ -34,23 +42,23 @@ console = Console()
 ##Default is to force new login every 120 minutes by expiring tokens, but you can set it to much longer if you want.
 
 class Settings:
-    SECRET_KEY: str = ""
+    SECRET_KEY = SECRET_KEY
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 120  # in mins
+    ACCESS_TOKEN_EXPIRE_MINUTES = TOKEN_TTL  # in mins
     COOKIE_NAME = "access_token"
 
-#initialize tables on first start
+# initialize tables on first start
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 favicon_path = 'favicon.ico'
 
-#Connect to local Redis for rate-limiting function -- this is for some DDoS resistance so you don't have to use Cloudflare for every little thing.
+# Connect to local Redis for rate-limiting function -- this is for some DDoS resistance so you don't have to use Cloudflare for every little thing.
 @app.on_event("startup")
 async def startup():
-    redis_connection = redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
-    await FastAPILimiter.init(redis_connection)
-
+    if USE_REDIS:
+        redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        await FastAPILimiter.init(redis_connection)
 
 
 templates = Jinja2Templates(directory="templates")
@@ -80,7 +88,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
     """
     This class is taken directly from FastAPI:
     https://github.com/tiangolo/fastapi/blob/26f725d259c5dbe3654f221e608b14412c6b40da/fastapi/security/oauth2.py#L140-L171
-    
+
     The only change made is that authentication is taken from a cookie
     instead of from the header!
     """
@@ -103,10 +111,10 @@ class OAuth2PasswordBearerWithCookie(OAuth2):
         )
 
     async def __call__(self, request: Request) -> Optional[str]:
-        # IMPORTANT: this is the line that differs from FastAPI. Here we use 
-        # `request.cookies.get(settings.COOKIE_NAME)` instead of 
+        # IMPORTANT: this is the line that differs from FastAPI. Here we use
+        # `request.cookies.get(settings.COOKIE_NAME)` instead of
         # `request.headers.get("Authorization")`
-        authorization: str = request.cookies.get(settings.COOKIE_NAME) 
+        authorization: str = request.cookies.get(settings.COOKIE_NAME)
         scheme, param = get_authorization_scheme_param(authorization)
         if not authorization or scheme.lower() != "bearer":
             if self.auto_error:
@@ -120,8 +128,8 @@ def create_access_token(data: Dict) -> str:
     expire = dt.datetime.utcnow() + dt.timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        to_encode, 
-        settings.SECRET_KEY, 
+        to_encode,
+        settings.SECRET_KEY,
         algorithm=settings.ALGORITHM
     )
     return encoded_jwt
@@ -147,7 +155,7 @@ def decode_token(token: str) -> schemas.User:
     except JWTError as e:
         print(e)
         raise credentials_exception
-    
+
     user = get_user(username)
     return user
 
@@ -157,7 +165,7 @@ def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> schemas.
     """
     Get the current user from the cookies in a request.
 
-    Use this function when you want to lock down a route so that only 
+    Use this function when you want to lock down a route so that only
     authenticated users can see access the route.
     """
     user = decode_token(token)
@@ -167,7 +175,7 @@ def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> schemas.
 def get_current_user_from_cookie(request: Request) -> schemas.User:
     """
     Get the current user from the cookies in a request.
-    
+
     Use this function from inside other routes to get the current user. Good
     for views that should work for both logged in, and not logged in users.
     """
@@ -177,28 +185,27 @@ def get_current_user_from_cookie(request: Request) -> schemas.User:
 
 @app.post("token")
 def login_for_access_token(
-    response: Response, 
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Dict[str, str]:
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=302, detail="Not authorized", headers = {"Location": "/"})
     access_token = create_access_token(data={"username": user.username})
-    
-    # Set an HttpOnly cookie in the response. `httponly=True` prevents 
+
+    # Set an HttpOnly cookie in the response. `httponly=True` prevents
     # JavaScript from reading the cookie.
     response.set_cookie(
-        key=settings.COOKIE_NAME, 
-        value=f"Bearer {access_token}", 
+        key=settings.COOKIE_NAME,
+        value=f"Bearer {access_token}",
         httponly=True
-    )  
+    )
     return {settings.COOKIE_NAME: access_token, "token_type": "bearer"}
-
 
 
 #################### Authentication Endpoints
 
-@app.post("/auth/login", dependencies=[Depends(RateLimiter(times=1, seconds=2))], response_class=HTMLResponse)
+@app.post("/auth/login", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
 async def login_post(request: Request):
     form = LoginForm(request)
     await form.load_data()
@@ -226,7 +233,7 @@ def login_get():
 # --------------------------------------------------------------------------
 # Home Page
 # --------------------------------------------------------------------------
-@app.get("/", dependencies=[Depends(RateLimiter(times=3, seconds=1))], response_class=HTMLResponse)
+@app.get("/", dependencies=[get_rate_limiter(times=3, seconds=1)], response_class=HTMLResponse)
 def index(request: Request):
     try:
         user = get_current_user_from_cookie(request)
@@ -247,7 +254,7 @@ async def favicon():
 # --------------------------------------------------------------------------
 # CRUD on Books
 # --------------------------------------------------------------------------
-@app.get("/add_book", dependencies=[Depends(RateLimiter(times=3, seconds=2))], response_class=HTMLResponse)
+@app.get("/add_book", dependencies=[get_rate_limiter(times=3, seconds=2)], response_class=HTMLResponse)
 def add_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     context = {
         "request": request,
@@ -262,7 +269,7 @@ def add_book_form(request: Request, user: schemas.User = Depends(get_current_use
         return "An error has occured."
 
 
-@app.post("/add_book", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+@app.post("/add_book", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def addBook_post(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
         return "You are not authorized to add books. Only an admin can do this."
@@ -283,12 +290,9 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
         except Exception as e:
             print(e)
             return "Fail"
-            
-            
-        
 
 
-@app.get("/delete_book/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/delete_book/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def delete_book(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user.isAdmin == True:
         db = SessionLocal()
@@ -303,7 +307,7 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
     if not user.isAdmin == True:
         return "You are not authorized to delete books. Only an admin can do this."
 
-@app.get("/bookDetails/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/bookDetails/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -317,7 +321,7 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
     if not user:
         return "You are not logged in. Login to view books."
 
-@app.post("/update_book/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.post("/update_book/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def update_book(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
         return "You are not authorized to update books. Only an admin can do this."
@@ -338,8 +342,8 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
         except Exception as e:
             print(e)
             return "Fail"
-            
-@app.get("/update_book/{bookId}", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+
+@app.get("/update_book/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -360,7 +364,7 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
 # --------------------------------------------------------------------------
 # Search
 # --------------------------------------------------------------------------
-@app.get("/searchbooks", dependencies=[Depends(RateLimiter(times=4, seconds=2))], response_class=HTMLResponse)
+@app.get("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=2)], response_class=HTMLResponse)
 def searchCust(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     data=[]
     context = {
@@ -369,44 +373,44 @@ def searchCust(request: Request, user: schemas.User = Depends(get_current_user_f
     }
     return templates.TemplateResponse("booksearch.html", context)
 
-@app.post("/searchbooks", dependencies=[Depends(RateLimiter(times=4, seconds=1))], response_class=HTMLResponse)
+@app.post("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchCust(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = 0):
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip)))
         books = json.dumps(books)
         db.close()
-        return books       
+        return books
     except Exception as e:
         db.close()
         return "An error has occured."
-@app.post("/searchBooksByAuthor", dependencies=[Depends(RateLimiter(times=4, seconds=1))], response_class=HTMLResponse)
+@app.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0):
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip)))
         books = json.dumps(books)
         db.close()
-        return books       
+        return books
     except Exception as e:
         db.close()
         return "An error has occured."
 
-@app.post("/searchBooksByTitle", dependencies=[Depends(RateLimiter(times=4, seconds=1))], response_class=HTMLResponse)
+@app.post("/searchBooksByTitle", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0):
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip)))
         books = json.dumps(books)
         db.close()
-        return books       
+        return books
     except Exception as e:
         db.close()
         return "An error has occured."
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
-@app.get("/isbn/{isbn}", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+@app.get("/isbn/{isbn}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -435,7 +439,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
     }
         return templates.TemplateResponse("addisbn.html", context)
 
-@app.get("/addisbn", dependencies=[Depends(RateLimiter(times=2, seconds=1))], response_class=HTMLResponse)
+@app.get("/addisbn", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user.isAdmin == True:
         context = {
@@ -444,8 +448,8 @@ async def addIsbn(request: Request, user: schemas.User = Depends(get_current_use
         return templates.TemplateResponse("addisbn.html", context)
     if not user.isAdmin == True:
         return "You are not authorized to add books. Only an admin can do this."
-        
-@app.post("/addanotherisbn", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+
+@app.post("/addanotherisbn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user.isAdmin == True:
         #Add book
@@ -467,7 +471,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
 # Reading Lists
 # --------------------------------------------------------------------------
 
-@app.get("/read/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/read/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def bookRead(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -478,7 +482,7 @@ async def bookRead(bookId, request: Request, user: schemas.User = Depends(get_cu
     if not user:
         return "You are not logged in. Login to modify your reading list."
 
-@app.get("/unread/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/unread/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def bookUnRead(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -487,8 +491,8 @@ async def bookUnRead(bookId, request: Request, user: schemas.User = Depends(get_
         return RedirectResponse(url='/readingLists')
     if not user:
         return "You are not logged in. Login to modify your reading list."
-        
-@app.get("/readingLists", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+
+@app.get("/readingLists", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def readList(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -503,12 +507,12 @@ async def readList(request: Request, user: schemas.User = Depends(get_current_us
     }
         return templates.TemplateResponse("readinglist.html", context)
     if not user:
-        return "You are not logged in. Login to see your reading list."        
+        return "You are not logged in. Login to see your reading list."
 # --------------------------------------------------------------------------
 # Withdraw / Return
 # --------------------------------------------------------------------------
 
-@app.get("/return/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.get("/return/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def bookReturn(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -519,8 +523,8 @@ async def bookReturn(bookId, request: Request, user: schemas.User = Depends(get_
         return RedirectResponse(url='/searchbooks')
     if not user:
         return "You are not logged in. Login to return books."
-        
-@app.get("/withdraw/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+
+@app.get("/withdraw/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -531,8 +535,8 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
         return RedirectResponse(url='/searchbooks')
     if not user:
         return "You are not logged in. Login to withdraw books."
-        
-@app.get("/withdrawn", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+
+@app.get("/withdrawn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def wdList(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -548,7 +552,7 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
 # --------------------------------------------------------------------------
 # Browse by Genre
 # --------------------------------------------------------------------------
-@app.get("/booksByGenre/{genre}", dependencies=[Depends(RateLimiter(times=12, seconds=2))], response_class=HTMLResponse)
+@app.get("/booksByGenre/{genre}", dependencies=[get_rate_limiter(times=12, seconds=2)], response_class=HTMLResponse)
 async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -562,8 +566,8 @@ async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_
         return templates.TemplateResponse("booksByGenre.html", context)
     if not user:
         return "You are not logged in. Login to view books."
-        
-@app.get("/genre/", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+
+@app.get("/genre/", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def bookGenres(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -580,7 +584,7 @@ async def bookGenres(request: Request, user: schemas.User = Depends(get_current_
 # Wishlist (of books)
 # --------------------------------------------------------------------------
 
-@app.get("/wishlist", dependencies=[Depends(RateLimiter(times=2, seconds=2))], response_class=HTMLResponse)
+@app.get("/wishlist", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def wishlist(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
@@ -629,7 +633,7 @@ class LoginForm:
         if not self.errors:
             return True
         return False
- 
+
 class bookForm:
     def __init__(self, request: Request):
         self.request: Request = request
@@ -667,13 +671,42 @@ class bookForm:
             self.errors.append("At least a title is required to create a book.")
         if not self.errors:
             return True
-        return False 
-        
+        return False
+
+
+# Create user from docker
+@app.get("/user-setup/")
+async def create_user():
+    if CREATE_ADMIN_USER or CREATE_USER:
+        db = database.SessionLocal()
+
+        if CREATE_ADMIN_USER:
+            try:
+                admin_user = schemas.UserCreate(
+                    username=ADMIN_USERNAME, password=ADMIN_PASSWORD, isAdmin=True
+                )
+                crud.create_user(db, admin_user)
+            except:
+                print(f"Could not create admin user: {ADMIN_USERNAME}")
+
+        if CREATE_USER:
+            try:
+                user = schemas.UserCreate(
+                    username=USER_USERNAME, password=USER_PASSWORD, isAdmin=False
+                )
+                crud.create_user(db, user)
+            except:
+                print(f"Could not create user: {USER_USERNAME}")
+
+        db.close()
+    return
+
+
 ##Set up initial accounts here. Uncomment, then access /setup. It will return nil. Now the accounts are set up, comment out the code below again (or delete it)
 
-#Create admin user
-#@app.get("/setup/")
-#async def create_admin_user():
+# Create admin user
+# @app.get("/setup/")
+# async def create_admin_user():
 #    db = database.SessionLocal()
 #    admin_user = schemas.UserCreate(username="admin", password="yourpassword", isAdmin=True)
 #    user = schemas.UserCreate(username="user", password="yourotherpassword", isAdmin=False)
@@ -681,4 +714,3 @@ class bookForm:
 #    crud.create_user(db,user)
 #    db.close()
 #    return
-
