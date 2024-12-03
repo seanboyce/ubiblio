@@ -10,10 +10,10 @@
 <script>
 //Default view is to show first 50 customers until user enters something into search
 var pagination=0;
-$(document).ready(search(0));
 var itemdata = []
 //Core search function
 function search(skip) {
+	console.log("search");
 //reset pagination on new search
 if (skip<1){pagination=0;}
 searchTerm = $("#searchboxInput").val();
@@ -44,13 +44,6 @@ $("#pagination").append("<button onclick='next();'>Next</button>");
 
 });}
 
-//just makes search bar work with keyboard Enter key
-$(document).ready(function(){
-    $('#searchboxInput').keypress(function(e){
-      if(e.keyCode==13)
-      $('#searchbutton').click();
-    });
-});
 
 //handle pagination
 function next() {
@@ -63,6 +56,7 @@ pagination=pagination-50;
 search(pagination)
 }
 </script>
+
 
 
 
@@ -106,15 +100,18 @@ search(pagination)
 {% for error in errors %}
     <p style="color: red">{{ error }}</p>
 {% endfor %}
-  <!-- Search Input-->
+   <!-- Search Input-->
 
-  <input style="margin-bottom:15px;" type="text" id="searchboxInput" placeholder="Search...">
+<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
+  <input type="text" id = "searchboxInput" name="searchboxInput" value="" /></p>
 <span>Search By:&nbsp;&nbsp;</span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
   <label for="authorSearch"> Author</label>
   <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
-  <label for="titleSearch"> Title</label><br>								
-  <button id="searchbutton" onclick="search(0);">Search</button><a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
-  <a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/withdrawn"><button>Show Withdrawn</button></a>
+  <label for="titleSearch"> Title</label>	<br>
+  <input style ="float:left;"; type="submit" value="Search">										
+</form>
+<a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
+<a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/withdrawn"><button>Show Withdrawn</button></a>
 		
 <h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
 
