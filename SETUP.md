@@ -29,7 +29,7 @@ NB: Users have reported success running ubiblio on Windows. I just don't know ho
 
 1. Open a browser, connect, ignore the login, and access /setup. This sets up the initial accounts.
 2. Shut down ubiblio. Open main.py and delete the code block at the end that you uncommented earlier (the whole /setup endpoint).
-3. Launch ubiblio again. 
+3. Launch ubiblio again.
 
 # Launching
 
@@ -47,7 +47,7 @@ Note that this example above does not enable SSL. It will accept all incoming co
 
 ## Launching with Gunicorn and SSL / HTTPS
 
-gunicorn will launch multiple instances of uvicorn as needed to support even more concurrent users. You need to add the paths to your cert files and choose a port. Certs from letsencrypt are just fine :) 
+gunicorn will launch multiple instances of uvicorn as needed to support even more concurrent users. You need to add the paths to your cert files and choose a port. Certs from letsencrypt are just fine :)
 
 > python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker --certfile= --keyfile=
 
@@ -67,7 +67,41 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 
 # Docker Deployment
 
-Docker deployment is not supported yet. I plan to support it later. If you want to help me by figuring it out, please let me know. I would be happy for the assistance -- I don't particulary know Docker well, and don't enjoy using it much. So adding support for this would be a bit of a chore for me.
+## Environment Variables
+| Environment Variable | Description | Required? | Default |
+|---|---|---|---|
+| TOKEN_TTL | How many minutes should a session be valid? | No | 120 |
+| CREATE_ADMIN_USER | Should create an admin user when GET `/user-setup` | No | False |
+| ADMIN_USERNAME | Admin username to create | No | - |
+| ADMIN_PASSWORD | Admin password to create | No | - |
+| CREATE_USER | Should create an user when GET `/user-setup` | No | False |
+| USER_USERNAME | Username to create | No | - |
+| USER_PASSWORD | Password to create | No | - |
+| USE_REDIS | Use Redis for DDOS protection? | No | False |
+| REDIS_URI | External Redis URI | No | - |
+
+
+To build:
+
+```bash
+> git clone https://github.com/seanboyce/ubiblio/
+> cd ubiblio
+> docker build -t ubiblio .
+```
+
+To run:
+
+```bash
+> docker run -p 8000:8000 -v config_dir:/app/config ubiblio
+```
+
+If you run into permissions issues:
+
+```bash
+> docker run -p 8000:8000 -v config_dir:/app/config -e PUID=$(id -u $USER) -e PGID=$(id -g $USER) ubiblio
+```
+
+Open the service in your web browser at `http://<ip>:8000`
 
 # Useful Guides
 
