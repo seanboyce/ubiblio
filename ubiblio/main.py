@@ -57,7 +57,7 @@ favicon_path = 'favicon.ico'
 @app.on_event("startup")
 async def startup():
     if USE_REDIS:
-        redis_connection = redis.from_url(REDIS_URI, encoding="utf-8", decode_responses=True)
+        redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
 
