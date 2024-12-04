@@ -7,8 +7,8 @@
 
 NB: Users have reported success running ubiblio on Windows. I just don't know how to use Windows very well. If you would like to contribute setup instructions for Windows or other operating systems, please do so and I will include them.
 
-# Setup:
-
+# Setup (without Docker):
+[Docker setup here](#Docker Deployment)
 1. I wrote this for Python 3.10.12 (reported working up to Python 3.12). A good first step is to install that to a venv, like so:
    > python3.10 -m venv "ubiblio"
 2. Enter the virtual environment with:
@@ -17,19 +17,23 @@ NB: Users have reported success running ubiblio on Windows. I just don't know ho
    > git clone https://github.com/seanboyce/ubiblio/
 4. cd into the newly created folder (also named ubiblio) and install the requirements.
    > pip install -r requirements.txt
-5. Generate a secret key for JWT (this is required to secure your login)
-   > openssl rand -hex 32
-6. Copy the output to your clipboard and open /ubiblio/main.py in a text editor. Paste it in to the parameter "SECRET_KEY" and save the file.
-7. Go to the end of main.py. You will note a code block that defines an API endpoint that sets up user accounts, it is commended out. Add your desired usernames and passwords Note: the passwords will be securely stored as hashes.
-8. Proceed to first-time launch!
-
-   Optional: The login tokens expire after 2 hours by default. If you want to change this behavior, change the number of minutes after ACCESS_TOKEN_EXPIRE_MINUTES in main.py. If you never want tokens to expire, just set the number of minutes to some arbitrarily large number.
 
 # First Time Setup
 
-1. Open a browser, connect, ignore the login, and access /setup. This sets up the initial accounts.
-2. Shut down ubiblio. Open main.py and delete the code block at the end that you uncommented earlier (the whole /setup endpoint).
-3. Launch ubiblio again.
+There are a number of environment variables you can set to slightly change the behavior of ubiblio. You'll need these to create initial user accounts.
+
+## Environment Variables
+| Environment Variable | Description | Required? | Default |
+|---|---|---|---|
+| TOKEN_TTL | How many minutes should a session be valid? | No | 120 |
+| CREATE_ADMIN_USER | Should create an admin user when GET `/user-setup` | No | False |
+| ADMIN_USERNAME | Admin username to create | No | - |
+| ADMIN_PASSWORD | Admin password to create | No | - |
+| CREATE_USER | Should create an user when GET `/user-setup` | No | False |
+| USER_USERNAME | Username to create | No | - |
+| USER_PASSWORD | Password to create | No | - |
+| USE_REDIS | Use Redis for DDOS protection? | No | False |
+| REDIS_URI | External Redis URI | No | - |
 
 # Launching
 
@@ -102,6 +106,8 @@ If you run into permissions issues:
 ```
 
 Open the service in your web browser at `http://<ip>:8000`
+
+Note: This launches by default with uvicorn and no https support. 
 
 # Useful Guides
 
