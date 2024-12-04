@@ -8,7 +8,6 @@
 NB: Users have reported success running ubiblio on Windows. I just don't know how to use Windows very well. If you would like to contribute setup instructions for Windows or other operating systems, please do so and I will include them.
 
 # Setup (without Docker):
-[Docker setup here](#Docker Deployment)
 1. I wrote this for Python 3.10.12 (reported working up to Python 3.12). A good first step is to install that to a venv, like so:
    > python3.10 -m venv "ubiblio"
 2. Enter the virtual environment with:
@@ -18,7 +17,7 @@ NB: Users have reported success running ubiblio on Windows. I just don't know ho
 4. cd into the newly created folder (also named ubiblio) and install the requirements.
    > pip install -r requirements.txt
 
-# First Time Setup
+## First Time Setup
 
 There are a number of environment variables you can set to slightly change the behavior of ubiblio. You'll need these to create initial user accounts.
 
@@ -35,7 +34,7 @@ There are a number of environment variables you can set to slightly change the b
 | USE_REDIS | Use Redis for DDOS protection? | No | False |
 | REDIS_URI | External Redis URI | No | - |
 
-# Launching
+## Launching
 
 There are two supported ways to launch ubiblio -- uvicorn and gunicorn. Both are ridiculously overpowered for such a simple application, but asking why we need such power is a question for philosophers and cowards.
 
