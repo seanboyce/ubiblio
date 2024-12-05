@@ -114,6 +114,8 @@ For setting up a reverse proxy: https://www.digitalocean.com/community/tutorials
 
 A good tutorial on production deployment with venv+fastapi+gunicorn: https://docs.vultr.com/how-to-deploy-fastapi-applications-with-gunicorn-and-nginx-on-ubuntu-20-04
 
+If yo uare getting 'permission denied' errors from Docker after installing docker from the snap store: https://askubuntu.com/questions/941816/permission-denied-when-running-docker-after-installing-it-as-a-snap
+
 # Notes on DDoS Resistance
 
 DDoS resistance is provided by fastapi_limiter. It sets a pretty restrictive rate limit by IP address. It keeps these in a small, fast redis database in-memory. These rate limits are set by endpoint in main.py -- I have attempted to set agressive but reasonable limits, but they are easy to change if you need.
