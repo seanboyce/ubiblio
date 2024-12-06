@@ -36,6 +36,12 @@ There are a number of environment variables you can set to slightly change the b
 | USE_REDIS | Use Redis for DDOS protection? | No | False |
 | REDIS_URI | External Redis URI | No | - |
 
+For example, to set up an admin user at first launch, you'll need to run a command like below (replacing username and password as you see fit):
+
+>env CREATE_ADMIN_USER=True ADMIN_USERNAME=username ADMIN_PASSWORD=password uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload
+
+Then visit /user-setup and the account will be created. It will return you to login.
+
 ## Launching
 
 There are two supported ways to launch ubiblio -- uvicorn and gunicorn. Both are ridiculously overpowered for such a simple application, but asking why we need such power is a question for philosophers and cowards.
