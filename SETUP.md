@@ -1,4 +1,6 @@
-# Prerequesites (Linux):
+# Setup (Linux, without Docker)
+
+## Prerequisites
 1. Apache or other webserver set up to reverse-proxy to localhost -- so for example my.domain.com on port 443 redirect to localhost port 8000 where ubiblio runs.
 2. redis-server must be installed (this is used for DDoS resistance)
 3. gunicorn and uvicorn to launch it (gunicorn recommended for production)
@@ -7,7 +9,7 @@
 
 NB: Users have reported success running ubiblio on Windows. I just don't know how to use Windows very well. If you would like to contribute setup instructions for Windows or other operating systems, please do so and I will include them.
 
-# Setup (without Docker):
+## First Steps:
 1. I wrote this for Python 3.10.12 (reported working up to Python 3.12). A good first step is to install that to a venv, like so:
    > python3.10 -m venv "ubiblio"
 2. Enter the virtual environment with:
