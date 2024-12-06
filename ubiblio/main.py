@@ -699,7 +699,7 @@ async def create_user():
                 print(f"Could not create user: {USER_USERNAME}")
 
         db.close()
-    return
+    return RedirectResponse(url='/auth/login')
 
 
 ##Set up initial accounts here. Uncomment, then access /setup. It will return nil. Now the accounts are set up, comment out the code below again (or delete it)
