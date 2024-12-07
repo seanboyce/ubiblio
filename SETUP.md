@@ -90,7 +90,9 @@ python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.Uvicorn
 
 There is no password recovery -- this is by design. I realize this is a little inconvenient, but I wanted something fully self-hosted. Registration / password recovery generally depends on email, which is a pain to host myself.
 
-If you absolutely need to recover a user, you can shut down ubiblio, open up the DB in a sqlite database browser, and manually clear the users out. Then add back the /setup endpoint to recreate the same users with a known password. Or just add new admin users. Don't forget to clear out the code block after. However, it's a lot less work to simply not lose your password!
+If you absolutely need to recover a user, you can shut down ubiblio, open up the DB in a sqlite database browser, and manually clear that user out. Then add back the user by launching ubiblio with appropriate environment variables. Remember to visit /user-setup endpoint to actually create the user. You'll probably lose your reading list, but the username will work again.
+
+It's a lot less work to not lose your password!
 
 # Backups:
 
