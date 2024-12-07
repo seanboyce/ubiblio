@@ -30,7 +30,7 @@ else:
     secret_key = (
         subprocess.check_output(["openssl", "rand", "-hex", "32"]).decode().strip()
     )
-    with open(SECRET_KEY_FILE, "w") as f:
+    with open(SECRET_KEY_FILE, "w+") as f:
         f.write(secret_key)
 
 SECRET_KEY = secret_key
