@@ -34,7 +34,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            seanboyce/ubiblio
+            sean8196/ubiblio
           tags: |
             type=raw,value=latest,enable=${{ endsWith(github.ref, 'master') }}
             type=ref,event=tag
