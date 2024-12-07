@@ -36,7 +36,7 @@ jobs:
           images: |
             sean8196/ubiblio
           tags: |
-            type=raw,value=latest,enable=${{ endsWith(github.ref, 'master') }}
+            type=raw,value=latest,enable=${{ endsWith(github.ref, 'release') }}
             type=ref,event=tag
       -
         name: Build and push
