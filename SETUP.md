@@ -155,7 +155,18 @@ Then execute:
 docker run -p 8000:8000 -v config_dir:/app/config ubiblio
 ```
 
-Remember to pass any environment vars as above! This launches by default with uvicorn and no https support. 
+Then, open the service in your web browser at `http://<ip>:8000`
+
+## Passing Environment Variables to Docker
+
+Remember to pass any environment vars as above! For example, to run and also create the admin user:
+
+```bash
+docker run -p 8000:8000 -v config_dir:/app/config -e CREATE_ADMIN_USER='True' -e ADMIN_USERNAME='your_admin_username' -e ADMIN_PASSWORD='your_admin_password' sean8196/ubiblio
+```
+Be sure to visit user-setup/ to create the user! This launches by default with uvicorn and no https support. 
+
+Note that passing environment variables this way will show in your bash history, and possibly other places. If this is a problem, consider (for example) storing the variables in a file, pulling them from the file in your command, then deleting the file (there are many examples online on how to do this).
 
 # Useful Guides
 
