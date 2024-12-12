@@ -97,6 +97,16 @@ border-color:#242943;
 	<p>The recommended way to handle backups is via the included daily_backup.sh script, which can be run on a cron job. However, this system lets you manually manage backups.</p>
 		
 	<a style="border:none; margin-right:25px;margin-right:25px;" href="/export"><button>Backup Now</button></a>
+	<form action="/uploadBackup/" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label for="file">Upload an image: </label>
+        <input type="file" id="file" name="file" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Upload">
+    </form>
 	
 		<p><br>Restoring from one of the files below will wipe the database completely and re-load it from the file. You <b>cannot</b> undo this process.</p>
 

@@ -26,7 +26,10 @@ from isbnlib import *
 from .vars import *
 import sqlite3
 import csv
+import aiofiles
+
 console = Console()
+CHUNK_SIZE = 1024 * 1024 #for uploads
 
 def get_rate_limiter(times: int, seconds: int):
     if USE_REDIS:
@@ -667,14 +670,30 @@ async def downloadBk(filename,request: Request, user: schemas.User = Depends(get
             return FileResponse(path, media_type='application/octet-stream',filename=filename)
     except:
            return "Only admins can download backups." 
- 
-@app.get("/uploadBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
-async def uploadBk(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+
+
+@app.post("/uploadBackup/")
+async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            pass
-    except:
-           return "Only admins can download backups." 
+            filename_base = str(os.path.basename(file.filename))
+            db = SessionLocal()
+            extension = file.filename[-4:]
+            if (extension == ".sql") or (extension ==".SQL") or (extension == ".csv") or (extension == ".CSV"):
+                filepath = os.path.join('./export/', str(filename_base))
+                async with aiofiles.open(filepath, 'wb') as f:
+                    while chunk := await file.read(CHUNK_SIZE):
+                        await f.write(chunk)   
+                response = RedirectResponse("/backups", status.HTTP_302_FOUND)
+                return response
+            if not (extension == ".sql") or (extension ==".csv"):
+                return "Not a valid backup"
+    except Exception as e:
+        return {"message": e.args}
+
+ 
+            
+
            
 # --------------------------------------------------------------------------
 # Browse by Genre
