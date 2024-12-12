@@ -1,4 +1,5 @@
 import datetime as dt
+from os import listdir, path, remove
 from typing import Dict, List, Optional, Union
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, File, UploadFile
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
@@ -23,7 +24,8 @@ import json
 from datetime import datetime
 from isbnlib import *
 from .vars import *
-
+import sqlite3
+import csv
 console = Console()
 
 def get_rate_limiter(times: int, seconds: int):
@@ -549,6 +551,131 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
         return templates.TemplateResponse("readinglist.html", context)
     if not user:
         return "You are not logged in. Login to see withdrawn books."
+
+
+
+
+# --------------------------------------------------------------------------
+# Database export / backup / restore
+# --------------------------------------------------------------------------
+
+
+@app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def export(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            con = sqlite3.connect('sql_app.db')
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            with open('export/csvBookExport' + date_time + '.sql', 'w') as f:
+                for line in con.iterdump():
+                    f.write('%s\n' % line)
+        return RedirectResponse(url='/backups')
+    except:
+           return "Only an admin can export the database." 
+
+@app.get("/exportcsv", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def exportcsv(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            conn = sqlite3.connect('sql_app.db')
+            cur = conn.cursor()
+            bookData = cur.execute("SELECT * FROM books").fetchall()
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            with open('export/csvBookExport' + date_time + '.csv', 'a') as f:
+                writer = csv.writer(f)
+                writer.writerows(bookData)   
+            f.close()
+        return RedirectResponse(url='/backups')
+    except:
+           return "Only an admin can export the database." 
+
+           
+@app.get("/backups", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def backups(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            possibleBackups = listdir('export')
+            backups = []
+            bookExports = []
+            for i in possibleBackups:
+                if i.endswith('.sql'):
+                    backups.append(i)     
+                elif i.endswith('.csv'):
+                    bookExports.append(i)
+            context = {
+        "request": request,
+        "backups":backups,
+        "bookExports":bookExports,
+    }
+        return templates.TemplateResponse("backups.html", context)
+    except:
+           return "Only an admin can view database backups." 
+
+@app.get("/restoreBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def restoreDB(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+             path = ('export/' + filename)
+             if os.path.isfile(path):
+                 crud.wipeAndRestore(path)
+                 context = {
+        "request": request,
+    }
+                 response = RedirectResponse(url='/searchbooks')
+                 return response
+    except:
+           return "Restore failed. No changes made to database." 
+
+@app.get("/deleteBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def deleteBk(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+             path = ('export/' + filename)
+             if os.path.isfile(path):
+                 os.remove(path)
+                 context = {
+        "request": request,
+    }
+                 return RedirectResponse(url='/backups')
+                 return response
+    except:
+           return "Delete backup failed. It's likely you are not an admin user or there's a file permissions issue." 
+
+
+@app.get("/addByCSV/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def addCSV(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+             path = ('export/' + filename)
+             if os.path.isfile(path):
+                 crud.addCSV(path)
+                 context = {
+        "request": request,
+    }
+                 response = RedirectResponse(url='/searchbooks')
+                 return response
+    except:
+           return "Error adding books -- check the search page to see what was added." 
+ 
+@app.get("/downloadBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def downloadBk(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            path = ('export/' + filename)
+            return FileResponse(path, media_type='application/octet-stream',filename=filename)
+    except:
+           return "Only admins can download backups." 
+ 
+@app.get("/uploadBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def uploadBk(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            pass
+    except:
+           return "Only admins can download backups." 
+           
 # --------------------------------------------------------------------------
 # Browse by Genre
 # --------------------------------------------------------------------------
@@ -674,7 +801,7 @@ class bookForm:
         return False
 
 
-# Create user from docker
+# Create user from environment variables
 @app.get("/user-setup/")
 async def create_user():
     if CREATE_ADMIN_USER or CREATE_USER:
@@ -700,17 +827,3 @@ async def create_user():
 
         db.close()
     return RedirectResponse(url='/auth/login')
-
-
-##Set up initial accounts here. Uncomment, then access /setup. It will return nil. Now the accounts are set up, comment out the code below again (or delete it)
-
-# Create admin user
-# @app.get("/setup/")
-# async def create_admin_user():
-#    db = database.SessionLocal()
-#    admin_user = schemas.UserCreate(username="admin", password="yourpassword", isAdmin=True)
-#    user = schemas.UserCreate(username="user", password="yourotherpassword", isAdmin=False)
-#    crud.create_user(db,admin_user)
-#    crud.create_user(db,user)
-#    db.close()
-#    return

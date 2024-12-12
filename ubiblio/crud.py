@@ -4,6 +4,8 @@ from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from . import models, schemas
 from pydantic import BaseModel
 from datetime import datetime
+import sqlite3
+import csv
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -172,4 +174,42 @@ def bookWithdraw(db: Session, book: schemas.Book):
     except Exception as e:
         print(e)
         return False
+        
+def wipeAndRestore(filename):
+    conn = sqlite3.connect('sql_app.db')
+    cursor = conn.execute("DROP TABLE 'books';")
+    cursor = conn.execute("DROP TABLE 'readinglistitems';")
+    cursor = conn.execute("DROP TABLE 'users';")
+    cursor.close()
+    # Hm, what if new schema is different?
+    # models.Base.metadata.create_all(bind=engine)
+    f = open(filename,'r')
+    sql = f.read() # watch out for built-in `str`
+    cursor = conn.executescript(sql)
+    cursor.close()
+    return
+    
+def addCSV(filename):
+    with open(filename,'r') as booksCSV: 
+        books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','coverImage','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
+        addBooks = [(i['title'], i['author'], i['summary'], i['coverImage'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
+        print(type(addBooks))
+    conn = sqlite3.connect('sql_app.db')
+    cur = conn.cursor()
+    cur.executemany("INSERT INTO books (title, author, summary, coverImage, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
+    conn.commit()
+    conn.close() 
+    return
+
+#def updateDB():
+#    conn = sqlite3.connect('sql_app.db')
+#    initData =["1.0.0",False]
+#    configExists = conn.execute('SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type="table" AND name="config");')
+#    if configExists:
+#        cursor = conn.execute("create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN);")
+#        cursor = conn.execute("INSERT INTO config (version, coverImages) VALUES (?, ?);", initData)
+#        #Other modifications to tables here, e.g. drop coverimage field, add custom fields
+#    else:    
+#        #if already exists, check version is at least current version. Although in this first upgrase, we can just pass.
+#        pass
 
