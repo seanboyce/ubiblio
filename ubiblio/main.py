@@ -559,8 +559,17 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
 
 
 # --------------------------------------------------------------------------
-# Database export / backup / restore
+# Database update / export / backup / restore
 # --------------------------------------------------------------------------
+
+@app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+        if user.isAdmin == True:
+            crud.updateDB()
+        return RedirectResponse(url='/backups')
+#    except:
+#           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)

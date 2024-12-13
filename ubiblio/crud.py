@@ -201,15 +201,18 @@ def addCSV(filename):
     conn.close() 
     return
 
-#def updateDB():
-#    conn = sqlite3.connect('sql_app.db')
-#    initData =["1.0.0",False]
-#    configExists = conn.execute('SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type="table" AND name="config");')
-#    if configExists:
-#        cursor = conn.execute("create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN);")
-#        cursor = conn.execute("INSERT INTO config (version, coverImages) VALUES (?, ?);", initData)
-#        #Other modifications to tables here, e.g. drop coverimage field, add custom fields
-#    else:    
-#        #if already exists, check version is at least current version. Although in this first upgrase, we can just pass.
-#        pass
-
+def updateDB():
+    conn = sqlite3.connect('sql_app.db')
+    initData =["1.0.0",False]
+    configExists = conn.execute('SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type="table" AND name="Config");').fetchone()[0]
+    if not configExists:
+        print("old DB version -- upgrading")
+        cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN);')
+        cursor = conn.execute('INSERT INTO config (version, coverImages) VALUES (?, ?);', initData)
+        cursor = conn.execute('ALTER TABLE books DROP coverImage;')
+        conn.commit()
+        conn.close()
+        #Other modifications to tables here, e.g. custom fields, more config
+    else:    
+        pass
+    return
