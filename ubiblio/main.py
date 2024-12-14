@@ -261,11 +261,15 @@ async def favicon():
 # --------------------------------------------------------------------------
 @app.get("/add_book", dependencies=[get_rate_limiter(times=3, seconds=2)], response_class=HTMLResponse)
 def add_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    context = {
-        "request": request,
-    }
     try:
         if user.isAdmin == True:
+            db = SessionLocal()
+            config = crud.getConfig(db)
+            db.close()
+            context = {
+            "config": config,
+            "request": request,
+            }
             return templates.TemplateResponse("newBook.html", context)
         if not user.isAdmin == True:
             return "You are not authorized to add books. Only an admin can do this."
@@ -283,7 +287,7 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
     if await form.is_valid():
         try:
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, coverImage=form.coverImage, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -316,9 +320,11 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
 async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
+        config = crud.getConfig(db)
         book = crud.getBookById(db,bookId)
         db.close()
         context = {
+        "config":config,
         "book": book,
         "request": request
     }
@@ -335,14 +341,16 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
     if await form.is_valid():
         try:
             db = SessionLocal()
-            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, coverImage=form.coverImage, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            config = crud.getConfig(db)
+            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
             crud.updateBook(db, book)
             book = crud.getBookById(db,bookId)
             db.close()
             context = {
-        "book": book,
-        "request": request
-    }
+            "config": config,
+            "book": book,
+            "request": request
+            }
             return templates.TemplateResponse("updateBook.html", context)
         except Exception as e:
             print(e)
@@ -353,12 +361,14 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
     try:
         if user.isAdmin == True:
             db = SessionLocal()
+            config = crud.getConfig(db)
             book = crud.getBookById(db,bookId)
             db.close()
             context = {
-        "book": book,
-        "request": request
-    }
+            "config":config,
+            "book": book,
+            "request": request
+            }
             return templates.TemplateResponse("updateBook.html", context)
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
@@ -462,7 +472,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
         await form.load_data()
         if await form.is_valid():
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, coverImage=form.coverImage, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -522,7 +532,7 @@ async def bookReturn(bookId, request: Request, user: schemas.User = Depends(get_
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, coverImage=book.coverImage, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=False)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=False)
         crud.bookReturn(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -534,7 +544,7 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, coverImage=book.coverImage, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=True)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=True)
         crud.bookWithdraw(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -564,24 +574,25 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
 
 @app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
+    try:
         if user.isAdmin == True:
             crud.updateDB()
         return RedirectResponse(url='/backups')
-#    except:
-#           return "Only an admin can export the database." 
+    except:
+           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def export(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            con = sqlite3.connect('sql_app.db')
+            conn = sqlite3.connect('sql_app.db')
             date_time = datetime.now()
             date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
             with open('export/csvBookExport' + date_time + '.sql', 'w') as f:
-                for line in con.iterdump():
+                for line in conn.iterdump():
                     f.write('%s\n' % line)
+            conn.close()
         return RedirectResponse(url='/backups')
     except:
            return "Only an admin can export the database." 
@@ -599,6 +610,7 @@ async def exportcsv(request: Request, user: schemas.User = Depends(get_current_u
                 writer = csv.writer(f)
                 writer.writerows(bookData)   
             f.close()
+            conn.close()
         return RedirectResponse(url='/backups')
     except:
            return "Only an admin can export the database." 
@@ -693,6 +705,7 @@ async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_
                 async with aiofiles.open(filepath, 'wb') as f:
                     while chunk := await file.read(CHUNK_SIZE):
                         await f.write(chunk)   
+                db.close()
                 response = RedirectResponse("/backups", status.HTTP_302_FOUND)
                 return response
             if not (extension == ".sql") or (extension ==".csv"):
@@ -701,12 +714,49 @@ async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_
         return {"message": e.args}
 
  
-            
+# --------------------------------------------------------------------------
+# Library Configuration
+# --------------------------------------------------------------------------            
 
-           
+@app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def config(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            config = crud.getConfig(db)
+            db.close()
+            context = {
+        "request": request,
+        "config":config,
+    }
+        return templates.TemplateResponse("config.html", context)
+#    except:
+#           return "Only an admin can edit the library configuration."    
+   
+@app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def updateConfig(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            form = configForm(request)
+            await form.load_data()
+            if await form.is_valid():
+                    db = SessionLocal()
+                    config = schemas.config(id = 1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2)
+                    crud.updateConfig(db, config)
+                    config = crud.getConfig(db)
+                    db.close()
+                    context = {
+                    "config": config,
+                    "request": request,
+                     }
+                    return templates.TemplateResponse("config.html", context)
+    except Exception as e:
+        return "Only an admin can edit the library configuration."
+                      
 # --------------------------------------------------------------------------
 # Browse by Genre
 # --------------------------------------------------------------------------
+
 @app.get("/booksByGenre/{genre}", dependencies=[get_rate_limiter(times=12, seconds=2)], response_class=HTMLResponse)
 async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
@@ -796,7 +846,6 @@ class bookForm:
         self.title: Optional[str] = None
         self.author: Optional[str] = None
         self.summary: Optional[str] = None
-        self.coverImage: Optional[str] = None
         self.genre: Optional[str] = None
         self.library: Optional[str] = None
         self.shelf: Optional[str] = None
@@ -811,7 +860,6 @@ class bookForm:
         self.title = form.get("title")
         self.author = form.get("author")
         self.summary = form.get("summary")
-        self.coverImage = form.get("coverImage")
         self.genre = form.get("genre")
         self.library = form.get("library")
         self.shelf = form.get("shelf")
@@ -828,6 +876,31 @@ class bookForm:
             return True
         return False
 
+
+class configForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.errors: List = []
+        self.version: Optional[str] = None
+        self.coverImages: Optional[bool] = None
+        self.customFieldName1: Optional[str] = None
+        self.customFieldName2: Optional[str] = None
+
+    async def load_data(self):
+        form = await self.request.form()
+        self.version = form.get("version")
+        self.coverImages = form.get("coverImages")
+        self.customFieldName1 = form.get("customFieldName1")
+        self.customFieldName2 = form.get("customFieldName2")
+
+    async def is_valid(self):
+        if not self.version:
+            self.errors.append("Database version is required so as not to break the DB")
+        if not self.version:
+            self.errors.append("Enable Cover Images must be either True or False")
+        if not self.errors:
+            return True
+        return False
 
 # Create user from environment variables
 @app.get("/user-setup/")

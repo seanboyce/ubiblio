@@ -27,7 +27,6 @@ class Book(BookBase):
     id: int 
     author: str = Field(default=None)
     summary: str = Field(default=None)
-    coverImage: str = Field(default=None)
     genre: str = Field(default=None)
     library: str = Field(default=None)
     shelf: str = Field(default=None)
@@ -36,11 +35,13 @@ class Book(BookBase):
     notes: str = Field(default=None)
     owned: bool = Field(default=False)
     withdrawn: bool = Field(default=False)
-    
+    withdrawnBy: int = Field(default=False)
+    customField1: str = Field(default=None)
+    customField2: str = Field(default=None)
+                
 class BookCreate(BookBase):
     author: str = Field(default=None)
     summary: str = Field(default=None)
-    coverImage: str = Field(default=None)
     genre: str = Field(default=None)
     library: str = Field(default=None)
     shelf: str = Field(default=None)
@@ -49,12 +50,38 @@ class BookCreate(BookBase):
     notes: str = Field(default=None)
     owned: bool = Field(default=None)
     withdrawn: bool = Field(default=False)    
+    withdrawnBy: int = Field(default=False)
+    customField1: str = Field(default=None)
+    customField2: str = Field(default=None)
 
 class readingListItems(BaseModel):
     id: int
     book: int
     user_id: int 
+    class Config:
+        orm_mode = True
  
 class readingListItemCreate(BaseModel):
     book: int
     user_id: int
+    class Config:
+        orm_mode = True
+    
+class bookImageBase(BaseModel):  
+    bookId: int
+    filename: str
+    class Config:
+        orm_mode = True    
+        
+class bookImage(bookImageBase):  
+    id: int 
+
+class config(BaseModel):
+    id: int 
+    version: str = Field(default=None)
+    coverImages: bool = Field(default=False)
+    customFieldName1: str = Field(default=None)
+    customFieldName1: str = Field(default=None)
+    class Config:
+        orm_mode = True       
+

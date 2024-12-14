@@ -191,28 +191,90 @@ def wipeAndRestore(filename):
     
 def addCSV(filename):
     with open(filename,'r') as booksCSV: 
-        books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','coverImage','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
-        addBooks = [(i['title'], i['author'], i['summary'], i['coverImage'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
+        books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
+        addBooks = [(i['title'], i['author'], i['summary'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
         print(type(addBooks))
     conn = sqlite3.connect('sql_app.db')
     cur = conn.cursor()
-    cur.executemany("INSERT INTO books (title, author, summary, coverImage, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
+    cur.executemany("INSERT INTO books (title, author, summary, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
     conn.commit()
     conn.close() 
     return
 
 def updateDB():
     conn = sqlite3.connect('sql_app.db')
-    initData =["1.0.0",False]
+    initData =["1.0.0",False,"",""]
     configExists = conn.execute('SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type="table" AND name="Config");').fetchone()[0]
     if not configExists:
-        print("old DB version -- upgrading")
-        cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN);')
-        cursor = conn.execute('INSERT INTO config (version, coverImages) VALUES (?, ?);', initData)
+        cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+        cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
         cursor = conn.execute('ALTER TABLE books DROP coverImage;')
+        cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy INTEGER;')
+        cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
+        cursor = conn.execute('ALTER TABLE books ADD COLUMN customField2 VARCHAR;')
+        cursor = conn.execute('create table if not exists bookImages (id INTEGER PRIMARY KEY, bookId INTEGER, coverImages filename);')
         conn.commit()
         conn.close()
-        #Other modifications to tables here, e.g. custom fields, more config
     else:    
         pass
     return
+    
+def getConfig(db: Session):
+    try:
+        config = db.query(models.config).first()
+        return config
+    except Exception as e:
+        print(e)
+        return
+
+def updateConfig(db: Session, config: schemas.config):
+    try:
+        config = models.config(** config.dict())
+        db.merge(config)
+        db.commit()
+    except Exception as e:
+        print(e)
+        return  
+
+def getImages(db: Session, bookId: int):
+    try:
+        limit = 16
+        return db.query(models.bookImage).filter(models.bookImage.bookId == bookId).limit(limit).all()  
+    except Exception as e:
+        print(e)
+        return 
+        
+def getImagesByFilename(db: Session, filename: str):
+    try:
+        image = db.query(models.bookImage).filter(models.bookImage.filename == filename).first()
+        if image:
+            return True
+        if not image:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+def addImage(db: Session, image: schemas.bookImageBase):
+    try:
+        image = models.bookImage(** image.dict())
+        db.add(image)
+        db.commit()
+        db.refresh(image)
+        return "True"
+    except Exception as e:
+        print(e)
+        return "False"
+ 
+    
+def deleteImage(db: Session, imageId: int):
+    try:
+        image = db.query(models.bookImage).filter(models.bookImage.id == imageId).first()
+        bookId = image.bookId
+        dbpath = image.filename
+        db.delete(image)
+        db.commit()
+        return bookId,dbpath
+    except Exception as e:
+        print(e)
+        return "False"
