@@ -13,7 +13,6 @@ var pagination=0;
 var itemdata = []
 //Core search function
 function search(skip) {
-	console.log("search");
 //reset pagination on new search
 if (skip<1){pagination=0;}
 searchTerm = $("#searchboxInput").val();
@@ -27,7 +26,6 @@ if (searchTitle !== true){
 } else {
     var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip;
 }
-	console.log(searchEndpoint);
 $.post(searchEndpoint,function(data, status){
     itemdata = jQuery.parseJSON(data);
     $("#tablebody").empty();
