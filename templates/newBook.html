@@ -49,7 +49,6 @@
     <p style="color: red">{{ error }}</p>
 {% endfor %}
 <h1>Add a New Book</h1>
-
 {% if addISBN %} 
 <a style ="text-decoration:none !important; border:none;" onclick = "document.bookExistsAdder.action = '/addanotherisbn';document.bookExistsAdder.submit();"><button>Approve & Add Another</button></a>
 {% endif %}
@@ -89,6 +88,17 @@
 			<option value="Animal Fiction">Animal Fiction</option>
 </select>
     </p>
+				
+{% if config.customFieldName1|length > 0 %}	
+<p><label for="">{{ config.customFieldName1 }}</label></p>
+        <input type="text" name="customField1" value="{{ customField1 }}">
+    </p>
+{% endif %}	
+{% if config.customFieldName2|length > 0 %}	
+<p><label for="">{{ config.customFieldName2 }}</label></p>
+        <input type="text" name="customField2" value="{{ customField2 }}">
+    </p>
+{% endif %}
             </div>
     <div style="width:30%; min-width: 300px; float:left;">
     <p>
@@ -172,6 +182,16 @@
 			<option value="Animal Fiction">Animal Fiction</option>
 </select>
     </p>
+{% if config.customFieldName1|length > 0 %}	
+<p><label for="">{{ config.customFieldName1 }}</label></p>
+        <input type="text" name="customField1" value="{{ customField1 }}">
+    </p>
+{% endif %}
+{% if config.customFieldName2|length > 0 %}	
+<p><label for="">{{ config.customFieldName2 }}</label></p>
+        <input type="text" name="customField2" value="{{ customField2 }}">
+    </p>
+{% endif %}
             </div>
     <div style="width:30%; min-width: 300px; float:left;">
     <p>

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional
 
 class UserBase(BaseModel):
     username: str
@@ -35,9 +36,9 @@ class Book(BookBase):
     notes: str = Field(default=None)
     owned: bool = Field(default=False)
     withdrawn: bool = Field(default=False)
-    withdrawnBy: int = Field(default=False)
-    customField1: str = Field(default=None)
-    customField2: str = Field(default=None)
+    withdrawnBy: Optional[str] = Field(default=False)
+    customField1: Optional[str] = Field(default=None)
+    customField2: Optional[str] = Field(default=None)
                 
 class BookCreate(BookBase):
     author: str = Field(default=None)
@@ -50,9 +51,9 @@ class BookCreate(BookBase):
     notes: str = Field(default=None)
     owned: bool = Field(default=None)
     withdrawn: bool = Field(default=False)    
-    withdrawnBy: int = Field(default=False)
-    customField1: str = Field(default=None)
-    customField2: str = Field(default=None)
+    withdrawnBy: Optional[str] = Field(default=False)
+    customField1: Optional[str] = Field(default=None)
+    customField2: Optional[str] = Field(default=None)
 
 class readingListItems(BaseModel):
     id: int
@@ -80,8 +81,8 @@ class config(BaseModel):
     id: int 
     version: str = Field(default=None)
     coverImages: bool = Field(default=False)
-    customFieldName1: str = Field(default=None)
-    customFieldName1: str = Field(default=None)
+    customFieldName1: Optional[str] = Field(default=None)
+    customFieldName2: Optional[str] = Field(default=None)
     class Config:
         orm_mode = True       
 

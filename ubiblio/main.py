@@ -27,7 +27,8 @@ from .vars import *
 import sqlite3
 import csv
 import aiofiles
-
+from PIL import Image
+import uuid
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
 
@@ -250,7 +251,11 @@ def index(request: Request):
     }
         return templates.TemplateResponse("login.html", context)
     if user:
-        response = RedirectResponse(url='/searchbooks')
+        databaseUpToDate = crud.checkDB()
+        if databaseUpToDate == True:
+            response = RedirectResponse(url='/searchbooks')
+        else:
+            response = RedirectResponse(url='/dbUpdate')
         return response
 
 @app.get('/favicon.ico', include_in_schema=False)
@@ -287,7 +292,7 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
     if await form.is_valid():
         try:
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -311,7 +316,7 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
         context = {
         "books": books,
         "request": request
-    }
+        }
         return templates.TemplateResponse("booksearch.html", context)
     if not user.isAdmin == True:
         return "You are not authorized to delete books. Only an admin can do this."
@@ -322,12 +327,23 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
         db = SessionLocal()
         config = crud.getConfig(db)
         book = crud.getBookById(db,bookId)
+        if config.coverImages:
+            images = crud.getImages(db, bookId)
+            context = {
+            "user": user,
+            "config":config,
+            "images": images,
+            "book": book,
+            "request": request
+            }
+        
+        else:
+            context = {
+            "config":config,
+            "book": book,
+            "request": request
+            }
         db.close()
-        context = {
-        "config":config,
-        "book": book,
-        "request": request
-    }
         return templates.TemplateResponse("bookDetails.html", context)
     if not user:
         return "You are not logged in. Login to view books."
@@ -342,7 +358,7 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
         try:
             db = SessionLocal()
             config = crud.getConfig(db)
-            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.updateBook(db, book)
             book = crud.getBookById(db,bookId)
             db.close()
@@ -438,7 +454,11 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
             except: summary=""
             addISBN = [0]
             book = schemas.BookCreate(title=title, author=author, summary=summary, ISBN=isbn)
+            db = SessionLocal()
+            config = crud.getConfig(db)
+            db.close()
             context = {
+            "config": config,
             "addISBN": addISBN,
         "book": book,
         "request": request
@@ -472,7 +492,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
         await form.load_data()
         if await form.is_valid():
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -532,7 +552,7 @@ async def bookReturn(bookId, request: Request, user: schemas.User = Depends(get_
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=False)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, customField1=book.customField1, customField2=book.customField2, withdrawn=False)
         crud.bookReturn(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -544,7 +564,7 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawn=True)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawnBy = user.username, customField1=book.customField1, customField2=book.customField2, withdrawn=True)
         crud.bookWithdraw(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -561,7 +581,7 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
         "books": books,
         "request": request
     }
-        return templates.TemplateResponse("readinglist.html", context)
+        return templates.TemplateResponse("withdrawn.html", context)
     if not user:
         return "You are not logged in. Login to see withdrawn books."
 
@@ -572,12 +592,21 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
 # Database update / export / backup / restore
 # --------------------------------------------------------------------------
 
+
+@app.get("/dbUpdate", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
+async def updatePage(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+   context = {
+        "request": request,
+    }
+   return templates.TemplateResponse("updateAdvisory.html", context)
+
+
 @app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
             crud.updateDB()
-        return RedirectResponse(url='/backups')
+        return RedirectResponse(url='/searchbooks')
     except:
            return "Only an admin can export the database." 
 
@@ -785,6 +814,76 @@ async def bookGenres(request: Request, user: schemas.User = Depends(get_current_
         return templates.TemplateResponse("genres.html", context)
     if not user:
         return "You are not logged in. Login to view books."
+
+
+# --------------------------------------------------------------------------
+# Images
+# --------------------------------------------------------------------------
+
+@app.post("/upload/{bookId}")
+async def uploadfile(file: UploadFile, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            filename_base = str(os.path.basename(file.filename))
+            db = SessionLocal()
+            extension = file.filename[-4:]
+            if (extension == ".jpg") or (extension =="jpeg") or (extension == ".JPG") or (extension == ".JPEG"):
+                unique_id = str(uuid.uuid4())
+                dbpath = str(bookId) + "_" + unique_id
+                basepath = os.path.join('./static/bookImages/', str(bookId) + "_" + unique_id)
+                thumbpath = basepath + "_thumbnail" + ".jpg"
+                filepath = basepath + ".jpg"
+                async with aiofiles.open(filepath, 'wb') as f:
+                    while chunk := await file.read(CHUNK_SIZE):
+                        await f.write(chunk)   
+                    #once we have the full file, generate a thumbnail
+                    im = Image.open(filepath)
+                    im.thumbnail((300, 300), resample = Image.BOX )
+                    im.save(thumbpath, format='JPEG', quality=65)
+                    #finally, add to db only if all suceeds
+                    newImage = schemas.bookImageBase(bookId = bookId, filename = dbpath)
+                    crud.addImage(db,newImage)  
+                    db.close()
+            return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
+        if not (extension == ".jpg") or (extension =="jpeg"):
+            return "Not a valid jpg image"
+    except Exception as e:
+        return {"message": e.args}
+
+        
+@app.post("/getImages/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+def getImages(request: Request, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        db = SessionLocal()
+        images = crud.getImages(db, bookId)
+        return images
+    except Exception as e:
+        print(e)
+        return "An error has occured."
+    finally:
+        db.close()
+
+@app.post("/deleteImage/{imageId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            bookId,dbpath = crud.deleteImage(db, imageId)
+            db.close()
+            jpgpath = os.path.join('./static/bookImages/', str(dbpath) + ".jpg")
+            thumbpath = os.path.join('./static/bookImages/', str(dbpath) + "_thumbnail.jpg")
+            os.remove(thumbpath)
+            os.remove(jpgpath)
+            return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
+    except Exception as e:
+        db.close()
+        print(e)
+        return "An error has occured."
+
+
+
+
+
 # --------------------------------------------------------------------------
 # Wishlist (of books)
 # --------------------------------------------------------------------------
@@ -854,6 +953,8 @@ class bookForm:
         self.notes: Optional[str] = None
         self.owned: Optional[bool] = None
         self.withdrawn: Optional[bool] = None
+        self.customField1: Optional[bool] = None
+        self.customField2: Optional[bool] = None
 
     async def load_data(self):
         form = await self.request.form()
@@ -868,6 +969,8 @@ class bookForm:
         self.notes = form.get("notes")
         self.owned = form.get("owned")
         self.withdrawn = form.get("withdrawn")
+        self.customField1 = form.get("customField1")
+        self.customField2 = form.get("customField2")
 
     async def is_valid(self):
         if not self.title:

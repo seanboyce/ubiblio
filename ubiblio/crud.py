@@ -201,22 +201,27 @@ def addCSV(filename):
     conn.close() 
     return
 
+def checkDB():
+    conn = sqlite3.connect('sql_app.db')
+    configExists = conn.execute("PRAGMA table_info('books');").fetchall()
+    if configExists[4][1] == "coverImage":
+        return False
+    else:
+        return True
+    
 def updateDB():
     conn = sqlite3.connect('sql_app.db')
     initData =["1.0.0",False,"",""]
-    configExists = conn.execute('SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type="table" AND name="Config");').fetchone()[0]
-    if not configExists:
-        cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
-        cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
-        cursor = conn.execute('ALTER TABLE books DROP coverImage;')
-        cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy INTEGER;')
-        cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
-        cursor = conn.execute('ALTER TABLE books ADD COLUMN customField2 VARCHAR;')
-        cursor = conn.execute('create table if not exists bookImages (id INTEGER PRIMARY KEY, bookId INTEGER, coverImages filename);')
-        conn.commit()
-        conn.close()
-    else:    
-        pass
+    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+    cursor = conn.execute('ALTER TABLE books DROP coverImage;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy VARCHAR;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN customField2 VARCHAR;')
+    #Not needed, handled by sqlalchemy
+    #cursor = conn.execute('create table if not exists bookImages (id INTEGER PRIMARY KEY, bookId INTEGER, coverImages VARCHAR);')
+    conn.commit()
+    conn.close()
     return
     
 def getConfig(db: Session):

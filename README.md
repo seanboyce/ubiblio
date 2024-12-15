@@ -9,11 +9,14 @@
 7. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
 8. Content discovery (browse by genre).
 9. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
-10. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usae).
+10. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usage).
 11. No distractions -- it does what it needs to do and nothing else.
 12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
-
-No support for cover images. Wanted to keep memory footprint down and performance lightning fast. Besides, who judges books by the cover?
+13. Backup options and management! While the best way to backup is still via the included script, this is convenient for people running this with Docker.
+14. Database upgrade, so you can keep your data when upgrading the app.
+15. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
+16. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
+17. No hidden easter eggs!
 
 # Setup
 

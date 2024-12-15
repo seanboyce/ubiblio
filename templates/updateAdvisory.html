@@ -6,6 +6,57 @@
 -->
 <html>
 	<head>
+	
+	
+	<style>
+.accordion {
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
+
+.active, .accordion:hover {
+  background-color: #ccc;
+  color:#242943 !important;
+  border-color:#242943;
+  box-shadow: inset 0 0 0 2px #242943;
+}
+
+
+.tablebutton{
+line-height:0.5em;
+height:1.5em;
+padding: 0 1em 0 1em;}
+
+button:hover{
+color:#242943;
+border-color:#242943;
+}
+
+.accordion:after {
+  content: '\002B';
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+
+.active:after {
+  content: "\2212";
+}
+
+.panel {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+	
 		<title>uBiblio</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -42,44 +93,13 @@
 
 				<!-- Banner -->
 					<!-- Two -->
-							<section id="two">
-								<div class="inner" style = "padding: 20px 0 1em 0;">
-
-<h1>Update Library Configuration</h1>
-
-{% for error in errors %}
-    <p style="color: red">{{ error }}</p>
-{% endfor %}
+<div class="inner" style = "padding: 20px 0 5em 5em;">
 <div style="display:block; clear:both; float:none;">
-<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
-<form action="/config" method="post">
-        <p>Database Version: {{ config.version }}</p>
-	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
-    <p>
-        <p><label for="">Enable Cover Images: </label></p>
-	<select name="coverImages" id="coverImages">
-					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
-  <option value="True">True</option>
-  <option value="False">False</option>
-</select>
-    </p>
-    <p>
-        <p><label for="">Custom Field 1 Name 
-			(empty to disable): </label></p>
-        <input type="text" name="customFieldName1" value="{{ config.customFieldName1 }}">
-    </p>
-    <p>
-        <p><label for="">Custom Field 2 Name 
-			(empty to disable): </label></p>
-        <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
-    </p>
-    </div>
-    <div style= "display:block; clear:both;float:none;">
-    <input  type="submit" value="Submit">
-    
-</form>
-<a style = "border:none;" href = "/"> <button>Back</button></a>
-    </div>
+<h3><strong><u>The Database is Out of Date</strong></u></h3>
+	<p>It needs to be updated before uBiblio can be used. This process is automatic, and can be done by any Administrator by clicking <a href="/updateDB">here</a>. Before you begin, we recommend backing up the database.</p>
+	<p>For instructions on how to backup the database, please see the readme file included in this application or visit the <a href="https://github.com/seanboyce/ubiblio">GitHub page</a>.</p>
+	<p>After this update, you will be able to manage backups in a simpler manner inside the application (by visiting the new admin page via the menu).</p>
+
 
 <hr>
 
@@ -114,5 +134,10 @@
 			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
 			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
 
+
+
 	</body>
 </html>
+
+
+

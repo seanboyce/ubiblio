@@ -24,7 +24,7 @@ class Book(Base):
     notes = Column(String, nullable=True)
     owned = Column(Boolean)
     withdrawn = Column(Boolean)
-    withdrawnBy = Column(Integer, nullable=True)
+    withdrawnBy = Column(String, nullable=True)
     customField1 = Column(String, nullable=True)
     customField2 = Column(String, nullable=True)
 
@@ -38,7 +38,6 @@ class bookImage(Base):
     __tablename__ = "bookImages"
     id = Column(Integer, primary_key=True)
     bookId = Column(Integer, ForeignKey("books.id"))
-    book = Column(Integer, ForeignKey("books.id"))
     filename = Column(String, nullable=False)  
 
 class config(Base):
@@ -46,8 +45,8 @@ class config(Base):
     id = Column(Integer, primary_key=True)
     version = Column(String)
     coverImages = Column(Boolean)
-    customFieldName1 = Column(String)
-    customFieldName2 = Column(String)
+    customFieldName1 = Column(String, nullable=True)
+    customFieldName2 = Column(String, nullable=True)
 
 
     
