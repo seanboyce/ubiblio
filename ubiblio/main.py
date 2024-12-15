@@ -396,7 +396,7 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
 # Search
 # --------------------------------------------------------------------------
 @app.get("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=2)], response_class=HTMLResponse)
-def searchCust(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def searchbookget(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     data=[]
     context = {
         "request": request,
@@ -405,7 +405,7 @@ def searchCust(request: Request, user: schemas.User = Depends(get_current_user_f
     return templates.TemplateResponse("booksearch.html", context)
 
 @app.post("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-def searchCust(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = 0):
+def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%"):
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip)))

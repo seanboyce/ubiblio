@@ -27,7 +27,8 @@ if (searchTitle !== true){
 } else {
     var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip;
 }
-$.post(searchEndpoint+skip,function(data, status){
+	console.log(searchEndpoint);
+$.post(searchEndpoint,function(data, status){
     itemdata = jQuery.parseJSON(data);
     $("#tablebody").empty();
     $("#pagination").empty();
