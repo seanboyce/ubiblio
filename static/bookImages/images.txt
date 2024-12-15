@@ -1,0 +1,1 @@
+this directory contains all the user-uploaded book images, e.g. cover images
