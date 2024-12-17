@@ -29,6 +29,7 @@ import csv
 import aiofiles
 from PIL import Image
 import uuid
+
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
 
@@ -605,6 +606,11 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
+            conn = sqlite3.connect('sql_app.db')
+            with open('export/preUpdateExport.sql', 'w') as f:
+               for line in conn.iterdump():
+                   f.write('%s\n' % line)
+            conn.close()
             crud.updateDB()
         return RedirectResponse(url='/searchbooks')
     except:
@@ -618,7 +624,7 @@ async def export(request: Request, user: schemas.User = Depends(get_current_user
             conn = sqlite3.connect('sql_app.db')
             date_time = datetime.now()
             date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
-            with open('export/csvBookExport' + date_time + '.sql', 'w') as f:
+            with open('export/DBExport' + date_time + '.sql', 'w') as f:
                 for line in conn.iterdump():
                     f.write('%s\n' % line)
             conn.close()
@@ -670,6 +676,11 @@ async def backups(request: Request, user: schemas.User = Depends(get_current_use
 async def restoreDB(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
+             conn = sqlite3.connect('sql_app.db')
+             with open('export/preRestoreExport.sql', 'w') as f:
+                for line in conn.iterdump():
+                    f.write('%s\n' % line)
+             conn.close()
              path = ('export/' + filename)
              if os.path.isfile(path):
                  crud.wipeAndRestore(path)
@@ -678,8 +689,8 @@ async def restoreDB(filename,request: Request, user: schemas.User = Depends(get_
     }
                  response = RedirectResponse(url='/searchbooks')
                  return response
-    except:
-           return "Restore failed. No changes made to database." 
+    except Exception as e:
+           print(e)
 
 @app.get("/deleteBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def deleteBk(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):

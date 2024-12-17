@@ -177,9 +177,11 @@ def bookWithdraw(db: Session, book: schemas.Book):
         
 def wipeAndRestore(filename):
     conn = sqlite3.connect('sql_app.db')
-    cursor = conn.execute("DROP TABLE 'books';")
-    cursor = conn.execute("DROP TABLE 'readinglistitems';")
-    cursor = conn.execute("DROP TABLE 'users';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'books';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'readinglistitems';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
     cursor.close()
     # Hm, what if new schema is different?
     # models.Base.metadata.create_all(bind=engine)
@@ -187,6 +189,7 @@ def wipeAndRestore(filename):
     sql = f.read() # watch out for built-in `str`
     cursor = conn.executescript(sql)
     cursor.close()
+    conn.close()
     return
     
 def addCSV(filename):
