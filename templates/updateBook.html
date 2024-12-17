@@ -109,14 +109,21 @@
         <input type="text" name="notes" value="{{ book.notes }}" >
     </p>
     
-    <p>
-        <p><label for="">Owned</label></p>
-        <input type="text" name="owned" value="{{ book.owned }}" >
-    </p>
-<p>
-        <p><label for="">Withdrawn</label></p>
-        <input type="text" name="withdrawn" value="{{ book.withdrawn }}" >
-    </p>
+
+        <p><label for="">Owned: </label></p>
+	<select name="owned" id="owned">
+					<option value="{{ book.owned }}" selected>{{ book.owned }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+
+        <p><label for="">Withdrawn: </label></p>
+	<select name="withdrawn" id="withdrawn">
+					<option value="{{ book.withdrawn }}" selected>{{ book.withdrawn }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+
         </div>
     </div>
     <div style= "display:block; clear:both;float:none;">
