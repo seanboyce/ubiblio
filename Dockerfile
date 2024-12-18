@@ -3,7 +3,7 @@
 
 FROM alpine:3.19.4
 
-RUN apk add --update python3 py3-pip openssl su-exec shadow
+RUN apk add --update python3 python3-dev alpine-sdk py3-pip openssl su-exec shadow zlib-dev libjpeg-turbo-dev gcc
 
 RUN rm -rf /var/cache/apk/*
 
