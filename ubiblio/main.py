@@ -175,6 +175,7 @@ def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> schemas.
     Use this function when you want to lock down a route so that only
     authenticated users can see access the route.
     """
+    print(DB_LOCATION)
     user = decode_token(token)
     return user
 
@@ -606,8 +607,10 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            conn = sqlite3.connect('sql_app.db')
-            with open('export/preUpdateExport.sql', 'w') as f:
+            conn = sqlite3.connect(DB_LOCATION)
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            with open('export/preUpdateExport' + date_time + '.sql', 'w') as f:
                for line in conn.iterdump():
                    f.write('%s\n' % line)
             conn.close()
@@ -621,7 +624,7 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
 async def export(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            conn = sqlite3.connect('sql_app.db')
+            conn = sqlite3.connect(DB_LOCATION)
             date_time = datetime.now()
             date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
             with open('export/DBExport' + date_time + '.sql', 'w') as f:
@@ -636,7 +639,7 @@ async def export(request: Request, user: schemas.User = Depends(get_current_user
 async def exportcsv(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            conn = sqlite3.connect('sql_app.db')
+            conn = sqlite3.connect(DB_LOCATION)
             cur = conn.cursor()
             bookData = cur.execute("SELECT * FROM books").fetchall()
             date_time = datetime.now()
@@ -676,11 +679,6 @@ async def backups(request: Request, user: schemas.User = Depends(get_current_use
 async def restoreDB(filename,request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-             conn = sqlite3.connect('sql_app.db')
-             with open('export/preRestoreExport.sql', 'w') as f:
-                for line in conn.iterdump():
-                    f.write('%s\n' % line)
-             conn.close()
              path = ('export/' + filename)
              if os.path.isfile(path):
                  crud.wipeAndRestore(path)
@@ -760,7 +758,7 @@ async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_
 
 @app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def config(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
+    try:
         if user.isAdmin == True:
             db = SessionLocal()
             config = crud.getConfig(db)
@@ -770,8 +768,8 @@ async def config(request: Request, user: schemas.User = Depends(get_current_user
         "config":config,
     }
         return templates.TemplateResponse("config.html", context)
-#    except:
-#           return "Only an admin can edit the library configuration."    
+    except:
+           return "Only an admin can edit the library configuration."    
    
 @app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def updateConfig(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -805,7 +803,6 @@ async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_
         db.close()
         context = {
         "books": books,
-        ##"images": images,
         "request": request
     }
         return templates.TemplateResponse("booksByGenre.html", context)

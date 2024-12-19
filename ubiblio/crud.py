@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from datetime import datetime
 import sqlite3
 import csv
+from .vars import *
+
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -176,19 +178,22 @@ def bookWithdraw(db: Session, book: schemas.Book):
         return False
         
 def wipeAndRestore(filename):
-    conn = sqlite3.connect('sql_app.db')
+    conn = sqlite3.connect(DB_LOCATION)
     cursor = conn.execute("DROP TABLE IF EXISTS 'books';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'readinglistitems';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
     cursor.close()
+    conn.commit()
     # Hm, what if new schema is different?
     # models.Base.metadata.create_all(bind=engine)
     f = open(filename,'r')
     sql = f.read() # watch out for built-in `str`
+    print(sql)
     cursor = conn.executescript(sql)
     cursor.close()
+    conn.commit()
     conn.close()
     return
     
@@ -197,7 +202,7 @@ def addCSV(filename):
         books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
         addBooks = [(i['title'], i['author'], i['summary'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
         print(type(addBooks))
-    conn = sqlite3.connect('sql_app.db')
+    conn = sqlite3.connect(DB_LOCATION)
     cur = conn.cursor()
     cur.executemany("INSERT INTO books (title, author, summary, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
     conn.commit()
@@ -205,7 +210,7 @@ def addCSV(filename):
     return
 
 def checkDB():
-    conn = sqlite3.connect('sql_app.db')
+    conn = sqlite3.connect(DB_LOCATION)
     configExists = conn.execute("PRAGMA table_info('books');").fetchall()
     if configExists[4][1] == "coverImage":
         return False
@@ -213,7 +218,7 @@ def checkDB():
         return True
     
 def updateDB():
-    conn = sqlite3.connect('sql_app.db')
+    conn = sqlite3.connect(DB_LOCATION)
     initData =["1.0.0",False,"",""]
     cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
     cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
