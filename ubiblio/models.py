@@ -27,6 +27,7 @@ class Book(Base):
     withdrawnBy = Column(String, nullable=True)
     customField1 = Column(String, nullable=True)
     customField2 = Column(String, nullable=True)
+    ebook = Column(Boolean,nullable=True, default=False)
 
 class readingListItems(Base):
     __tablename__ = "readinglistitems"
@@ -48,5 +49,15 @@ class config(Base):
     customFieldName1 = Column(String, nullable=True)
     customFieldName2 = Column(String, nullable=True)
 
+class ebook(Base):
+    __tablename__ = "ebooks"
+    id = Column(Integer, primary_key=True)
+    bookId = Column(Integer, ForeignKey("books.id"))
+    filename = Column(String, nullable=False) 
 
+class emails(Base):
+    __tablename__ = "userEmails"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=True)
+    user_id = Column(Integer)
     

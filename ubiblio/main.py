@@ -685,7 +685,7 @@ async def restoreDB(filename,request: Request, user: schemas.User = Depends(get_
                  context = {
         "request": request,
     }
-                 response = RedirectResponse(url='/searchbooks')
+                 response = RedirectResponse(url='/')
                  return response
     except Exception as e:
            print(e)
