@@ -54,6 +54,8 @@ def createBook(db: Session, book: schemas.Book):
 def deleteBook(db: Session, bookId):
     try:
         purgeFromReadingList(db, bookId)
+        purgeFromImages(db, bookId)
+        #purgefromEbooks(db, bookId)
         book = db.query(models.Book).filter(models.Book.id == bookId).first()
         db.delete(book)
         db.commit()
@@ -149,6 +151,17 @@ def purgeFromReadingList(db: Session, bookId):
         print(e)
         return False
 
+def purgeFromImages(db: Session, bookId):
+    try:
+        book = db.query(models.bookImage).filter(models.bookImage.bookId == bookId).all()
+        for i in book:
+            db.delete(i)
+        db.commit()  
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
 def bookReturn(db: Session, book: schemas.Book):
     try:  
         item = db.get(models.Book, book.id)  
@@ -180,6 +193,8 @@ def bookWithdraw(db: Session, book: schemas.Book):
 def wipeAndRestore(filename):
     conn = sqlite3.connect(DB_LOCATION)
     cursor = conn.execute("DROP TABLE IF EXISTS 'books';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'ebooks';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'userEmails';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'readinglistitems';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")

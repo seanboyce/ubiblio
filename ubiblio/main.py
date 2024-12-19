@@ -175,7 +175,6 @@ def get_current_user_from_token(token: str = Depends(oauth2_scheme)) -> schemas.
     Use this function when you want to lock down a route so that only
     authenticated users can see access the route.
     """
-    print(DB_LOCATION)
     user = decode_token(token)
     return user
 
