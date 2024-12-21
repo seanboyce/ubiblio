@@ -5,18 +5,17 @@
 3. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
 4. Reading list management for each user
 5. Book wishlist (just set owned=False, then update to True when you buy it)
-6. Withdraw and return books. Display a list of withdrawn books (to help put them away).
+6. Withdraw and return books. Display a list of withdrawn books (to help put them away or figure out who has them).
 7. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
 8. Content discovery (browse by genre).
-9. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
+9. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries).
 10. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usage).
-11. No distractions -- it does what it needs to do and nothing else.
+11. No distractions -- it does what it needs to do and nothing else (by default).
 12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
-13. Backup options and management! While the best way to backup is still via the included script, this is convenient for people running this with Docker.
-14. Database upgrade, so you can keep your data when upgrading the app.
-15. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
-16. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
-17. No hidden easter eggs!
+13. Backup management! 
+14. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
+15. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
+16. No hidden easter eggs!
 
 # Setup
 
@@ -24,19 +23,19 @@
 
 # Why this exists:
 
-1. It took about a day to build (well, at least until I thought of a few more features. Then other people suggested features... and so on.).
+1. It took about a day to build the core features. 
 2. I wanted something fast to manage a few hundred books. I tried Koha and others but the huge memory footprint (~4GB) made them expensive to self-host. This application runs with less than 100MB of memory, so I can cram it on a server that hosts lots of other stuff.
 3. I wanted a way to quickly check if I own books from my phone, while visiting book sales / stores. Also a way to get a list of books I want. Since I read in English and French, but live in country where neither are common languages, this was a super important feature for me. Opportunities to buy a lot of books are few and far-between for me, so I have to carpe the diem pretty optimally.
 
 
 # To Do (in no particular order):
 
-1. Downloadable database export from the web interface. This is the highest priority, as I don't want people to lose their data entry if I make changes to the DB schema and so on (which some of the features below require). 
-2. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
-3. Search by a specific location would be nice -- can be another interface.
-4. Limited backend customization -- a few custom fields for books that can be renamed through the UI (default:hidden)
-5. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
-6. Storing who withdrew a book instead of simply whether it is withdrawn or not, e.g. for when you reluctantly let other people use your personal library.
+1. Backup / migrate stored files.
+2. Ebook support, including file storage/retrieval/backup for ebooks.
+3. A one-button "send to my reader" for ebooks (requires an ebook reader that can receive books by email). Probably I'll look into something like Oauth2 support + Protonmail.
+4. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
+5. Search by a specific location would be nice -- can be another interface.
+6. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
 
 
 # HTML Theme
