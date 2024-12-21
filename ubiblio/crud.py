@@ -238,7 +238,7 @@ def updateDB():
     cursor = conn.execute('create table if not exists ebooks (id INTEGER PRIMARY KEY, bookId INTEGER, filename VARCHAR);')
     cursor = conn.execute('create table if not exists userEmails (id INTEGER PRIMARY KEY, email VARCHAR, userId INTEGER);')
     cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
-    cursor = conn.execute('ALTER TABLE books DROP coverImage;')
+    cursor = conn.execute('ALTER TABLE books DROP COLUMN coverImage;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy VARCHAR;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN ebook BOOLEAN;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
