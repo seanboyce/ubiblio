@@ -17,12 +17,5 @@
 1. Be advised that any files you add (book images, backups) are not included in the database backup presently. These are stored in /static/bookImages and /export respectively. In the next major release, files will be backed up and compressed too. For now, you must manually back up these folders. 
 
 2. Database upgrade is a little sketchy in this first major update. I haven't been able to break it in testing though. Note that ubiblio will back up your database before attempting to upgrade -- if you encounter a bug with the upgrade process, please reach out. 
- 
-
-# Upcoming Features:
-
-1. Backup / migrate stored files.
-2. Ebook support, including file storage/retrieval for ebooks.
-3. A one-button "send to my reader" for ebooks (requires an ebook reader that can receive books by email). Probably I'll look into something like Oauth2 support + Protonmail.
 
 
