@@ -6,8 +6,57 @@
 -->
 <html>
 	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	
+	
+	<style>
+.accordion {
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+}
 
+.active, .accordion:hover {
+  background-color: #ccc;
+  color:#242943 !important;
+  border-color:#242943;
+  box-shadow: inset 0 0 0 2px #242943;
+}
+
+
+.tablebutton{
+line-height:0.5em;
+height:1.5em;
+padding: 0 1em 0 1em;}
+
+button:hover{
+color:#242943;
+border-color:#242943;
+}
+
+.accordion:after {
+  content: '\002B';
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+
+.active:after {
+  content: "\2212";
+}
+
+.panel {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+</style>
+	
 		<title>uBiblio</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -44,35 +93,15 @@
 
 				<!-- Banner -->
 					<!-- Two -->
-							<section id="two">
-								<div class="inner" style = "padding: 20px 0 1em 0;">
+<div class="inner" style = "padding: 20px 0 5em 5em;">
+<div style="display:block; clear:both; float:none;">
+<h3><strong><u>The Database is Out of Date</strong></u></h3>
+	<p>It needs to be updated before uBiblio can be used. This process is automatic, and can be done by any Administrator by clicking <a href="/updateDB">here</a>. </p>
+	<p>Before we begin, the system will attempt to automatically backup the database in case something goes wrong. This backup will be visible in the backup management interface acessible in the main menu under "Admin".</p>
 
-{% for error in errors %}
-    <p style="color: red">{{ error }}</p>
-{% endfor %}
-  <!-- Search Input-->
-		
-<h2 style="margin-top:25px; margin-bottom:15px;">Book Wishlist</h2>
 
-<div class="container">  
-  <table>
-    <thead class="visible@l">
-      <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Summary</th>
-      </tr>
-    </thead>
-    <tbody id = "tablebody">
-{% for book in books %}
-		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.summary }}</td></tr>
-{% endfor %}
-      <!-- more table rows here -->
+<hr>
 
-    </tbody>
-  </table>
-  <div id="pagination">
-  </div>
 </div>
 
 								</div>
@@ -104,15 +133,10 @@
 			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
 			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
 
+
+
 	</body>
 </html>
-
-
-
-
-
-
-
 
 
 

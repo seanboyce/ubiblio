@@ -16,7 +16,6 @@ class Book(Base):
     title = Column(String)
     author = Column(String)
     summary = Column(String)
-    coverImage = Column(String)
     genre = Column(String)
     library = Column(String)
     shelf = Column(String)
@@ -25,9 +24,40 @@ class Book(Base):
     notes = Column(String, nullable=True)
     owned = Column(Boolean)
     withdrawn = Column(Boolean)
+    withdrawnBy = Column(String, nullable=True)
+    customField1 = Column(String, nullable=True)
+    customField2 = Column(String, nullable=True)
+    ebook = Column(Boolean,nullable=True, default=False)
 
 class readingListItems(Base):
     __tablename__ = "readinglistitems"
     id = Column(Integer, primary_key=True)
     book = Column(Integer, ForeignKey("books.id"))
     user_id = Column(Integer)
+    
+class bookImage(Base):
+    __tablename__ = "bookImages"
+    id = Column(Integer, primary_key=True)
+    bookId = Column(Integer, ForeignKey("books.id"))
+    filename = Column(String, nullable=False)  
+
+class config(Base):
+    __tablename__= "config"
+    id = Column(Integer, primary_key=True)
+    version = Column(String)
+    coverImages = Column(Boolean)
+    customFieldName1 = Column(String, nullable=True)
+    customFieldName2 = Column(String, nullable=True)
+
+class ebook(Base):
+    __tablename__ = "ebooks"
+    id = Column(Integer, primary_key=True)
+    bookId = Column(Integer, ForeignKey("books.id"))
+    filename = Column(String, nullable=False) 
+
+class emails(Base):
+    __tablename__ = "userEmails"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=True)
+    user_id = Column(Integer)
+    

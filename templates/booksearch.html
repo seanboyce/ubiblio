@@ -13,7 +13,6 @@ var pagination=0;
 var itemdata = []
 //Core search function
 function search(skip) {
-	console.log("search");
 //reset pagination on new search
 if (skip<1){pagination=0;}
 searchTerm = $("#searchboxInput").val();
@@ -27,7 +26,7 @@ if (searchTitle !== true){
 } else {
     var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip;
 }
-$.post(searchEndpoint+skip,function(data, status){
+$.post(searchEndpoint,function(data, status){
     itemdata = jQuery.parseJSON(data);
     $("#tablebody").empty();
     $("#pagination").empty();
@@ -86,6 +85,8 @@ search(pagination)
 							<li><a href="/genre/">Browse by Genre</a></li>
 								<li><a href="/wishlist/">Wishlist</a></li>
 							<li><a href="/readingLists">Reading Lists</a></li>
+								<li><a href="/withdrawn">Withdrawn Books</a></li>
+								<li><a href="/config">Admin</a></li>
 						</ul>
 						<ul class="actions stacked">
 							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
@@ -110,8 +111,7 @@ search(pagination)
   <label for="titleSearch"> Title</label>	<br>
   <input style ="float:left;"; type="submit" value="Search">										
 </form>
-<a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
-<a style ="text-decoration:none !important; border:none;margin-left:25px;"href="/withdrawn"><button>Show Withdrawn</button></a>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
 		
 <h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
 

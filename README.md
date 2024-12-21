@@ -1,20 +1,22 @@
 # Features:
 
-1. Add books
-2. Remove books
-3. Update books
-4. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
-5. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
-6. Reading list management for each user
-7. Book wishlist (just set owned=False, then update to True when you buy it)
-8. Withdraw and return books. Display a list of withdrawn books (to help put them away).
-9. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
-10. Content discovery (browse by genre).
-11. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
-12. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usae).
-13. No distractions -- it does what it needs to do and nothing else.
-
-No support for cover images. Wanted to keep memory footprint down and performance lightning fast. Besides, who judges books by the cover?
+1. Add, remove, update books
+2. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
+3. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
+4. Reading list management for each user
+5. Book wishlist (just set owned=False, then update to True when you buy it)
+6. Withdraw and return books. Display a list of withdrawn books (to help put them away).
+7. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
+8. Content discovery (browse by genre).
+9. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries)
+10. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usage).
+11. No distractions -- it does what it needs to do and nothing else.
+12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
+13. Backup options and management! While the best way to backup is still via the included script, this is convenient for people running this with Docker.
+14. Database upgrade, so you can keep your data when upgrading the app.
+15. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
+16. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
+17. No hidden easter eggs!
 
 # Setup
 
@@ -29,15 +31,12 @@ No support for cover images. Wanted to keep memory footprint down and performanc
 
 # To Do (in no particular order):
 
-1. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
-2. I might add an endpoint that lets admin users add other users. In case I open my personal library to the public one day or whatever.
-3. ~~Better barcode scanner workflow when adding by ISBN.~~ Done! Now when you add a book by ISBN, you can quickly add another. Thak you WikoSiko for suggesting this feature!
-4. ~~Right now search is just author || title. Adding a few checkboxes beneath the search to select what you're searching through would be nice.~~ Done! You can search by title, author, or both (default). This should help support larger libraries.
-5. Search by a specific location would be nice -- can be another interface.
-6. Limited backend customization -- a few custom fields for books that can be renamed through the UI (default:hidden)
-7. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
-8. Storing who withdrew a book instead of simply whether it is withdrawn or not, e.g. for when you reluctantly let other people use your personal library.
-9. ~~Better UI for asking you to log in after your JWT login expires, e.g. boot you back to login instead of a NOT AUTHORIZED error.~~ If your login expires, you're now brought back to the login instead of just receiving an error.
+1. Downloadable database export from the web interface. This is the highest priority, as I don't want people to lose their data entry if I make changes to the DB schema and so on (which some of the features below require). 
+2. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
+3. Search by a specific location would be nice -- can be another interface.
+4. Limited backend customization -- a few custom fields for books that can be renamed through the UI (default:hidden)
+5. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
+6. Storing who withdrew a book instead of simply whether it is withdrawn or not, e.g. for when you reluctantly let other people use your personal library.
 
 
 # HTML Theme

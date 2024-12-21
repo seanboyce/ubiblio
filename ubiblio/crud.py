@@ -4,6 +4,10 @@ from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from . import models, schemas
 from pydantic import BaseModel
 from datetime import datetime
+import sqlite3
+import csv
+from .vars import *
+
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -50,6 +54,8 @@ def createBook(db: Session, book: schemas.Book):
 def deleteBook(db: Session, bookId):
     try:
         purgeFromReadingList(db, bookId)
+        purgeFromImages(db, bookId)
+        #purgefromEbooks(db, bookId)
         book = db.query(models.Book).filter(models.Book.id == bookId).first()
         db.delete(book)
         db.commit()
@@ -145,6 +151,17 @@ def purgeFromReadingList(db: Session, bookId):
         print(e)
         return False
 
+def purgeFromImages(db: Session, bookId):
+    try:
+        book = db.query(models.bookImage).filter(models.bookImage.bookId == bookId).all()
+        for i in book:
+            db.delete(i)
+        db.commit()  
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
 def bookReturn(db: Session, book: schemas.Book):
     try:  
         item = db.get(models.Book, book.id)  
@@ -172,4 +189,122 @@ def bookWithdraw(db: Session, book: schemas.Book):
     except Exception as e:
         print(e)
         return False
+        
+def wipeAndRestore(filename):
+    conn = sqlite3.connect(DB_LOCATION)
+    cursor = conn.execute("DROP TABLE IF EXISTS 'books';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'ebooks';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'userEmails';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'readinglistitems';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
+    cursor.close()
+    conn.commit()
+    # Hm, what if new schema is different?
+    # models.Base.metadata.create_all(bind=engine)
+    f = open(filename,'r')
+    sql = f.read() # watch out for built-in `str`
+    cursor = conn.executescript(sql)
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return
+    
+def addCSV(filename):
+    with open(filename,'r') as booksCSV: 
+        books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
+        addBooks = [(i['title'], i['author'], i['summary'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
+        print(type(addBooks))
+    conn = sqlite3.connect(DB_LOCATION)
+    cur = conn.cursor()
+    cur.executemany("INSERT INTO books (title, author, summary, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
+    conn.commit()
+    conn.close() 
+    return
 
+def checkDB():
+    conn = sqlite3.connect(DB_LOCATION)
+    configExists = conn.execute("PRAGMA table_info('books');").fetchall()
+    if configExists[4][1] == "coverImage":
+        return False
+    else:
+        return True
+    
+def updateDB():
+    conn = sqlite3.connect(DB_LOCATION)
+    initData =["1.0.0",False,"",""]
+    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+    cursor = conn.execute('create table if not exists ebooks (id INTEGER PRIMARY KEY, bookId INTEGER, filename VARCHAR);')
+    cursor = conn.execute('create table if not exists userEmails (id INTEGER PRIMARY KEY, email VARCHAR, userId INTEGER);')
+    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+    cursor = conn.execute('ALTER TABLE books DROP coverImage;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy VARCHAR;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN ebook BOOLEAN;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
+    cursor = conn.execute('ALTER TABLE books ADD COLUMN customField2 VARCHAR;')
+    #Not needed, handled by sqlalchemy
+    #cursor = conn.execute('create table if not exists bookImages (id INTEGER PRIMARY KEY, bookId INTEGER, coverImages VARCHAR);')
+    conn.commit()
+    conn.close()
+    return
+    
+def getConfig(db: Session):
+    try:
+        config = db.query(models.config).first()
+        return config
+    except Exception as e:
+        print(e)
+        return
+
+def updateConfig(db: Session, config: schemas.config):
+    try:
+        config = models.config(** config.dict())
+        db.merge(config)
+        db.commit()
+    except Exception as e:
+        print(e)
+        return  
+
+def getImages(db: Session, bookId: int):
+    try:
+        limit = 16
+        return db.query(models.bookImage).filter(models.bookImage.bookId == bookId).limit(limit).all()  
+    except Exception as e:
+        print(e)
+        return 
+        
+def getImagesByFilename(db: Session, filename: str):
+    try:
+        image = db.query(models.bookImage).filter(models.bookImage.filename == filename).first()
+        if image:
+            return True
+        if not image:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+def addImage(db: Session, image: schemas.bookImageBase):
+    try:
+        image = models.bookImage(** image.dict())
+        db.add(image)
+        db.commit()
+        db.refresh(image)
+        return "True"
+    except Exception as e:
+        print(e)
+        return "False"
+ 
+    
+def deleteImage(db: Session, imageId: int):
+    try:
+        image = db.query(models.bookImage).filter(models.bookImage.id == imageId).first()
+        bookId = image.bookId
+        dbpath = image.filename
+        db.delete(image)
+        db.commit()
+        return bookId,dbpath
+    except Exception as e:
+        print(e)
+        return "False"

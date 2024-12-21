@@ -6,8 +6,6 @@
 -->
 <html>
 	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
 		<title>uBiblio</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -47,32 +45,45 @@
 							<section id="two">
 								<div class="inner" style = "padding: 20px 0 1em 0;">
 
+<h1>Update Library Configuration</h1>
+
 {% for error in errors %}
     <p style="color: red">{{ error }}</p>
 {% endfor %}
-  <!-- Search Input-->
-		
-<h2 style="margin-top:25px; margin-bottom:15px;">Book Wishlist</h2>
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+<form action="/config" method="post">
+        <p>Database Version: {{ config.version }}</p>
+	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
+    <p>
+        <p><label for="">Enable Cover Images: </label></p>
+	<select name="coverImages" id="coverImages">
+					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+    <p>
+        <p><label for="">Custom Field 1 Name 
+			(empty to disable): </label></p>
+        <input type="text" name="customFieldName1" value="{{ config.customFieldName1 }}">
+    </p>
+    <p>
+        <p><label for="">Custom Field 2 Name 
+			(empty to disable): </label></p>
+        <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
+    </p>
+    </div>
+    <div style= "display:block; clear:both;float:none;">
+    <input  type="submit" value="Submit">
+    
+</form>
+<a style = "border:none;" href = "/backups"> <button>Backup Management</button></a>
+<a style = "border:none;" href = "/"> <button>Back</button></a>
+    </div>
 
-<div class="container">  
-  <table>
-    <thead class="visible@l">
-      <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Summary</th>
-      </tr>
-    </thead>
-    <tbody id = "tablebody">
-{% for book in books %}
-		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.summary }}</td></tr>
-{% endfor %}
-      <!-- more table rows here -->
+<hr>
 
-    </tbody>
-  </table>
-  <div id="pagination">
-  </div>
 </div>
 
 								</div>
@@ -106,13 +117,3 @@
 
 	</body>
 </html>
-
-
-
-
-
-
-
-
-
-

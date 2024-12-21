@@ -11,7 +11,7 @@
 	<style>
 .accordion {
   cursor: pointer;
-  width: 100%;
+  width: 90%;
   border: none;
   text-align: left;
   outline: none;
@@ -77,12 +77,14 @@ border-color:#242943;
 					</header>
 
 				<!-- Menu -->
-					<nav id="menu">
-						<ul class="links">
+						<nav id="menu">
+							<ul class="links">
 							<li><a href="/">Book Search</a></li>
 							<li><a href="/genre/">Browse by Genre</a></li>
-							<li><a href="/wishlist/">Wishlist</a></li>
+								<li><a href="/wishlist/">Wishlist</a></li>
 							<li><a href="/readingLists">Reading Lists</a></li>
+								<li><a href="/withdrawn">Withdrawn Books</a></li>
+								<li><a href="/config">Admin</a></li>
 						</ul>
 						<ul class="actions stacked">
 							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
@@ -112,6 +114,12 @@ border-color:#242943;
 		<p><strong>Notes</strong>:  {{book.notes}}</p>
 		<p><strong>Owned</strong>:  {{ book.owned}}</p>
 		<p><strong>Withdrawn</strong>:  {{ book.withdrawn}}</p>
+			{% if config.customFieldName1|length > 0 %}	
+<p><strong>{{config.customFieldName1}}</strong>:  {{book.customField1}}</p>
+	{% endif %}
+			{% if config.customFieldName2|length > 0 %}	
+<p><strong>{{config.customFieldName2}}</strong>:  {{book.customField2}}</p>
+	{% endif %}
 
 		</div>
 		<div style= "display:block; clear:both;float:none;">
@@ -125,8 +133,65 @@ border-color:#242943;
 	</div>
     </div>
       <!-- more table rows here -->
+{% if config.coverImages %}	
+	{% if user.isAdmin %}
+		{% if images %}
+<button class="accordion" style="margin-top:40px;">Book Images</button>
+<div class="panel">
+<div style = "margin-top:20px;margin-bottom:20px;">
+		{% for image in images %}
+<div style="float:left;">
+<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
+<form action="/deleteImage/{{ image.id }}" method="post" ><button type="submit" style ="clear:both; display:block; float:none; line-height:0.5em; height:1.5em; padding: 0 1em 0 1em; margin:auto;" onclick="if (!confirm('Are you sure?')) return false;">Delete</button></form>
+</div>
+		{% endfor %}
+</div>
+<div style ="clear:both; display:block; float:none; margin-top: 20px;">
+<form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label style ="padding-top: 20px;" for="file">Upload another image: </label>
+        <input type="file" id="file" name="file" accept="image/jpeg" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Upload">
+    </form>
+</div>
+</div>
+		{% else %}
+<button class="accordion" style="margin-top:20px;">Book Images</button>
+<div class="panel">
+<p>No images exist for this book.</p>
+<form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label for="file">Upload an image: </label>
+        <input type="file" id="file" name="file" accept="image/jpeg" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Upload">
+    </form>
+</div>
+		{% endif %}
+	{% else %}
+	<button class="accordion" style="margin-top:40px;">Book Images</button>
+<div class="panel">
+<div style = "margin-top:20px;margin-bottom:20px;">
+			{% if images %}
+				{% for image in images %}
+<div style="float:left;">
+<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
+</div>
+				{% endfor %}
+			{% else %}
+			<p>No images exist for this book.</p>
+		{% endif %}
+</div>
+	{% endif %}	
+{% endif %}
 
-<hr>
 
 
 

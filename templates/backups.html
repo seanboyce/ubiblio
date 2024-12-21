@@ -95,22 +95,66 @@ border-color:#242943;
 					<!-- Two -->
 <div class="inner" style = "padding: 20px 0 5em 5em;">
 <div style="display:block; clear:both; float:none;">
-<h3><strong><u>Select a Genre</strong></u></h3>
+<h3><strong><u>Backup Management</strong></u></h3>
+
+	<a style="border:none; margin-right:25px;margin-right:25px;" href="/export"><button>Backup Now</button></a>
+<hr>
+	<h3><strong><u>Restore from Backup</strong></u></h3>
+	
+		<p>Restoring from one of the files below will wipe the database completely and re-load it from the file. You <b>cannot</b> undo this process.</p>
 
       <!-- more table rows here -->
-	<div style = "width:500px;">
-{% for genre in genres %}
-	
-	<a style = "border:none; margin-right:25px;" href="/booksByGenre/{{ genre }}"><button style = "margin-bottom:20px;">{{ genre }}</button></a>
+	<div style = "">
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Filename</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">	
+		{% for backup in backups %}
+		<tr><td>{{ backup }}</td><td><a class="confirm" style="border:none;" href="/restoreBackup/{{ backup }}" onclick="if (!confirm('This will delete the current DB and replace it with the backup. Are you sure?')) return false;">Restore</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ backup }}" onclick="if (!confirm('This will delete this backup. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ backup }}" >Download</a></td>
 	
 {% endfor %}	
+			 </tbody>
+  </table>
 		</div>
 <hr>
 
-
-
+	<h3><strong><u>Book List Exports</strong></u></h3>
+	<p>These are lists of books only -- for example if you want to move a bunch of books from one uBiblio library to another. Or if you just want a CSV file of your books that you can open with other appliations.</p>
+	<a style="border:none; margin-right:25px;margin-right:25px;" href="/exportcsv"><button>Create CSV</button></a>
+	
+	<p><br>Restoring from one of these files will <strong>NOT</strong> wipe the current database first. It will add all the books from the file to the current database. Generally it is a good idea to backup the database before attempting this.</p>
+<table>
+    <thead class="visible@l">
+      <tr>
+        <th>Filename</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">	
+		{% for bookexport in bookExports %}
+		<tr><td>{{ bookexport }}</td><td><a class="confirm" style="border:none;" href="/addByCSV/{{ bookexport }}" onclick="if (!confirm('This will add the books in this file to the database. Are you sure?')) return false;">Add to DB</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ bookexport }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ bookexport }}" >Download</a></td>
+	
+{% endfor %}	
+			 </tbody>
+  </table>
+<hr>
+		<h3><strong><u>Upload a Backup</u></strong></h3>
+		<p>This will accept both database backups and book list exports, so you can use this to merge libraries, move to a new server, or move to a newer version of the application.</p>
 <div style="display:block; clear:both; float:none;">
-
+	<form action="/uploadBackup/" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label for="file">Upload a backup: </label>
+        <input type="file" id="file" name="file" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Upload">
+    </form>
 </div>
 
 
