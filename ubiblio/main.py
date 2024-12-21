@@ -858,7 +858,7 @@ async def uploadfile(file: UploadFile, bookId: int, user: schemas.User = Depends
         return {"message": e.args}
 
         
-@app.post("/getImages/{bookId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.post("/getImages/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 def getImages(request: Request, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         db = SessionLocal()
@@ -870,7 +870,7 @@ def getImages(request: Request, bookId: int, user: schemas.User = Depends(get_cu
     finally:
         db.close()
 
-@app.post("/deleteImage/{imageId}", dependencies=[Depends(RateLimiter(times=1, seconds=1))], response_class=HTMLResponse)
+@app.post("/deleteImage/{imageId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
