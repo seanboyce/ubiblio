@@ -154,7 +154,7 @@ docker image pull sean8196/ubiblio
 Then execute:
 
 ```bash
-docker run -p 8000:8000 -v config_dir:/app/config ubiblio
+docker run -p 8000:8000 -v config_dir:/app/config sean8196/ubiblio
 ```
 
 Then, open the service in your web browser at `http://<ip>:8000`
