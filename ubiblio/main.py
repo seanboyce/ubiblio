@@ -274,6 +274,7 @@ def add_book_form(request: Request, user: schemas.User = Depends(get_current_use
             db.close()
             context = {
             "config": config,
+            "user": user,
             "request": request,
             }
             return templates.TemplateResponse("newBook.html", context)
@@ -299,6 +300,7 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
             db.close()
             context = {
         "books": books,
+        "user": user,
         "request": request,
     }
             return templates.TemplateResponse("booksearch.html", context)
@@ -316,6 +318,7 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
         db.close()
         context = {
         "books": books,
+        "user": user,
         "request": request
         }
         return templates.TemplateResponse("booksearch.html", context)
@@ -342,6 +345,7 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
             context = {
             "config":config,
             "book": book,
+            "user": user,
             "request": request
             }
         db.close()
@@ -366,6 +370,7 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
             context = {
             "config": config,
             "book": book,
+            "user": user,
             "request": request
             }
             return templates.TemplateResponse("updateBook.html", context)
@@ -383,6 +388,7 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
             db.close()
             context = {
             "config":config,
+            "user": user,
             "book": book,
             "request": request
             }
@@ -401,6 +407,7 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
     data=[]
     context = {
         "request": request,
+        "user": user,
         "data": data
     }
     return templates.TemplateResponse("booksearch.html", context)
@@ -460,6 +467,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
             db.close()
             context = {
             "config": config,
+            "user": user,
             "addISBN": addISBN,
         "book": book,
         "request": request
@@ -471,6 +479,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         errors = ["ISBN not found -- try another."]
         context = {
         "errors": errors,
+        "user": user,
         "request": request
     }
         return templates.TemplateResponse("addisbn.html", context)
@@ -479,6 +488,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user.isAdmin == True:
         context = {
+        "user": user,
         "request": request
     }
         return templates.TemplateResponse("addisbn.html", context)
@@ -539,6 +549,7 @@ async def readList(request: Request, user: schemas.User = Depends(get_current_us
         db.close()
         context = {
         "books": books,
+        "user": user,
         "request": request
     }
         return templates.TemplateResponse("readinglist.html", context)
@@ -579,6 +590,7 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
         books = crud.browseWithdrawn(db)
         db.close()
         context = {
+        "user": user,
         "books": books,
         "request": request
     }
@@ -597,6 +609,7 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
 @app.get("/dbUpdate", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
 async def updatePage(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
    context = {
+        "user": user,
         "request": request,
     }
    return templates.TemplateResponse("updateAdvisory.html", context)
@@ -667,6 +680,7 @@ async def backups(request: Request, user: schemas.User = Depends(get_current_use
                     bookExports.append(i)
             context = {
         "request": request,
+        "user": user,
         "backups":backups,
         "bookExports":bookExports,
     }
@@ -763,6 +777,7 @@ async def config(request: Request, user: schemas.User = Depends(get_current_user
             config = crud.getConfig(db)
             db.close()
             context = {
+            "user": user,
         "request": request,
         "config":config,
     }
@@ -783,6 +798,7 @@ async def updateConfig(request: Request, user: schemas.User = Depends(get_curren
                     config = crud.getConfig(db)
                     db.close()
                     context = {
+                    "user": user,
                     "config": config,
                     "request": request,
                      }
@@ -801,6 +817,7 @@ async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_
         books = crud.browseBooksByGenre(db,genre)
         db.close()
         context = {
+        "user": user,
         "books": books,
         "request": request
     }
@@ -815,6 +832,7 @@ async def bookGenres(request: Request, user: schemas.User = Depends(get_current_
         genres = crud.getGenres(db)
         db.close()
         context = {
+        "user": user,
         "genres": genres,
         "request": request
     }
@@ -902,6 +920,7 @@ async def wishlist(request: Request, user: schemas.User = Depends(get_current_us
         books = crud.browseWishlist(db)
         db.close()
         context = {
+        "user": user,
         "books": books,
         "request": request
     }

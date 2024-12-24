@@ -84,7 +84,9 @@ border-color:#242943;
 								<li><a href="/wishlist/">Wishlist</a></li>
 							<li><a href="/readingLists">Reading Lists</a></li>
 								<li><a href="/withdrawn">Withdrawn Books</a></li>
+								{% if user.isAdmin %}
 								<li><a href="/config">Admin</a></li>
+								{% endif %}
 						</ul>
 						<ul class="actions stacked">
 							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
@@ -122,22 +124,23 @@ border-color:#242943;
 	{% endif %}
 
 		</div>
-		<div style= "display:block; clear:both;float:none;">
-		<a style = "border:none; margin-right:25px;" href = "/"> <button style ="margin-bottom:25px;">Back</button></a><a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Update</button></a><a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
+	
+	<div style= "display:block; clear:both;float:none;">
+	<hr>
+			<h3><strong><u>Checkout</strong></u></h3>
+			<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
      </div>  
 	<div style= "display:block; clear:both;float:none;">
-		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:30px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:30px;">Remove from Reading List</button></a>
-	</div>
-	<div style= "display:block; clear:both;float:none;">
-		<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Are you sure?')) return false;"><button style="margin-top:30px;">Delete</button></a>
+		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Reading List</strong></u></h3>
+		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Remove from Reading List</button></a>
 	</div>
     </div>
       <!-- more table rows here -->
 {% if config.coverImages %}	
+	<h3 style="margin-top:25px;"><strong><u>Book Images</strong></u></h3>
 	{% if user.isAdmin %}
 		{% if images %}
-<button class="accordion" style="margin-top:40px;">Book Images</button>
-<div class="panel">
+
 <div style = "margin-top:20px;margin-bottom:20px;">
 		{% for image in images %}
 <div style="float:left;">
@@ -160,8 +163,6 @@ border-color:#242943;
 </div>
 </div>
 		{% else %}
-<button class="accordion" style="margin-top:20px;">Book Images</button>
-<div class="panel">
 <p>No images exist for this book.</p>
 <form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
         <!-- File input field -->
@@ -173,17 +174,14 @@ border-color:#242943;
         <!-- Submit button -->
         <input type="submit" value="Upload">
     </form>
-</div>
 		{% endif %}
 	{% else %}
-	<button class="accordion" style="margin-top:40px;">Book Images</button>
-<div class="panel">
 <div style = "margin-top:20px;margin-bottom:20px;">
 			{% if images %}
 				{% for image in images %}
 <div style="float:left;">
 <a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
-</div>
+
 				{% endfor %}
 			{% else %}
 			<p>No images exist for this book.</p>
@@ -192,7 +190,13 @@ border-color:#242943;
 	{% endif %}	
 {% endif %}
 
-
+	{% if user.isAdmin %}
+			<button class="accordion" style="margin-top:40px;">Admin Actions</button>
+			<div class="panel">
+			<a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Update</button></a>
+			<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Are you sure?')) return false;"><button style="margin-top:30px;">Delete</button></a>
+			</div>
+		{% endif %}
 
 
 <div style="display:block; clear:both; float:none;">
