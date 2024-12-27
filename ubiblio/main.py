@@ -446,7 +446,12 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn)
+            book = meta(isbn,service='goob')
+            if not "Title" in book:
+                book = meta(isbn,service='openl')
+            if not "Title" in book:
+                book = meta(isbn,service='wiki')
+                print(book["Title"])
             title = book["Title"]
             author = book["Authors"][0]
             try:
@@ -460,6 +465,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
             db.close()
             context = {
             "config": config,
+            "user": user,
             "addISBN": addISBN,
         "book": book,
         "request": request
@@ -471,6 +477,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         errors = ["ISBN not found -- try another."]
         context = {
         "errors": errors,
+        "user": user,
         "request": request
     }
         return templates.TemplateResponse("addisbn.html", context)
