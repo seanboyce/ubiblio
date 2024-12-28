@@ -91,6 +91,12 @@
 			<option value="Animal Fiction">Animal Fiction</option>
 </select>
     </p>
+<p><label for="">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="True">True</option>
+  <option value="False" selected="selected">False</option>
+</select>
+    </p>
 				
 {% if config.customFieldName1|length > 0 %}	
 <p><label for="">{{ config.customFieldName1 }}</label></p>
@@ -141,7 +147,9 @@
   <option value="True">True</option>
   
 </select>
-    </p>
+
+
+
     </div>
     </div>
     <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
@@ -184,6 +192,12 @@
 			<option value="Horror">Horror</option>
 			<option value="Romance">Romance</option>
 			<option value="Animal Fiction">Animal Fiction</option>
+</select>
+    </p>
+        <p><label for="">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="True">True</option>
+  <option value="False" selected="selected">False</option>
 </select>
     </p>
 {% if config.customFieldName1|length > 0 %}	
@@ -236,6 +250,7 @@
   
 </select>
     </p>
+
     </div>
     </div>
     <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">

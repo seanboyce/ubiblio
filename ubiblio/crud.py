@@ -55,7 +55,7 @@ def deleteBook(db: Session, bookId):
     try:
         purgeFromReadingList(db, bookId)
         purgeFromImages(db, bookId)
-        #purgefromEbooks(db, bookId)
+        purgeFromEbooks(db, bookId)
         book = db.query(models.Book).filter(models.Book.id == bookId).first()
         db.delete(book)
         db.commit()
@@ -73,7 +73,8 @@ def getBookById(db: Session, bookId):
                 
 def updateBook(db: Session, book: schemas.Book):
     try:
-        item = db.get(models.Book, book.id)  
+        item = db.get(models.Book, book.id) 
+        print(item.__dict__)
         if item:
             book = models.Book(** book.dict())
             db.merge(book)
@@ -162,6 +163,17 @@ def purgeFromImages(db: Session, bookId):
         print(e)
         return False
 
+def purgeFromEbooks(db: Session, bookId):
+    try:
+        book = db.query(models.ebook).filter(models.ebook.bookId == bookId).all()
+        for i in book:
+            db.delete(i)
+        db.commit()  
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
 def bookReturn(db: Session, book: schemas.Book):
     try:  
         item = db.get(models.Book, book.id)  
@@ -201,8 +213,6 @@ def wipeAndRestore(filename):
     cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
     cursor.close()
     conn.commit()
-    # Hm, what if new schema is different?
-    # models.Base.metadata.create_all(bind=engine)
     f = open(filename,'r')
     sql = f.read() # watch out for built-in `str`
     cursor = conn.executescript(sql)
@@ -243,8 +253,6 @@ def updateDB():
     cursor = conn.execute('ALTER TABLE books ADD COLUMN ebook BOOLEAN;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN customField1 VARCHAR;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN customField2 VARCHAR;')
-    #Not needed, handled by sqlalchemy
-    #cursor = conn.execute('create table if not exists bookImages (id INTEGER PRIMARY KEY, bookId INTEGER, coverImages VARCHAR);')
     conn.commit()
     conn.close()
     return
@@ -308,3 +316,36 @@ def deleteImage(db: Session, imageId: int):
     except Exception as e:
         print(e)
         return "False"
+
+def addEbook(db: Session, ebook: schemas.ebookBase):
+    try:
+        ebook = models.ebook(** ebook.dict())
+        db.add(ebook)
+        db.commit()
+        db.refresh(ebook)
+        return "True"
+    except Exception as e:
+        print(e)
+        return "False"
+ 
+    
+def deleteEbook(db: Session, ebookId: int):
+    try:
+        ebook = db.query(models.ebook).filter(models.ebook.id == ebookId).first()
+        bookId = ebook.bookId
+        dbpath = ebook.filename
+        db.delete(ebook)
+        db.commit()
+        return bookId,dbpath
+    except Exception as e:
+        print(e)
+        return "False"
+        
+def getEbookFiles(db: Session, bookId: int):
+   try:
+        limit = 32
+        return db.query(models.ebook).filter(models.ebook.bookId == bookId).limit(limit).all()  
+   except Exception as e:
+        print(e)
+        return        
+        

@@ -39,6 +39,7 @@ class Book(BookBase):
     withdrawnBy: Optional[str] = Field(default=False)
     customField1: Optional[str] = Field(default=None)
     customField2: Optional[str] = Field(default=None)
+    ebook: Optional[bool] = Field(default=False)
                 
 class BookCreate(BookBase):
     author: str = Field(default=None)

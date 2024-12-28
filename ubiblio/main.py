@@ -29,6 +29,7 @@ import csv
 import aiofiles
 from PIL import Image
 import uuid
+import shutil
 
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
@@ -294,7 +295,7 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
     if await form.is_valid():
         try:
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -331,25 +332,23 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
         db = SessionLocal()
         config = crud.getConfig(db)
         book = crud.getBookById(db,bookId)
+        context = {
+            "config":config,
+            "book": book,
+            "user": user,
+            "request": request
+            }
         if config.coverImages:
             images = crud.getImages(db, bookId)
-            context = {
-            "user": user,
-            "config":config,
-            "images": images,
-            "book": book,
-            "request": request
-            }
-        
+            context["images"] = images  
+        if book.ebook==True:
+            ebookFiles = crud.getEbookFiles(db, bookId)
+            context["ebookFiles"] = ebookFiles  
+            db.close()
+            return templates.TemplateResponse("ebookDetails.html", context)
         else:
-            context = {
-            "config":config,
-            "book": book,
-            "user": user,
-            "request": request
-            }
-        db.close()
-        return templates.TemplateResponse("bookDetails.html", context)
+            db.close()
+            return templates.TemplateResponse("bookDetails.html", context)
     if not user:
         return "You are not logged in. Login to view books."
 
@@ -363,7 +362,7 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
         try:
             db = SessionLocal()
             config = crud.getConfig(db)
-            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
+            book = schemas.Book(id=bookId, title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.updateBook(db, book)
             book = crud.getBookById(db,bookId)
             db.close()
@@ -373,7 +372,8 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
             "user": user,
             "request": request
             }
-            return templates.TemplateResponse("updateBook.html", context)
+            return RedirectResponse(url='/bookDetails/'+bookId, 
+        status_code=status.HTTP_302_FOUND)
         except Exception as e:
             print(e)
             return "Fail"
@@ -453,7 +453,12 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn)
+            book = meta(isbn,service='goob')
+            if not "Title" in book:
+                book = meta(isbn,service='openl')
+            if not "Title" in book:
+                book = meta(isbn,service='wiki')
+                print(book["Title"])
             title = book["Title"]
             author = book["Authors"][0]
             try:
@@ -503,7 +508,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
         await form.load_data()
         if await form.is_valid():
             db = SessionLocal()
-            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
             books = crud.getBooks(db)
             db.close()
@@ -564,7 +569,7 @@ async def bookReturn(bookId, request: Request, user: schemas.User = Depends(get_
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, customField1=book.customField1, customField2=book.customField2, withdrawn=False)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, ebook=book.ebook, customField1=book.customField1, customField2=book.customField2, withdrawn=False)
         crud.bookReturn(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -576,7 +581,7 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
     if user:
         db = SessionLocal()
         book = crud.getBookById(db, bookId)
-        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, withdrawnBy = user.username, customField1=book.customField1, customField2=book.customField2, withdrawn=True)
+        book = schemas.Book(id=bookId, title=book.title, author=book.author, summary=book.summary, genre=book.genre, library=book.library, shelf=book.shelf, collection=book.collection, notes=book.notes, ISBN = book.ISBN, owned = book.owned, ebook=book.ebook, withdrawnBy = user.username, customField1=book.customField1, customField2=book.customField2, withdrawn=True)
         crud.bookWithdraw(db,book)
         db.close()
         return RedirectResponse(url='/searchbooks')
@@ -643,6 +648,9 @@ async def export(request: Request, user: schemas.User = Depends(get_current_user
                 for line in conn.iterdump():
                     f.write('%s\n' % line)
             conn.close()
+            filename = "allFiles" + date_time
+            shutil.make_archive(filename, 'zip', "static")
+            shutil.move(filename + ".zip", "export/" + filename + ".zip")
         return RedirectResponse(url='/backups')
     except:
            return "Only an admin can export the database." 
@@ -673,16 +681,20 @@ async def backups(request: Request, user: schemas.User = Depends(get_current_use
             possibleBackups = listdir('export')
             backups = []
             bookExports = []
+            fileExports = []
             for i in possibleBackups:
                 if i.endswith('.sql'):
                     backups.append(i)     
                 elif i.endswith('.csv'):
                     bookExports.append(i)
+                elif i.endswith('.zip'):
+                    fileExports.append(i)
             context = {
         "request": request,
         "user": user,
         "backups":backups,
         "bookExports":bookExports,
+        "fileExports":fileExports,
     }
         return templates.TemplateResponse("backups.html", context)
     except:
@@ -750,8 +762,8 @@ async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_
         if user.isAdmin == True:
             filename_base = str(os.path.basename(file.filename))
             db = SessionLocal()
-            extension = file.filename[-4:]
-            if (extension == ".sql") or (extension ==".SQL") or (extension == ".csv") or (extension == ".CSV"):
+            extension = file.filename[-4:].lower()
+            if (extension == ".sql") or (extension == ".csv") or (extension == ".zip"):
                 filepath = os.path.join('./export/', str(filename_base))
                 async with aiofiles.open(filepath, 'wb') as f:
                     while chunk := await file.read(CHUNK_SIZE):
@@ -764,7 +776,27 @@ async def uploadfile(file: UploadFile, user: schemas.User = Depends(get_current_
     except Exception as e:
         return {"message": e.args}
 
- 
+@app.get("/fileBackup", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def fileBackup(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            filename = "allFiles" + date_time
+            shutil.make_archive(filename, 'zip', "static")
+            shutil.move(filename + ".zip", "export/" + filename + ".zip")
+        return RedirectResponse(url='/backups')
+    except:
+           return "Only an admin can backup all stored files."  
+
+@app.get("/restoreFileBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def restoreFiles(filename, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            shutil.unpack_archive("export/" + filename, "static", "zip") 
+        return RedirectResponse(url='/')
+    except:
+           return "Only an admin can restore files."  
 # --------------------------------------------------------------------------
 # Library Configuration
 # --------------------------------------------------------------------------            
@@ -871,6 +903,7 @@ async def uploadfile(file: UploadFile, bookId: int, user: schemas.User = Depends
                     db.close()
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
         if not (extension == ".jpg") or (extension =="jpeg"):
+            db.close()
             return "Not a valid jpg image"
     except Exception as e:
         return {"message": e.args}
@@ -895,19 +928,78 @@ def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(ge
             db = SessionLocal()
             bookId,dbpath = crud.deleteImage(db, imageId)
             db.close()
-            jpgpath = os.path.join('./static/bookImages/', str(dbpath) + ".jpg")
-            thumbpath = os.path.join('./static/bookImages/', str(dbpath) + "_thumbnail.jpg")
-            os.remove(thumbpath)
-            os.remove(jpgpath)
+            jpgPath = os.path.join('./static/bookImages/', str(dbpath) + ".jpg")
+            thumbPath = os.path.join('./static/bookImages/', str(dbpath) + "_thumbnail.jpg")
+            os.remove(thumbPath)
+            os.remove(jpgPath)
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
         db.close()
         print(e)
         return "An error has occured."
 
+# --------------------------------------------------------------------------
+# E-book handling
+# --------------------------------------------------------------------------
+@app.get("/downloadEbook/{filename}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+def getImages(request: Request, filename: str, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user:
+            path = ('static/eBooks/' + filename)
+            return FileResponse(path, media_type='application/octet-stream',filename=filename)
+    except:
+           return "Only admins can download backups." 
 
 
 
+
+@app.get("/sendEbook/{ebookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        return False
+    except Exception as e:
+        print(e)
+        return "An error has occured."
+
+
+@app.get("/deleteEbook/{ebookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            bookId,dbpath = crud.deleteEbook(db, ebookId)
+            db.close()
+            ebookPath = os.path.join('./static/eBooks/', str(dbpath))
+            os.remove(ebookPath)
+            return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
+    except Exception as e:
+        db.close()
+        print(e)
+        return "An error has occured."
+
+@app.post("/uploadEbook/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+async def uploadEbook(file: UploadFile, request: Request, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            filename = str(os.path.basename(file.filename))
+            filename, extension = os.path.splitext(filename)
+            db = SessionLocal()
+            book = crud.getBookById(db, bookId)
+            title = (book.title[:26]) if len(book.title) > 26 else book.title
+            #Includes title, so full uuid is cumbersome. Just grab a couple of characters. 
+            unique_id = (str(uuid.uuid4()))[0:5]
+            dbpath = str(title) + "_" + unique_id + extension
+            filepath = os.path.join('./static/eBooks/', dbpath)
+            async with aiofiles.open(filepath, 'wb') as f:
+                while chunk := await file.read(CHUNK_SIZE):
+                    await f.write(chunk)   
+                #finally, add to db only if all suceeds
+                newEbook = schemas.ebookBase(bookId = bookId, filename = dbpath)
+                crud.addEbook(db,newEbook)  
+            db.close()
+            return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
+    except Exception as e:
+        return {"message": e.args}
 
 # --------------------------------------------------------------------------
 # Wishlist (of books)
@@ -968,7 +1060,7 @@ class bookForm:
     def __init__(self, request: Request):
         self.request: Request = request
         self.errors: List = []
-        self.title: Optional[str] = None
+        self.title: str
         self.author: Optional[str] = None
         self.summary: Optional[str] = None
         self.genre: Optional[str] = None
@@ -979,8 +1071,9 @@ class bookForm:
         self.notes: Optional[str] = None
         self.owned: Optional[bool] = None
         self.withdrawn: Optional[bool] = None
-        self.customField1: Optional[bool] = None
-        self.customField2: Optional[bool] = None
+        self.ebook: Optional[bool] = None
+        self.customField1: Optional[str] = None
+        self.customField2: Optional[str] = None
 
     async def load_data(self):
         form = await self.request.form()
@@ -995,6 +1088,7 @@ class bookForm:
         self.notes = form.get("notes")
         self.owned = form.get("owned")
         self.withdrawn = form.get("withdrawn")
+        self.ebook = form.get("ebook")
         self.customField1 = form.get("customField1")
         self.customField2 = form.get("customField2")
 

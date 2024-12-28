@@ -67,11 +67,7 @@
         <p><label for="">Summary</label></p>
         <input type="text" name="summary" value="{{ book.summary }}">
     </p>
-    <p>
-        <p><label for="">Cover Image</label></p>
-        <input type="text" name="coverImage" value="{{ book.coverImage }}">
-    </p>
-    <p>
+       <p>
         <p><label for="">Genre</label></p>
                 <select name="genre" id="genre">
 					<option value="{{ book.genre }}" selected>{{ book.genre }}</option>
@@ -86,6 +82,13 @@
 			<option value="Horror">Horror</option>
 			<option value="Romance">Romance</option>
 					<option value="Animal Fiction">Animal Fiction</option>
+</select>
+    </p>
+<p><label for="ebook">eBook</label></p>
+<select name="ebook" id="ebook">
+	<option value="{{ book.ebook }}" selected>{{ book.ebook }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
 </select>
     </p>
 					{% if config.customFieldName1|length > 0 %}	
