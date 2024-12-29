@@ -951,17 +951,6 @@ def getImages(request: Request, filename: str, user: schemas.User = Depends(get_
            return "Only admins can download backups." 
 
 
-
-
-@app.get("/sendEbook/{ebookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_current_user_from_token)):
-    try:
-        return False
-    except Exception as e:
-        print(e)
-        return "An error has occured."
-
-
 @app.get("/deleteEbook/{ebookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_current_user_from_token)):
     try:
