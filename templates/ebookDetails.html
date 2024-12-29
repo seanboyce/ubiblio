@@ -152,7 +152,7 @@ border-color:#242943;
     </thead>
 			<tbody id = "tablebody">
 {% for file in ebookFiles %}
-		<tr><td>{{ file.filename }}</td><td><a class="confirm" style="border:none;" href="/downloadEbook/{{ file.filename }}" >Download</a> | <a class="confirm" style="border:none;" href="/deleteEbook/{{ file.id }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Delete</a></td>
+				<tr><td><strong>{{ file.filename }}</strong></td><td><strong><a class="confirm" style="border:none;" href="/downloadEbook/{{ file.filename }}" >Download</a></strong>  |  <strong><a class="confirm" style="border:none;" href="/deleteEbook/{{ file.id }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Delete</a></strong></td>
 		
 		{% endfor %}
 						 </tbody>
