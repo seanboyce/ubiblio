@@ -15,5 +15,3 @@ python-multipart==0.0.5
 aiofiles==24.1.0
 pillow==9.0.1
 uuid==1.30
-proton-client==0.5.1
-stkclient==0.1.1
