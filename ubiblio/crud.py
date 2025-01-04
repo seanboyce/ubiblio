@@ -259,12 +259,18 @@ def getConfig(db: Session):
 
 def updateConfig(db: Session, config: schemas.config):
     try:
+        config_exists = db.query(models.config).first()
         config = models.config(** config.dict())
-        db.merge(config)
-        db.commit()
+        if config_exists:
+            db.merge(config)
+            db.commit()
+        else:
+            db.add(config)
+            db.commit()
+            db.refresh(config) 
     except Exception as e:
         print(e)
-        return  
+        return   
 
 def getImages(db: Session, bookId: int):
     try:

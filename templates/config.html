@@ -54,9 +54,13 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/config" method="post">
         <p>Database Version: {{ config.version }}</p>
+	{% if config.version %}
 	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
+	{% else %}
+	<input type="hidden" id="version" name="version" value="1.0.0">
     <p>
         <p><label for="">Enable Cover Images: </label></p>
+	{% endif %}
 	<select name="coverImages" id="coverImages">
 					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
   <option value="True">True</option>
