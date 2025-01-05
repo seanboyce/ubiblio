@@ -1,51 +1,30 @@
 # Features:
 
-1. Add, remove, update books
-2. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
-3. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
-4. Reading list management for each user
-5. Book wishlist (just set owned=False, then update to True when you buy it)
-6. Withdraw and return books. Display a list of withdrawn books (to help put them away or figure out who has them).
-7. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
-8. Content discovery (browse by genre).
-9. Works on most phones (browsing by genre will only work in landscape though, because of the sometimes long book summaries).
-10. Really quite fast, low memory requirements for hosting (I typically see under 100MB and tiny CPU usage).
-11. No distractions -- it does what it needs to do and nothing else (by default).
-12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
-13. Backup management! 
-14. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
-15. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
-16. No hidden easter eggs!
+It's ubiblio -- but smaller. If we're being SI-compliant, it should be called nbiblio. It's also cursed.
 
-# Setup
+# ...Smaller?
 
-![Setup has moved to it's own file to keep things organized](https://github.com/seanboyce/ubiblio/blob/main/SETUP.md)
+ubiblio takes up around 90MB of memory and is pretty snappy, even though python doesn't usually have the best reputation for speed. 
 
-# Why this exists:
+So since it's already taking under 100MB of memory, why host it on a huge server box? Even an old laptop is way too powerful. An old phone? Still way too huge and wasteful. A raspberry pi would work fine, but what will I even do with all that extra memory?
 
-1. It took about a day to build the core features. 
-2. I wanted something fast to manage a few hundred books. I tried Koha and others but the huge memory footprint (~4GB) made them expensive to self-host. This application runs with less than 100MB of memory, so I can cram it on a server that hosts lots of other stuff.
-3. I wanted a way to quickly check if I own books from my phone, while visiting book sales / stores. Also a way to get a list of books I want. Since I read in English and French, but live in country where neither are common languages, this was a super important feature for me. Opportunities to buy a lot of books are few and far-between for me, so I have to carpe the diem pretty optimally.
+No, it must run on a system the size of a postage stamp. 
 
+# ...Cursed?
 
-# To Do (in no particular order):
+So I noticed that a local vendor was stocking a perfectly cromulent little RISCV board, the LicheeRV Nano. The CPU is from Sophgo, a manufacturer I had never heard of. A quick search revealed three things, and then another thing:
 
-1. Backup / migrate stored files.
-2. Ebook support, including file storage/retrieval/backup for ebooks.
-3. A one-button "send to my reader" for ebooks (requires an ebook reader that can receive books by email). Probably I'll look into something like Oauth2 support + Protonmail.
-4. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
-5. Search by a specific location would be nice -- can be another interface.
-6. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
+1. It looks like I can cross-compile Debian for it!
+2. It also looks like the company is being accused of something or other, and will probably be banned in the USA.
+3. The architechture is RISCV64, and it has an unctuously luxurious 256 MB of memory. Also integrated Wi-Fi and a little slot for an SD card.
+4. Support for this thing is limited. Mysteries abound!
 
+# Cross-compiling Debian
 
-# HTML Theme
-The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
+The heavy lifting was done here: https://github.com/Fishwaldo/sophgo-sg200x-debian
 
-# Menu System
-![Screenshot of the menu system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_menu.png)
+I did manage to eventually get Debian to cross-compile, however I ham-fistedly forgot to include any useful packages. So finally I just used the pre-compiled image generously provided by the author of that repository, and just added things as needed. It turns out Debian on riscv64 is quite OK!
 
-# Book Search
-![Screenshot of the book search system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_search.png)
+# Setting up nbiblio
 
-# Reading list / Browse by Genre / Wishlist / Withdrawn Books List
-![Screenshot of a more detailed list of books](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_readling_list.png)
+The current install process just works, surprisingly. There are no debian packages for RISCV64 for fastapi_limiter and python-jose, but if you use pip and a virtual environment (as per the instructions), it seems to mostly figure out what to do. I'm still working out the details before updating the build here.
