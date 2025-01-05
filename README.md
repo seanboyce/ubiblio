@@ -27,4 +27,6 @@ I did manage to eventually get Debian to cross-compile, however I ham-fistedly f
 
 # Setting up nbiblio
 
-The current install process just works, surprisingly. There are no debian packages for RISCV64 for fastapi_limiter and python-jose, but if you use pip and a virtual environment (as per the instructions), it seems to mostly figure out what to do. I'm still working out the details before updating the build here.
+The current install process almost just works, surprisingly. We can forget about Docker images, we don't really have the memory to spare. So we should use venv and no containers.
+
+The main issue is that Python 3.12 is incompatible with ubiblio, because of an issue with Pydantic. So we must make sure not to install Python 3.12. I tried upgrading everything to 3.12, but there are too many issues to fix while compiling newer Pydantic versions (OOM, out of storage, etc.)
