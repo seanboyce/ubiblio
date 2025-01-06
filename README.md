@@ -46,4 +46,4 @@ With this method, the normal ubiblio version can start up just fine! Honestly, t
 
 You can follow the vague instructions above, if you want.
 
-However, I plan to image my working install with dd and compress it. Likely after the next release. This way you can just flash it to a 16GB microSD card, instert it into your board, and boot it up.
+However, I plan to image my working install with dd and compress it. Likely after the next release. This way you can just flash it to a 16GB microSD card, insert it into your board, and boot it up.
