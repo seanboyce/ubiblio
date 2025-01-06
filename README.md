@@ -25,8 +25,25 @@ The heavy lifting was done here: https://github.com/Fishwaldo/sophgo-sg200x-debi
 
 I did manage to eventually get Debian to cross-compile, however I ham-fistedly forgot to include any useful packages. So finally I just used the pre-compiled image generously provided by the author of that repository, and just added things as needed. It turns out Debian on riscv64 is quite OK!
 
+As an aside, I ended up soldering in a serial port, and used that to login / install everything. However the board also does DHCP over USB and you can just connect to it over SSH.
+
 # Setting up nbiblio
 
 The current install process almost just works, surprisingly. We can forget about Docker images, we don't really have the memory to spare. So we should use venv and no containers.
 
-The main issue is that Python 3.12 is incompatible with ubiblio, because of an issue with Pydantic. So we must make sure not to install Python 3.12. I tried upgrading everything to 3.12, but there are too many issues to fix while compiling newer Pydantic versions (OOM, out of storage, etc.)
+Issues arise as follows:
+
+1. ubiblio needs either Python 3.10-3.12. There's a specific version of 3.12 that breaks it, because of a bug in Pydandic. That bug has since been fixed in Pydantic 2.X. So you need *either* Python 3.10 to early 3.12 and Pydantic ~1.10.2... or Python 3.12 and Pydandic 2.X.
+2. Only Python 3.12 is available for riscv64, So we need to upgrade to recent Pydantic. However, pip needs to compile it, and we hit out of memory (OOM) errors.
+3. So we temporarily try adding swap (not a good long-term measure as it will kill the microSD flash card faster). Then it has to download tons of stuff, takes a really long time, and eventually runs out of disk space.
+4. But hark! A recent Pydantic version is available as a system package! Same with PIL, which is also a long compile on this chip.
+
+So, the consensus-solution is Python3.12, creating a venv, then editing pyenv.cfg to set include-system-site-packages = true. Then installing setuptools, Pydantic, and PIL system-wide. Finally, we install everything else with pip.
+
+With this method, the normal ubiblio version can start up just fine! Honestly, this was less difficult than I thought it would be. I'll still keep this branch for any riscv64 specific changes I need to make in the future.
+
+# If you actually want this
+
+You can follow the vague instructions above, if you want.
+
+However, I plan to image my working install with dd and compress it. Likely after the next release. This way you can just flash it to a 16GB microSD card, instert it into your board, and boot it up.
