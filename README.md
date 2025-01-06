@@ -19,6 +19,10 @@ So I noticed that a local vendor was stocking a perfectly cromulent little RISCV
 3. The architechture is RISCV64, and it has an unctuously luxurious 256 MB of memory. Also integrated Wi-Fi and a little slot for an SD card.
 4. Support for this thing is limited. Mysteries abound!
 
+# OK, but does it work?
+
+Yes, it works *surprisingly* well. It's reasonably fast. Pages load for me in less than half a second -- if you try really hard you may notice it is very slightly slower than using a modern computer by some milliseconds. I originally conceived this as some sort of joke for your amusement, but it accidentally worked (sorry).
+
 # Cross-compiling Debian
 
 The heavy lifting was done here: https://github.com/Fishwaldo/sophgo-sg200x-debian
