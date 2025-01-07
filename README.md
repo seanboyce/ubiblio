@@ -10,7 +10,9 @@ I have no idea. It just sort of happened. We all make mistakes sometimes.
 
 # OK, but does it work?
 
-Yes, it works *surprisingly* well. It's reasonably fast. Pages load for me in less than half a second -- if you try really hard you may notice it is very slightly slower than using a modern computer by some milliseconds. I originally conceived this as some sort of joke for your amusement, but it accidentally worked (sorry).
+Yes, it works *surprisingly* well. It's reasonably fast. Pages load for me in less than half a second -- if you try really hard you may notice it is very slightly slower than using a modern computer by some milliseconds. Memory usage sits around 55% -- a bit under 100MB for ubiblio, and some overhead for redis and uvicorn and so on.
+
+I originally conceived this as some sort of joke for your amusement, but it accidentally worked (sorry).
 
 # ...Smaller?
 
