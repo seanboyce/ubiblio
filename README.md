@@ -20,6 +20,8 @@ So since it's already taking under 100MB of memory, why host it on a huge server
 
 No, it must run on a system the size of a postage stamp. 
 
+![Here is a photo](https://github.com/seanboyce/ubiblio/blob/cursed/nbiblio.JPG)
+
 # ...How did this happen?
 
 So I noticed that a local vendor was stocking a perfectly cromulent little RISCV board, the LicheeRV Nano. The CPU is from Sophgo, a manufacturer I had never heard of. A quick search revealed three things, and then another thing:
