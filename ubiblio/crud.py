@@ -267,13 +267,36 @@ def getConfig(db: Session):
 
 def updateConfig(db: Session, config: schemas.config):
     try:
+        config_exists = db.query(models.config).first()
         config = models.config(** config.dict())
-        db.merge(config)
-        db.commit()
+        if config_exists:
+            db.merge(config)
+            db.commit()
+        else:
+            db.add(config)
+            db.commit()
+            db.refresh(config) 
     except Exception as e:
         print(e)
         return  
-
+        
+def initConfig(db: Session):
+    try:
+        config = db.query(models.config).first()
+        if not config:    
+            conn = sqlite3.connect(DB_LOCATION)
+            initData =["1.0.0",False,"",""]
+            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+            conn.commit()
+            conn.close()
+            return
+        else:
+            return
+    except Exception as e:
+        print(e)
+        return
+    
 def getImages(db: Session, bookId: int):
     try:
         limit = 16

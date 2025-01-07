@@ -1119,7 +1119,8 @@ class configForm:
 async def create_user():
     if CREATE_ADMIN_USER or CREATE_USER:
         db = database.SessionLocal()
-
+        #If creating a new user, also create a valid initial config if one does not already exist
+        crud.initConfig()
         if CREATE_ADMIN_USER:
             try:
                 admin_user = schemas.UserCreate(
