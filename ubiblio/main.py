@@ -66,6 +66,8 @@ favicon_path = 'favicon.ico'
 async def startup():
     if USE_REDIS:
         redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        #If your redis install uses auth, use the below instead
+        #redis_connection = redis.from_url(REDIS_URL, username=None, password=None, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
 
@@ -1120,7 +1122,7 @@ async def create_user():
     if CREATE_ADMIN_USER or CREATE_USER:
         db = database.SessionLocal()
         #If creating a new user, also create a valid initial config if one does not already exist
-        crud.initConfig()
+        crud.initConfig(db)
         if CREATE_ADMIN_USER:
             try:
                 admin_user = schemas.UserCreate(
