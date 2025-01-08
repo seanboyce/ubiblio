@@ -66,7 +66,7 @@ favicon_path = 'favicon.ico'
 async def startup():
     if USE_REDIS:
         redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
-        #If your redis install uses auth, use the below instead
+        #If your redis install uses auth, use the line below instead of the line above, adding in your username/password
         #redis_connection = redis.from_url(REDIS_URL, username=None, password=None, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
