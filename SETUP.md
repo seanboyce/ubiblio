@@ -142,7 +142,7 @@ docker run -p 8000:8000 -v config_dir:/app/config -e PUID=$(id -u $USER) -e PGID
 
 Open the service in your web browser at `http://<ip>:8000`
 
-Note: This launches by default with uvicorn and no https support. 
+Note: This launches by default with uvicorn and no https support -- e.g. fine for hosting on a local network. Also no DDOS protection: my understanding is that hosting redis inside Docker can have some unexpected security implications, so I've disabled it by default. If you really want to do it, then probably you should at least set up authentication. Then check out line 70 in main.py, I've left you an example of how to handle redis auth.
 
 # Docker Deployment (with Docker hub)
 
@@ -154,7 +154,7 @@ docker image pull sean8196/ubiblio
 Then execute:
 
 ```bash
-docker run -p 8000:8000 -v config_dir:/app/config sean8196/ubiblio
+docker run -p 8000:8000 -v config_dir:/app/config ubiblio
 ```
 
 Then, open the service in your web browser at `http://<ip>:8000`

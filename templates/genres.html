@@ -84,7 +84,9 @@ border-color:#242943;
 								<li><a href="/wishlist/">Wishlist</a></li>
 							<li><a href="/readingLists">Reading Lists</a></li>
 								<li><a href="/withdrawn">Withdrawn Books</a></li>
+								{% if user.isAdmin %}
 								<li><a href="/config">Admin</a></li>
+								{% endif %}
 						</ul>
 						<ul class="actions stacked">
 							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
