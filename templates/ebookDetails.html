@@ -132,7 +132,7 @@ border-color:#242943;
 			{% if images %}
 				{% for image in images %}
 <div style="float:left;">
-<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
+<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a></div>
 
 				{% endfor %}
 		{% endif %}
