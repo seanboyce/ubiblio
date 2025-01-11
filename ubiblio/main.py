@@ -451,16 +451,23 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
+def get_metadata(isbn: str, service: str):
+    try:
+        book = meta(isbn, service=service)
+        if "Title" in book:
+            return book
+    except Exception as e:
+        print(e)
+
+    return None
+
 @app.get("/isbn/{isbn}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn,service='goob')
-            if not "Title" in book:
-                book = meta(isbn,service='openl')
-            if not "Title" in book:
-                book = meta(isbn,service='wiki')
-                print(book["Title"])
+            book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
+            if book is None:
+                raise LookupError(f"Book with isbn {isbn} not found!")
             title = book["Title"]
             author = book["Authors"][0]
             try:
