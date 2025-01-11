@@ -65,7 +65,7 @@ With this method, the normal ubiblio version can start up just fine! Honestly, t
 
 You can follow the vague instructions above, if you want. It's a slog, but not too hard.
 
-You can also grab a (compressed) image for a 16GB microSD card here:
+You can also grab a (compressed) image for a 16GB microSD card here (~600MB compressed):
 
 https://drive.google.com/file/d/165EDwK2d6MKtcZscwtTChJcvo8MUbCX9/view?usp=drive_link
 
