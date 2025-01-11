@@ -63,6 +63,17 @@ With this method, the normal ubiblio version can start up just fine! Honestly, t
 
 # If you actually want this
 
-You can follow the vague instructions above, if you want.
+You can follow the vague instructions above, if you want. It's a slog, but not too hard.
 
-However, I plan to image my working install with dd and compress it. Likely after the next release. This way you can just flash it to a 16GB microSD card, insert it into your board, and boot it up. So just give me a week or so.
+You can also grab a (compressed) image for a 16GB microSD card here:
+
+https://drive.google.com/file/d/165EDwK2d6MKtcZscwtTChJcvo8MUbCX9/view?usp=drive_link
+
+If the link is not working, please raise an issue here on github.
+
+username is: debian
+password is: rv
+
+When you plug the board into a computer, it will attempt to do DHCP over USB, so you can SSH in then tell it how to connect over WiFi using nmtui. The uBiblio application and a working python venv are already set up. You just need to activat the venv and run it.
+
+If you hit a problem, raise an issue and I'll lend a hand :)
