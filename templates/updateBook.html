@@ -71,17 +71,9 @@
         <p><label for="">Genre</label></p>
                 <select name="genre" id="genre">
 					<option value="{{ book.genre }}" selected>{{ book.genre }}</option>
-  <option value="Sci-Fi">Sci-Fi</option>
-  <option value="Fantasy">Fantasy</option>
-<option value="Classic">Classic</option>
-			<option value="Reference">Reference</option>
-			<option value="Young Adult">Young Adult</option>
-			<option value="Historical Fiction">Historical Fiction</option>
-			<option value="Mystery">Mystery</option>
-			<option value="Anthology">Anthology</option>
-			<option value="Horror">Horror</option>
-			<option value="Romance">Romance</option>
-					<option value="Animal Fiction">Animal Fiction</option>
+					{% for genre in config.genres.split(",") %}
+						<option value="{{ genre }}">{{ genre }}</option>
+					{% endfor %}
 </select>
     </p>
 

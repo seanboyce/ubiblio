@@ -296,9 +296,9 @@ def initConfig(db: Session):
         config = db.query(models.config).first()
         if not config:    
             conn = sqlite3.connect(DB_LOCATION)
-            initData =["1.0.0",False,"",""]
-            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
-            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+            initData =["1.0.1",False,"","",",".join(schemas.DEFAULT_GENRES)]
+            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR, genres VARCHAR);')
+            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2, genres) VALUES (?, ?, ?, ?, ?);', initData)
             conn.commit()
             conn.close()
             return

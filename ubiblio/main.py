@@ -831,7 +831,7 @@ async def updateConfig(request: Request, user: schemas.User = Depends(get_curren
             await form.load_data()
             if await form.is_valid():
                     db = SessionLocal()
-                    config = schemas.config(id = 1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2)
+                    config = schemas.config(id = 1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres)
                     crud.updateConfig(db, config)
                     config = crud.getConfig(db)
                     db.close()
@@ -1104,6 +1104,7 @@ class configForm:
         self.coverImages: Optional[bool] = None
         self.customFieldName1: Optional[str] = None
         self.customFieldName2: Optional[str] = None
+        self.genres: str = ""
 
     async def load_data(self):
         form = await self.request.form()
@@ -1111,6 +1112,7 @@ class configForm:
         self.coverImages = form.get("coverImages")
         self.customFieldName1 = form.get("customFieldName1")
         self.customFieldName2 = form.get("customFieldName2")
+        self.genres = form.get("genres") or ",".join(schemas.DEFAULT_GENRES)
 
     async def is_valid(self):
         if not self.version:

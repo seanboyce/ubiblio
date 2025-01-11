@@ -48,6 +48,7 @@ class config(Base):
     coverImages = Column(Boolean)
     customFieldName1 = Column(String, nullable=True)
     customFieldName2 = Column(String, nullable=True)
+    genres = Column(String)
 
 class ebook(Base):
     __tablename__ = "ebooks"
