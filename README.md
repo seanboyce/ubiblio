@@ -72,6 +72,7 @@ https://drive.google.com/file/d/165EDwK2d6MKtcZscwtTChJcvo8MUbCX9/view?usp=drive
 If the link is not working, please raise an issue here on github.
 
 username is: debian
+
 password is: rv
 
 When you plug the board into a computer, it will attempt to do DHCP over USB, so you can SSH in then tell it how to connect over WiFi using nmtui. The uBiblio application and a working python venv are already set up. You just need to activat the venv and run it.
