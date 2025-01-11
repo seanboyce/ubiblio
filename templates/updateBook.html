@@ -84,6 +84,7 @@
 					<option value="Animal Fiction">Animal Fiction</option>
 </select>
     </p>
+
 {% if book.ebook %}	
 								<p><label for="ebook">eBook</label></p>
 <select name="ebook" id="ebook">
@@ -99,6 +100,7 @@
 </select>
     </p>
 {% endif %}
+
 					{% if config.customFieldName1|length > 0 %}	
 <p><label for="">{{ config.customFieldName1 }}</label></p>
         <input type="text" name="customField1" value="{{ book.customField1 }}">
