@@ -594,7 +594,11 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
 async def wdList(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
-        books = crud.browseWithdrawn(db)
+        books=[]
+        withdrawnList = crud.browseWithdrawn(db)
+        #Convert query to list, so jinjia2 can determine it's length (so it knows whether to return "no results found" or a table of results)
+        for i in withdrawnList:
+            books.append(i)
         db.close()
         context = {
         "user": user,
@@ -938,7 +942,8 @@ def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(ge
     except Exception as e:
         db.close()
         print(e)
-        return "An error has occured."
+        #just return the page if it errors out. This can happen if the file link in the DB is broken. It will remove the DB entry, then fail to find and delete the file, which is not a disaster.
+        return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND)
 
 # --------------------------------------------------------------------------
 # E-book handling
