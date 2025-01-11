@@ -1,6 +1,6 @@
 # Core Concept
 
-uBiblio is a small and fast web application to help you manage your personal library (and share it with friends). It provides a unified interface for both physical books and ebooks. It is free, open-source, designed for self-hosting, and will never contain ads or spy on you.
+uBiblio is a small and fast web application to help you manage your personal library (and share it with friends, or form a book club). It provides a unified interface for both physical books and ebooks. It is free, open-source, designed for self-hosting, and will never contain ads or spy on you.
 
 You don't have to connect it to the Internet. It can run on your LAN. Or even on a single computer with no network access at all. 
 
