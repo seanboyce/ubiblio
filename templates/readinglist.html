@@ -66,9 +66,13 @@
       </tr>
     </thead>
     <tbody id = "tablebody">
-{% for book in books %}
+{% if books|length > 0 %}
+	{% for book in books %}
 		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.summary }}</td></tr>
-{% endfor %}
+	{% endfor %}
+{% else %}
+		<tr><td>No results found</td><td></td><td></td></tr>
+{% endif %}
       <!-- more table rows here -->
 
     </tbody>

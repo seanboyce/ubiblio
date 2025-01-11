@@ -7,6 +7,8 @@ from datetime import datetime
 import sqlite3
 import csv
 from .vars import *
+from os import remove, path
+
 
 
 def get_user(db: Session, user_id: int):
@@ -156,8 +158,14 @@ def purgeFromImages(db: Session, bookId):
     try:
         book = db.query(models.bookImage).filter(models.bookImage.bookId == bookId).all()
         for i in book:
+            jpgPath = os.path.join('./static/bookImages/', str(i.filename) + ".jpg")
+            thumbPath = os.path.join('./static/bookImages/', str(i.filename) + "_thumbnail.jpg")
+            if os.path.isfile(thumbPath):
+                os.remove(thumbPath)
+            if os.path.isfile(jpgPath):    
+                os.remove(jpgPath)  
             db.delete(i)
-        db.commit()  
+        db.commit()
         return True
     except Exception as e:
         print(e)
@@ -167,6 +175,9 @@ def purgeFromEbooks(db: Session, bookId):
     try:
         book = db.query(models.ebook).filter(models.ebook.bookId == bookId).all()
         for i in book:
+            ebookPath = os.path.join('./static/eBooks/', str(i.filename))
+            if os.path.isfile(ebookPath):
+                os.remove(ebookPath)
             db.delete(i)
         db.commit()  
         return True
@@ -279,7 +290,24 @@ def updateConfig(db: Session, config: schemas.config):
     except Exception as e:
         print(e)
         return  
-
+        
+def initConfig(db: Session):
+    try:
+        config = db.query(models.config).first()
+        if not config:    
+            conn = sqlite3.connect(DB_LOCATION)
+            initData =["1.0.0",False,"",""]
+            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+            conn.commit()
+            conn.close()
+            return
+        else:
+            return
+    except Exception as e:
+        print(e)
+        return
+    
 def getImages(db: Session, bookId: int):
     try:
         limit = 16

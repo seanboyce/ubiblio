@@ -66,6 +66,8 @@ favicon_path = 'favicon.ico'
 async def startup():
     if USE_REDIS:
         redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        #If your redis install uses auth, use the line below instead of the line above, adding in your username/password
+        #redis_connection = redis.from_url(REDIS_URL, username=None, password=None, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
 
@@ -592,7 +594,11 @@ async def bookWithdraw(bookId, request: Request, user: schemas.User = Depends(ge
 async def wdList(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if user:
         db = SessionLocal()
-        books = crud.browseWithdrawn(db)
+        books=[]
+        withdrawnList = crud.browseWithdrawn(db)
+        #Convert query to list, so jinjia2 can determine it's length (so it knows whether to return "no results found" or a table of results)
+        for i in withdrawnList:
+            books.append(i)
         db.close()
         context = {
         "user": user,
@@ -936,7 +942,8 @@ def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(ge
     except Exception as e:
         db.close()
         print(e)
-        return "An error has occured."
+        #just return the page if it errors out. This can happen if the file link in the DB is broken. It will remove the DB entry, then fail to find and delete the file, which is not a disaster.
+        return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND)
 
 # --------------------------------------------------------------------------
 # E-book handling
@@ -1119,7 +1126,8 @@ class configForm:
 async def create_user():
     if CREATE_ADMIN_USER or CREATE_USER:
         db = database.SessionLocal()
-
+        #If creating a new user, also create a valid initial config if one does not already exist
+        crud.initConfig(db)
         if CREATE_ADMIN_USER:
             try:
                 admin_user = schemas.UserCreate(
