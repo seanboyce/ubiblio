@@ -118,6 +118,9 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 | USER_PASSWORD | Password to create | No | - |
 | USE_REDIS | Use Redis for DDOS protection? | No | False |
 | REDIS_URI | External Redis URI | No | - |
+| DB_LOCATION | Path to SQLite database file | No | `./sql_app.db` |
+| SECRET_KEY | Randomly generated secret key for session validation | No | - |
+| SECRET_KEY_FILE | File containing the `SECRET_KEY` for session validation | No | `./secret_key.txt` |
 
 
 To build:
@@ -125,7 +128,7 @@ To build:
 ```bash
 git clone https://github.com/seanboyce/ubiblio/
 cd ubiblio
-docker build -t ubiblio .
+docker buildx build -t ubiblio . --load
 ```
 
 To run:
