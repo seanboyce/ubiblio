@@ -30,6 +30,7 @@ else:
     secret_key = (
         subprocess.check_output(["openssl", "rand", "-hex", "32"]).decode().strip()
     )
+    os.makedirs(os.path.dirname(SECRET_KEY_FILE), exist_ok=True)
     with open(SECRET_KEY_FILE, "w+") as f:
         f.write(secret_key)
 
