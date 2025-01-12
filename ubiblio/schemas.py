@@ -2,6 +2,10 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
+DEFAULT_GENRES=[
+    "Sci-Fi", "Fantasy", "Classic", "Reference", "Young Adult", "Historical Fiction", "Mystery", "Anthology", "Horror", "Romance", "Animal Fiction"
+]
+
 class UserBase(BaseModel):
     username: str
     isAdmin: bool = Field(default=False)
@@ -84,6 +88,7 @@ class config(BaseModel):
     coverImages: bool = Field(default=False)
     customFieldName1: Optional[str] = Field(default=None)
     customFieldName2: Optional[str] = Field(default=None)
+    genres: str = Field(default=",".join(DEFAULT_GENRES))
     class Config:
         orm_mode = True  
 
