@@ -251,14 +251,15 @@ def checkDB():
         return False
     else:
         return True
-    
+
+
 def updateDB():
     conn = sqlite3.connect(DB_LOCATION)
-    initData =["1.0.0",False,"",""]
-    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+    initData =["1.0.1",False,"","",",".join(schemas.DEFAULT_GENRES)]
+    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR, genres VARCHAR);')
     cursor = conn.execute('create table if not exists ebooks (id INTEGER PRIMARY KEY, bookId INTEGER, filename VARCHAR);')
     cursor = conn.execute('create table if not exists userEmails (id INTEGER PRIMARY KEY, email VARCHAR, userId INTEGER);')
-    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2, genres) VALUES (?, ?, ?, ?, ?);', initData)
     cursor = conn.execute('ALTER TABLE books DROP coverImage;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy VARCHAR;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN ebook BOOLEAN;')
@@ -267,7 +268,21 @@ def updateDB():
     conn.commit()
     conn.close()
     return
-    
+
+def updateDBVersion(db: Session):
+    config = db.query(models.config).first()
+    version = config.version
+    if version == "1.0.0":
+        conn = sqlite3.connect(DB_LOCATION)
+        cursor = conn.execute('ALTER TABLE config ADD COLUMN genres VARCHAR;')
+        conn.commit()
+        conn.close()
+        newConfig = models.config(** config.dict())
+        newConfig["genres"] = schemas.DEFAULT_GENRES
+        db.merge(newConfig)
+        db.commit()
+    return
+        
 def getConfig(db: Session):
     try:
         config = db.query(models.config).first()

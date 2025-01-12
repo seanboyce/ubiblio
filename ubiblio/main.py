@@ -255,9 +255,16 @@ def index(request: Request):
     }
         return templates.TemplateResponse("login.html", context)
     if user:
-        databaseUpToDate = crud.checkDB()
-        if databaseUpToDate == True:
-            response = RedirectResponse(url='/searchbooks')
+        databaseNotFirstVersion = crud.checkDB()
+        if databaseNotFirstVersion == True:
+            db = SessionLocal()
+            dbVersion = crud.getConfig(db).version
+            db.close()
+            print(dbVersion)
+            if dbVersion == "1.0.1":
+                response = RedirectResponse(url='/searchbooks')
+            else:
+                response = RedirectResponse(url='/dbUpdateVersion')
         else:
             response = RedirectResponse(url='/dbUpdate')
         return response
@@ -632,7 +639,15 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
     }
    return templates.TemplateResponse("updateAdvisory.html", context)
 
+@app.get("/dbUpdateVersion", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
+async def updatePage(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+   context = {
+        "user": user,
+        "request": request,
+    }
+   return templates.TemplateResponse("updateVersion.html", context)
 
+#This is the function for updating the oldest version of the app only. DB versioning is implemented after. 
 @app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
@@ -647,7 +662,26 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
             crud.updateDB()
         return RedirectResponse(url='/searchbooks')
     except:
-           return "Only an admin can export the database." 
+           return "Only an admin can export the database."
+            
+#This is the function for DB updates except in the very first version of the uBiblio.
+@app.get("/updateDBVersion", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+        if user.isAdmin == True:
+            conn = sqlite3.connect(DB_LOCATION)
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            with open('export/preUpdateExport' + date_time + '.sql', 'w') as f:
+               for line in conn.iterdump():
+                   f.write('%s\n' % line)
+            conn.close()
+            db = SessionLocal()
+            crud.updateDBVersion(db)
+            db.close()
+        return RedirectResponse(url='/searchbooks')
+#    except:
+#           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
