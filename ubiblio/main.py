@@ -257,10 +257,7 @@ def index(request: Request):
     if user:
         databaseNotFirstVersion = crud.checkDB()
         if databaseNotFirstVersion == True:
-            db = SessionLocal()
-            dbVersion = crud.getConfig(db).version
-            db.close()
-            print(dbVersion)
+            dbVersion = crud.getVersion()
             if dbVersion == "1.0.1":
                 response = RedirectResponse(url='/searchbooks')
             else:
@@ -669,6 +666,7 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
 #    try:
         if user.isAdmin == True:
+            dbVersion = crud.getVersion()
             conn = sqlite3.connect(DB_LOCATION)
             date_time = datetime.now()
             date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
@@ -677,7 +675,7 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
                    f.write('%s\n' % line)
             conn.close()
             db = SessionLocal()
-            crud.updateDBVersion(db)
+            crud.updateDBVersion(db, dbVersion)
             db.close()
         return RedirectResponse(url='/searchbooks')
 #    except:
