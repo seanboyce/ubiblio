@@ -76,7 +76,6 @@ def getBookById(db: Session, bookId):
 def updateBook(db: Session, book: schemas.Book):
     try:
         item = db.get(models.Book, book.id) 
-        print(item.__dict__)
         if item:
             book = models.Book(** book.dict())
             db.merge(book)
@@ -254,6 +253,7 @@ def checkDB():
 
 
 def updateDB():
+    #This updates the DB version from (unversioned) to 1.0.0. Mostly, creating tables will be handled automatically on startup but altering columns will not. Main features added here are ebook and cover image support, library configuration, two custom fields, and a table that could one day store user emails, if we need to store them (currently we do not). 
     conn = sqlite3.connect(DB_LOCATION)
     initData =["1.0.1",False,"","",",".join(schemas.DEFAULT_GENRES)]
     cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR, genres VARCHAR);')
@@ -269,24 +269,35 @@ def updateDB():
     conn.close()
     return
 
-def updateDBVersion(db: Session):
-    config = db.query(models.config).first()
-    version = config.version
+def updateDBVersion(db: Session, version):
     if version == "1.0.0":
         conn = sqlite3.connect(DB_LOCATION)
+        #Version 1.0.0->1.0.1: We add a genres field to config, which contains the default list of genres, so users can change it. Previously it was hardcoded. 
         cursor = conn.execute('ALTER TABLE config ADD COLUMN genres VARCHAR;')
+        cursor = conn.execute('UPDATE config SET genres = ? where id = 1;',(",".join(schemas.DEFAULT_GENRES),))
+        cursor = conn.execute('UPDATE config SET version = ? where id = 1;',("1.0.1",))
         conn.commit()
         conn.close()
-        newConfig = models.config(** config.dict())
-        newConfig["genres"] = schemas.DEFAULT_GENRES
-        db.merge(newConfig)
-        db.commit()
     return
+
+ 
         
 def getConfig(db: Session):
     try:
         config = db.query(models.config).first()
         return config
+    except Exception as e:
+        print(e)
+        return
+
+def getVersion():
+    try:
+        conn = sqlite3.connect(DB_LOCATION)
+        cur = conn.cursor()
+        version = cur.execute("SELECT version FROM config")
+        version = version.fetchone()[0]
+        conn.close()
+        return version
     except Exception as e:
         print(e)
         return
