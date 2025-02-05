@@ -526,6 +526,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
             books = crud.getBooks(db)
             db.close()
             context = {
+            "user": user,
         "request": request
     }
         return templates.TemplateResponse("addisbn.html", context)
