@@ -255,9 +255,13 @@ def index(request: Request):
     }
         return templates.TemplateResponse("login.html", context)
     if user:
-        databaseUpToDate = crud.checkDB()
-        if databaseUpToDate == True:
-            response = RedirectResponse(url='/searchbooks')
+        databaseNotFirstVersion = crud.checkDB()
+        if databaseNotFirstVersion == True:
+            dbVersion = crud.getVersion()
+            if dbVersion == "1.0.1":
+                response = RedirectResponse(url='/searchbooks')
+            else:
+                response = RedirectResponse(url='/dbUpdateVersion')
         else:
             response = RedirectResponse(url='/dbUpdate')
         return response
@@ -451,16 +455,23 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
+def get_metadata(isbn: str, service: str):
+    try:
+        book = meta(isbn, service=service)
+        if "Title" in book:
+            return book
+    except Exception as e:
+        print(e)
+
+    return None
+
 @app.get("/isbn/{isbn}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn,service='goob')
-            if not "Title" in book:
-                book = meta(isbn,service='openl')
-            if not "Title" in book:
-                book = meta(isbn,service='wiki')
-                print(book["Title"])
+            book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
+            if book is None:
+                raise LookupError(f"Book with isbn {isbn} not found!")
             title = book["Title"]
             author = book["Authors"][0]
             try:
@@ -515,6 +526,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
             books = crud.getBooks(db)
             db.close()
             context = {
+            "user": user,
         "request": request
     }
         return templates.TemplateResponse("addisbn.html", context)
@@ -625,7 +637,15 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
     }
    return templates.TemplateResponse("updateAdvisory.html", context)
 
+@app.get("/dbUpdateVersion", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
+async def updatePage(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+   context = {
+        "user": user,
+        "request": request,
+    }
+   return templates.TemplateResponse("updateVersion.html", context)
 
+#This is the function for updating the oldest version of the app only. DB versioning is implemented after. 
 @app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
@@ -640,7 +660,27 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
             crud.updateDB()
         return RedirectResponse(url='/searchbooks')
     except:
-           return "Only an admin can export the database." 
+           return "Only an admin can export the database."
+            
+#This is the function for DB updates except in the very first version of the uBiblio.
+@app.get("/updateDBVersion", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+        if user.isAdmin == True:
+            dbVersion = crud.getVersion()
+            conn = sqlite3.connect(DB_LOCATION)
+            date_time = datetime.now()
+            date_time = date_time.strftime("%m_%d_%Y_%H_%M_%S")
+            with open('export/preUpdateExport' + date_time + '.sql', 'w') as f:
+               for line in conn.iterdump():
+                   f.write('%s\n' % line)
+            conn.close()
+            db = SessionLocal()
+            crud.updateDBVersion(db, dbVersion)
+            db.close()
+        return RedirectResponse(url='/searchbooks')
+#    except:
+#           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
@@ -831,7 +871,7 @@ async def updateConfig(request: Request, user: schemas.User = Depends(get_curren
             await form.load_data()
             if await form.is_valid():
                     db = SessionLocal()
-                    config = schemas.config(id = 1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2)
+                    config = schemas.config(id = 1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres)
                     crud.updateConfig(db, config)
                     config = crud.getConfig(db)
                     db.close()
@@ -1104,6 +1144,7 @@ class configForm:
         self.coverImages: Optional[bool] = None
         self.customFieldName1: Optional[str] = None
         self.customFieldName2: Optional[str] = None
+        self.genres: str = ""
 
     async def load_data(self):
         form = await self.request.form()
@@ -1111,6 +1152,7 @@ class configForm:
         self.coverImages = form.get("coverImages")
         self.customFieldName1 = form.get("customFieldName1")
         self.customFieldName2 = form.get("customFieldName2")
+        self.genres = form.get("genres") or ",".join(schemas.DEFAULT_GENRES)
 
     async def is_valid(self):
         if not self.version:

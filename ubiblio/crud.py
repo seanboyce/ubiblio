@@ -76,7 +76,6 @@ def getBookById(db: Session, bookId):
 def updateBook(db: Session, book: schemas.Book):
     try:
         item = db.get(models.Book, book.id) 
-        print(item.__dict__)
         if item:
             book = models.Book(** book.dict())
             db.merge(book)
@@ -251,14 +250,16 @@ def checkDB():
         return False
     else:
         return True
-    
+
+
 def updateDB():
+    #This updates the DB version from (unversioned) to 1.0.0. Mostly, creating tables will be handled automatically on startup but altering columns will not. Main features added here are ebook and cover image support, library configuration, two custom fields, and a table that could one day store user emails, if we need to store them (currently we do not). 
     conn = sqlite3.connect(DB_LOCATION)
-    initData =["1.0.0",False,"",""]
-    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
+    initData =["1.0.1",False,"","",",".join(schemas.DEFAULT_GENRES)]
+    cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR, genres VARCHAR);')
     cursor = conn.execute('create table if not exists ebooks (id INTEGER PRIMARY KEY, bookId INTEGER, filename VARCHAR);')
     cursor = conn.execute('create table if not exists userEmails (id INTEGER PRIMARY KEY, email VARCHAR, userId INTEGER);')
-    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+    cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2, genres) VALUES (?, ?, ?, ?, ?);', initData)
     cursor = conn.execute('ALTER TABLE books DROP coverImage;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN withdrawnBy VARCHAR;')
     cursor = conn.execute('ALTER TABLE books ADD COLUMN ebook BOOLEAN;')
@@ -267,11 +268,36 @@ def updateDB():
     conn.commit()
     conn.close()
     return
-    
+
+def updateDBVersion(db: Session, version):
+    if version == "1.0.0":
+        conn = sqlite3.connect(DB_LOCATION)
+        #Version 1.0.0->1.0.1: We add a genres field to config, which contains the default list of genres, so users can change it. Previously it was hardcoded. 
+        cursor = conn.execute('ALTER TABLE config ADD COLUMN genres VARCHAR;')
+        cursor = conn.execute('UPDATE config SET genres = ? where id = 1;',(",".join(schemas.DEFAULT_GENRES),))
+        cursor = conn.execute('UPDATE config SET version = ? where id = 1;',("1.0.1",))
+        conn.commit()
+        conn.close()
+    return
+
+ 
+        
 def getConfig(db: Session):
     try:
         config = db.query(models.config).first()
         return config
+    except Exception as e:
+        print(e)
+        return
+
+def getVersion():
+    try:
+        conn = sqlite3.connect(DB_LOCATION)
+        cur = conn.cursor()
+        version = cur.execute("SELECT version FROM config")
+        version = version.fetchone()[0]
+        conn.close()
+        return version
     except Exception as e:
         print(e)
         return
@@ -296,9 +322,9 @@ def initConfig(db: Session):
         config = db.query(models.config).first()
         if not config:    
             conn = sqlite3.connect(DB_LOCATION)
-            initData =["1.0.0",False,"",""]
-            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR);')
-            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2) VALUES (?, ?, ?, ?);', initData)
+            initData =["1.0.1",False,"","",",".join(schemas.DEFAULT_GENRES)]
+            cursor = conn.execute('create table if not exists Config (id INTEGER PRIMARY KEY, version VARCHAR, coverImages BOOLEAN, customFieldName1 VARCHAR, customFieldName2 VARCHAR, genres VARCHAR);')
+            cursor = conn.execute('INSERT INTO config (version, coverImages, customFieldName1, customFieldName2, genres) VALUES (?, ?, ?, ?, ?);', initData)
             conn.commit()
             conn.close()
             return

@@ -1,12 +1,52 @@
-<!DOCTYPE html>
-<!--
-	Forty by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+   <!-- Search Input-->
+
+<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
+  <input type="text" id = "searchboxInput" name="searchboxInput" value="" />
+<span>Search By:&nbsp;&nbsp;</span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
+  <label for="authorSearch"> Author</label>
+  <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
+  <label for="titleSearch"> Title</label>	<br>
+  <input style ="float:left;" type="submit" value="Search">										
+</form>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
+		
+<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+
+      <!-- more table rows here -->
+
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+</div>
+		
+</section>
+
+
 <script>
 //Default view is to show first 50 customers until user enters something into search
 var pagination=0;
@@ -58,126 +98,7 @@ function previous() {
 pagination=pagination-50;
 search(pagination)
 }
+
+window.onload = () => search(0);
 </script>
-
-
-
-
-		<title>uBiblio</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
-		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
-	</head>
-	<body class="is-preload" onload = "search(0)">
-
-		<!-- Wrapper -->
-			<div id="wrapper">
-
-				<!-- Header -->
-					<header id="header" class="alt">
-						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
-						<nav>
-							<a href="#menu">Menu</a>
-						</nav>
-					</header>
-
-				<!-- Menu -->
-					<nav id="menu">
-							<ul class="links">
-							<li><a href="/">Book Search</a></li>
-							<li><a href="/genre/">Browse by Genre</a></li>
-								<li><a href="/wishlist/">Wishlist</a></li>
-							<li><a href="/readingLists">Reading Lists</a></li>
-								<li><a href="/withdrawn">Withdrawn Books</a></li>
-								{% if user.isAdmin %}
-								<li><a href="/config">Admin</a></li>
-								{% endif %}
-						</ul>
-						<ul class="actions stacked">
-							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
-						</ul>
-					</nav>
-
-				<!-- Banner -->
-					<!-- Two -->
-							<section id="two">
-								<div class="inner" style = "padding: 20px 0 1em 0;">
-
-{% for error in errors %}
-    <p style="color: red">{{ error }}</p>
-{% endfor %}
-   <!-- Search Input-->
-
-<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
-  <input type="text" id = "searchboxInput" name="searchboxInput" value="" /></p>
-<span>Search By:&nbsp;&nbsp;</span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
-  <label for="authorSearch"> Author</label>
-  <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
-  <label for="titleSearch"> Title</label>	<br>
-  <input style ="float:left;"; type="submit" value="Search">										
-</form>
-<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
-		
-<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
-
-<div class="container">  
-  <table>
-    <thead class="visible@l">
-      <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Location</th>
-      </tr>
-    </thead>
-    <tbody id = "tablebody">
-
-      <!-- more table rows here -->
-
-    </tbody>
-  </table>
-  <div id="pagination">
-  </div>
-</div>
-
-								</div>
-								
-								
-							</section>
-
-
-					</div>
-
-				<!-- Footer -->
-					<footer id="footer">
-						<div class="inner">
-							
-							<ul class="copyright">
-								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
-							</ul>
-						</div>
-					</footer>
-
-			</div>
-
-		<!-- Scripts -->
-			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
-
-	</body>
-</html>
-
-
-
-
-
-
-
-
-
-
+{% endblock %}

@@ -1,51 +1,10 @@
-<!DOCTYPE html>
-<!--
-	Forty by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-	<head>
-		<title>uBiblio</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
-		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
-	</head>
-	<body class="is-preload">
+{% extends "base.html" %}
+{% block main %}
 
-		<!-- Wrapper -->
-			<div id="wrapper">
-
-				<!-- Header -->
-					<header id="header" class="alt">
-						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
-						<nav>
-							<a href="#menu">Menu</a>
-						</nav>
-					</header>
-
-				<!-- Menu -->
-						<nav id="menu">
-							<ul class="links">
-							<li><a href="/">Book Search</a></li>
-							<li><a href="/genre/">Browse by Genre</a></li>
-								<li><a href="/wishlist/">Wishlist</a></li>
-							<li><a href="/readingLists">Reading Lists</a></li>
-								<li><a href="/withdrawn">Withdrawn Books</a></li>
-								{% if user.isAdmin %}
-								<li><a href="/config">Admin</a></li>
-								{% endif %}
-						</ul>
-						<ul class="actions stacked">
-							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
-						</ul>
-					</nav>
-
-				<!-- Banner -->
-					<!-- Two -->
-							<section id="two">
-								<div class="inner" style = "padding: 20px 0 1em 0;">
+<!-- Banner -->
+<!-- Two -->
+	<section id="two">
+		<div class="inner" style = "padding: 20px 0 1em 0;">
 
 <h1>Update Library Configuration</h1>
 
@@ -56,7 +15,7 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/config" method="post">
         <p>Database Version: {{ config.version }}</p>
-	  <input type="hidden" id="version" name="version" value="1.0.0"> 
+	  <input type="hidden" id="version" name="version" value="1.0.1"> 
     <p>
         <p><label for="">Enable Cover Images: </label></p>
 	<select name="coverImages" id="coverImages">
@@ -75,6 +34,11 @@
 			(empty to disable): </label></p>
         <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
     </p>
+
+    <p>
+        <p><label for="">Genres (comma-separated): </label></p>
+        <input type="text" name="genres" value="{{ config.genres }}">
+    </p>
     </div>
     <div style= "display:block; clear:both;float:none;">
     <input  type="submit" value="Submit">
@@ -88,34 +52,7 @@
 
 </div>
 
-								</div>
-								
-								
-							</section>
+</div>
 
-
-					</div>
-
-				<!-- Footer -->
-					<footer id="footer">
-						<div class="inner">
-							
-							<ul class="copyright">
-								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
-							</ul>
-						</div>
-					</footer>
-
-			</div>
-
-		<!-- Scripts -->
-			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
-			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
-
-	</body>
-</html>
+</section>
+{% endblock %}
