@@ -42,7 +42,7 @@ The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actua
 ![Screenshot of the menu system](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_menu.png)
 
 # Book Search
-![Screenshot of the book search system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_search.png)
+![Screenshot of the book search system](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_search.png)
 
 # Reading list / Browse by Genre / Wishlist / Withdrawn Books List
-![Screenshot of a more detailed list of books](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_readling_list.png)
+![Screenshot of a more detailed list of books](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_readling_list.png)
