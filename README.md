@@ -39,7 +39,7 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
 
 # Menu System
-![Screenshot of the menu system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_menu.png)
+![Screenshot of the menu system](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_menu.png)
 
 # Book Search
 ![Screenshot of the book search system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_search.png)
