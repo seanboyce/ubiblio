@@ -38,7 +38,9 @@ NB: Users have reported success running ubiblio on Windows. I just don't know ho
    ```bash
    pip install -r requirements.txt
    ```
-If the last step fails to build Pillow (needed for image processing), complaining about missing zlib or jpeg headers -- you're missing the requirements to build Pillow. You will need gcc (you probably already have it), zlib-dev libjpeg-turbo-dev. To resolve it, you'll generally want to install these as system packages. The exact names of the packages can be different depending on your Linux distribution. On Ubuntu / Debian, the following ought to work:
+If the last step fails to build Pillow (needed for image processing), complaining about missing zlib or jpeg headers -- you're missing the requirements to build Pillow. You will need gcc (you probably already have it), zlib-dev, and libjpeg-turbo-dev. To resolve it, you'll generally want to install these as system packages. 
+
+The exact names of the packages can be different depending on your Linux distribution. On Ubuntu / Debian, the following ought to work:
 
 ```bash
 sudo apt-get install zlib1g-dev libjpeg-turbo8-dev
