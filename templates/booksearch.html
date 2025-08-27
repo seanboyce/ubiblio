@@ -13,10 +13,14 @@
 
 <form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
   <input type="text" id = "searchboxInput" name="searchboxInput" value="" />
-<span>Search By:&nbsp;&nbsp;</span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
+<span>Search By:&nbsp;&nbsp;<br class="mobileshow"></span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
   <label for="authorSearch"> Author</label>
   <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
-  <label for="titleSearch"> Title</label>	<br>
+  <label for="titleSearch"> Title</label>
+	<input type="checkbox" id="ebookSearch" name="ebookSearch" value="ebook">
+  <label for="ebookSearch"> Only Ebooks</label>
+	<input type="checkbox" id="noEbookSearch" name="noEbookSearch" value="noebook">
+  <label for="noEbookSearch"> No Ebooks</label><br>
   <input style ="float:left;" type="submit" value="Search">										
 </form>
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
@@ -58,13 +62,15 @@ if (skip<1){pagination=0;}
 searchTerm = $("#searchboxInput").val();
 var searchAuthor = document.getElementById("titleSearch").checked; 
 var searchTitle = document.getElementById("authorSearch").checked; 
+var onlyEbooks = document.getElementById("ebookSearch").checked; 
+var noEbooks = document.getElementById("noEbookSearch").checked; 
 if(searchTerm === undefined){searchTerm=""}
 if (searchTitle !== true){
-	var searchEndpoint = "/searchBooksByTitle?title="+searchTerm+"&skip="+skip;
+	var searchEndpoint = "/searchBooksByTitle?title="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
 } else if (searchAuthor !== true){
-	var searchEndpoint = "/searchBooksByAuthor?author="+searchTerm+"&skip="+skip;
+	var searchEndpoint = "/searchBooksByAuthor?author="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
 } else {
-    var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip;
+    var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
 }
 $.post(searchEndpoint,function(data, status){
     itemdata = jQuery.parseJSON(data);

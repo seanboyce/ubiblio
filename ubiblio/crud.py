@@ -90,17 +90,40 @@ def updateBook(db: Session, book: schemas.Book):
 def getBooks(db: Session, skip: int = 0, limit: int = 50):
     return db.query(models.Book).offset(skip).limit(limit).all()
     
-def searchBooks(db: Session, title, author, skip: int, limit: int = 50):
-    return db.query(models.Book).filter(
+def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
+    if (onlyEbooks==True) and (noEbooks==False):
+        return db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).limit(limit).offset(skip).all()
+    elif (onlyEbooks==False) and (noEbooks==True):
+         return db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).limit(limit).offset(skip).all()
+    else:
+        return db.query(models.Book).filter(
     or_(models.Book.title.icontains(title),
-    models.Book.author.icontains(author)) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
+    models.Book.author.icontains(author)) & (models.Book.owned==True)).limit(limit).offset(skip).all()
 
-def searchBooksbyAuthor(db: Session, author, skip: int, limit: int = 50):
-    return db.query(models.Book).filter(
+def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
+    if (onlyEbooks==True) and (noEbooks==False):
+        return db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+    elif (onlyEbooks==False) and (noEbooks==True):
+        return db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+    else:
+        return db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
 
-def searchBooksbyTitle(db: Session, title, skip: int, limit: int = 50):
-    return db.query(models.Book).filter(
+def searchBooksbyTitle(db: Session, title, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
+    if (onlyEbooks==True) and (noEbooks==False):
+        return db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()    
+    elif (onlyEbooks==False) and (noEbooks==True):
+        return db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)) .limit(limit).offset(skip).all()    
+    else:
+        return db.query(models.Book).filter(
     models.Book.title.icontains(title) & (models.Book.owned==True)) .limit(limit).offset(skip).all()    
 
 def browseBooksByGenre(db: Session, genre):
