@@ -422,7 +422,6 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
 def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%",onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        print(onlyEbooks,noEbooks)
         books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
         books = json.dumps(books)
         db.close()
@@ -1007,7 +1006,10 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
             bookId,dbpath = crud.deleteEbook(db, ebookId)
             db.close()
             ebookPath = os.path.join('./static/eBooks/', str(dbpath))
-            os.remove(ebookPath)
+            try:
+                os.remove(ebookPath)
+            except:
+                print("Tried to delete an ebook file that doesn't exist, removing DB entry")
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
         db.close()
