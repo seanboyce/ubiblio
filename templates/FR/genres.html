@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+	<!-- Two -->
+<div class="inner" style = "padding: 20px 0 5em 5em;">
+<div style="display:block; clear:both; float:none;">
+<h3><strong><u>Select a Genre</strong></u></h3>
+
+      <!-- more table rows here -->
+	<div style = "width:500px;">
+{% for genre in genres %}
+	
+	<a style = "border:none; margin-right:25px;" href="/booksByGenre/{{ genre }}"><button style = "margin-bottom:20px;">{{ genre }}</button></a>
+	
+{% endfor %}	
+		</div>
+<hr>
+
+</div>
+
+</div>
+{% endblock %}

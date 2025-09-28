@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<h1>Add a New Book</h1>
+{% if addISBN %} 
+<a style ="text-decoration:none !important; border:none;" onclick = "document.bookExistsAdder.action = '/addanotherisbn';document.bookExistsAdder.submit();"><button>Approve & Add Another</button></a>
+{% endif %}
+{% if book %} 									
+<form id ="bookExistsAdder" name = "bookExistsAdder" action="/add_book" method="post">
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+    <p>
+        <p><label for="">Title</label></p>
+        <input type="text" name="title" value="{{ book.title }}" required>
+    </p>
+    <p>
+        <p><label for="">Author</label></p>
+        <input type="text" name="author" value="{{ book.author }}">
+    </p>
+    <p>
+        <p><label for="">Summary</label></p>
+        <input type="text" name="summary" value="{{ book.summary }}">
+    </p>
+    <p>
+        <p><label for="">Cover Image</label></p>
+        <input type="text" name="coverImage" value="{{ book.coverImage }}">
+    </p>
+    <p>
+        <p><label for="">Genre</label></p>
+        <select name="genre" id="genre">
+					<option value="Uncategorized" selected="selected">Uncategorized</option>
+					{% for genre in config.genres.split(",") %}
+						<option value="{{ genre }}">{{ genre }}</option>
+					{% endfor %}
+				</select>
+    </p>
+<p><label for="">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="True">True</option>
+  <option value="False" selected="selected">False</option>
+</select>
+    </p>
+				
+{% if config.customFieldName1|length > 0 %}	
+<p><label for="">{{ config.customFieldName1 }}</label></p>
+        <input type="text" name="customField1" value="{{ customField1 }}">
+    </p>
+{% endif %}	
+{% if config.customFieldName2|length > 0 %}	
+<p><label for="">{{ config.customFieldName2 }}</label></p>
+        <input type="text" name="customField2" value="{{ customField2 }}">
+    </p>
+{% endif %}
+            </div>
+    <div style="width:30%; min-width: 300px; float:left;">
+    <p>
+        <p><label for="">Library</label></p>
+        <input type="text" name="library" value="{{ library }}">
+    </p>
+
+    <p>
+        <p><label for="">Shelf</label></p>
+        <input type="text" name="shelf" value="{{ shelf }}" >
+    </p>
+
+    <p>
+        <p><label for="">Collection</label></p>
+        <input type="text" name="collection" value="{{ collection }}" >
+    </p>
+    <p>
+        <p><label for="">ISBN</label></p>
+        <input type="text" name="ISBN" value="{{ book.ISBN }}" >
+    </p>
+    <p>
+        <p><label for="">Notes</label></p>
+        <input type="text" name="notes" value="{{ notes }}" >
+    </p>
+    
+        <p>
+        <p><label for="">Owned</label></p>
+<select name="owned" id="owned">
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+<p>
+        <p><label for="">Withdrawn</label></p>
+        <select name="withdrawn" id="withdrawn">
+			<option value="False">False</option>
+  <option value="True">True</option>
+  
+</select>
+
+
+
+    </div>
+    </div>
+    <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
+    
+</form>
+{% endif %}
+
+{% if not book %} 
+<form action="/add_book" method="post">
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+    <p>
+        <p><label for="">Title</label></p>
+        <input type="text" name="title" value="{{ title }}" required>
+    </p>
+    <p>
+        <p><label for="">Author</label></p>
+        <input type="text" name="author" value="{{ author }}">
+    </p>
+    <p>
+        <p><label for="">Summary</label></p>
+        <input type="text" name="summary" value="{{ summary }}">
+    </p>
+    <p>
+        <p><label for="">Cover Image</label></p>
+        <input type="text" name="coverImage" value="{{ coverImage }}">
+    </p>
+    <p>
+        <p><label for="">Genre</label></p>
+        <select name="genre" id="genre">
+			<option value="Uncategorized" selected="selected">Uncategorized</option>
+			{% for genre in config.genres.split(",") %}
+				<option value="{{ genre }}">{{ genre }}</option>
+			{% endfor %}
+</select>
+    </p>
+        <p><label for="">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="True">True</option>
+  <option value="False" selected="selected">False</option>
+</select>
+    </p>
+{% if config.customFieldName1|length > 0 %}	
+<p><label for="">{{ config.customFieldName1 }}</label></p>
+        <input type="text" name="customField1" value="{{ customField1 }}">
+    </p>
+{% endif %}
+{% if config.customFieldName2|length > 0 %}	
+<p><label for="">{{ config.customFieldName2 }}</label></p>
+        <input type="text" name="customField2" value="{{ customField2 }}">
+    </p>
+{% endif %}
+            </div>
+    <div style="width:30%; min-width: 300px; float:left;">
+    <p>
+        <p><label for="">Library</label></p>
+        <input type="text" name="library" value="{{ library }}">
+    </p>
+
+    <p>
+        <p><label for="">Shelf</label></p>
+        <input type="text" name="shelf" value="{{ shelf }}" >
+    </p>
+
+    <p>
+        <p><label for="">Collection</label></p>
+        <input type="text" name="collection" value="{{ collection }}" >
+    </p>
+    <p>
+        <p><label for="">ISBN</label></p>
+        <input type="text" name="ISBN" value="{{ ISBN }}" >
+    </p>
+    <p>
+        <p><label for="">Notes</label></p>
+        <input type="text" name="notes" value="{{ notes }}" >
+    </p>
+    
+        <p>
+        <p><label for="">Owned</label></p>
+<select name="owned" id="owned">
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+<p>
+        <p><label for="">Withdrawn</label></p>
+<select name="withdrawn" id="withdrawn">
+	<option value="False">False</option>
+  <option value="True">True</option>
+  
+</select>
+    </p>
+
+    </div>
+    </div>
+    <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
+    
+</form>
+<a style ="text-decoration:none !important; border:none;" href="/addisbn"><button>Add by ISBN</button></a>
+{% endif %}
+<hr>
+</div>
+
+{% endblock %}

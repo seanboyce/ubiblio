@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+   <!-- Search Input-->
+
+<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
+  <input type="text" id = "searchboxInput" name="searchboxInput" value="" />
+<span>Search By:&nbsp;&nbsp;<br class="mobileshow"></span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
+  <label for="authorSearch"> Author</label>
+  <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
+  <label for="titleSearch"> Title</label>
+	<input type="checkbox" id="ebookSearch" name="ebookSearch" value="ebook">
+  <label for="ebookSearch"> Only Ebooks</label>
+	<input type="checkbox" id="noEbookSearch" name="noEbookSearch" value="noebook">
+  <label for="noEbookSearch"> No Ebooks</label><br>
+  <input style ="float:left;" type="submit" value="Search">										
+</form>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
+		
+<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+
+      <!-- more table rows here -->
+
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+</div>
+		
+</section>
+
+
+<script>
+//Default view is to show first 50 customers until user enters something into search
+var pagination=0;
+var itemdata = []
+//Core search function
+function search(skip) {
+//reset pagination on new search
+if (skip<1){pagination=0;}
+searchTerm = $("#searchboxInput").val();
+var searchAuthor = document.getElementById("titleSearch").checked; 
+var searchTitle = document.getElementById("authorSearch").checked; 
+var onlyEbooks = document.getElementById("ebookSearch").checked; 
+var noEbooks = document.getElementById("noEbookSearch").checked; 
+if(searchTerm === undefined){searchTerm=""}
+if (searchTitle !== true){
+	var searchEndpoint = "/searchBooksByTitle?title="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
+} else if (searchAuthor !== true){
+	var searchEndpoint = "/searchBooksByAuthor?author="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
+} else {
+    var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
+}
+$.post(searchEndpoint,function(data, status){
+    itemdata = jQuery.parseJSON(data);
+    $("#tablebody").empty();
+    $("#pagination").empty();
+    itemdata.forEach(function(item) {
+    $("#tablebody").append('<tr><td><a style = "border:none;text-decoration: underline;" href="/bookDetails/'+item.id+'">'+item.title+"</a></td><td>"+item.author+"</td><td>"+item.shelf+'</td></tr>');
+});
+
+if (itemdata.length === 0){
+        $("#tablebody").append('<tr><td>' + "No results found" + '</td><td></td><td></td></tr>');
+    }
+if (pagination > 0){
+$("#pagination").append("<button onclick='previous();'>Previous</button>");
+}
+
+if(itemdata.length > 49){
+$("#pagination").append("<button onclick='next();'>Next</button>");
+}
+
+});}
+
+
+//handle pagination
+function next() {
+pagination=pagination+50;
+search(pagination)
+}
+
+function previous() {
+pagination=pagination-50;
+search(pagination)
+}
+
+window.onload = () => search(0);
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+		<section id="two">
+			<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+  <!-- Search Input-->
+		
+<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Withdrawn By</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+{% if books|length > 0 %}
+	{% for book in books %}
+		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.withdrawnBy }}</td></tr>
+	{% endfor %}
+{% else %}
+		<tr><td>No withdrawn books</td><td></td><td></td></tr>
+{% endif %}
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+	</div>
+	
+</section>
+{% endblock %}

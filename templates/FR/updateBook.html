@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+	<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+<h1>Update a Book</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+<form action="/update_book/{{ book.id }}" method="post">
+    <p>
+        <p><label for="">Title</label></p>
+        <input type="text" name="title" value="{{ book.title }}" required>
+    </p>
+    <p>
+        <p><label for="">Author</label></p>
+        <input type="text" name="author" value="{{ book.author }}">
+    </p>
+    <p>
+        <p><label for="">Summary</label></p>
+        <input type="text" name="summary" value="{{ book.summary }}">
+    </p>
+       <p>
+        <p><label for="">Genre</label></p>
+                <select name="genre" id="genre">
+					<option value="{{ book.genre }}" selected>{{ book.genre }}</option>
+					{% for genre in config.genres.split(",") %}
+						<option value="{{ genre }}">{{ genre }}</option>
+					{% endfor %}
+</select>
+    </p>
+
+{% if book.ebook %}	
+								<p><label for="ebook">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+{% else %}								
+<p><label for="ebook">eBook</label></p>
+<select name="ebook" id="ebook">
+  <option value="False">False</option>
+  <option value="True">True</option>
+</select>
+    </p>
+{% endif %}
+
+					{% if config.customFieldName1|length > 0 %}	
+<p><label for="">{{ config.customFieldName1 }}</label></p>
+        <input type="text" name="customField1" value="{{ book.customField1 }}">
+    </p>
+{% endif %}	
+{% if config.customFieldName2|length > 0 %}	
+<p><label for="">{{ config.customFieldName2 }}</label></p>
+        <input type="text" name="customField2" value="{{ book.customField2 }}">
+    </p>
+{% endif %}
+                </div>
+    <div style="width:30%; min-width: 300px; float:left;">
+    <p>
+        <p><label for="">Library</label></p>
+        <input type="text" name="library" value="{{ book.library }}">
+    </p>
+    <p>
+        <p><label for="">Shelf</label></p>
+        <input type="text" name="shelf" value="{{ book.shelf }}" >
+    </p>
+    <p>
+        <p><label for="">Collection</label></p>
+        <input type="text" name="collection" value="{{ book.collection }}" >
+    </p>
+    <p>
+        <p><label for="">ISBN</label></p>
+        <input type="text" name="ISBN" value="{{ book.ISBN }}" >
+    </p>
+    <p>
+        <p><label for="">notes</label></p>
+        <input type="text" name="notes" value="{{ book.notes }}" >
+    </p>
+    
+
+        <p><label for="">Owned: </label></p>
+	<select name="owned" id="owned">
+					<option value="{{ book.owned }}" selected>{{ book.owned }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+
+        <p><label for="">Withdrawn: </label></p>
+	<select name="withdrawn" id="withdrawn">
+					<option value="{{ book.withdrawn }}" selected>{{ book.withdrawn }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+
+        </div>
+    </div>
+    <div style= "display:block; clear:both;float:none;">
+    <input  type="submit" value="Submit">
+    
+</form>
+<a style = "border:none;" href = "/"> <button>Back</button></a>
+    </div>
+
+<hr>
+
+</div>
+{% endblock %}

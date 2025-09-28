@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+  <div class="inner" style="padding: 20px 0 1em 0">
+    {% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+    {% endfor %}
+    <h1>Add a New Book by ISBN</h1>
+    <form onsubmit="isbn();return false;">
+      <input type="text" name="isbnLink" value="" />
+      <input type="submit" value="Submit" />
+    </form>
+    <hr />
+  </div>
+</section>
+
+<script>
+  function isbn() {
+    var isbnLink = document.getElementsByName("isbnLink")[0].value;
+    window.location.href = "/isbn/" + isbnLink;
+  }
+</script>
+{% endblock %}

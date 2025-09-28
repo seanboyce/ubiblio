@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+	<section id="two">
+		<div class="inner" style = "padding: 20px 0 1em 0;">
+
+<h1>Update Library Configuration</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
+<form action="/config" method="post">
+        <p>Database Version: {{ config.version }}</p>
+	  <input type="hidden" id="version" name="version" value="1.0.1"> 
+    <p>
+        <p><label for="">Enable Cover Images: </label></p>
+	<select name="coverImages" id="coverImages">
+					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+    <p>
+        <p><label for="">Custom Field 1 Name 
+			(empty to disable): </label></p>
+        <input type="text" name="customFieldName1" value="{{ config.customFieldName1 }}">
+    </p>
+    <p>
+        <p><label for="">Custom Field 2 Name 
+			(empty to disable): </label></p>
+        <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
+    </p>
+
+    <p>
+        <p><label for="">Genres (comma-separated): </label></p>
+        <input type="text" name="genres" value="{{ config.genres }}">
+    </p>
+    </div>
+    <div style= "display:block; clear:both;float:none;">
+    <input  type="submit" value="Submit">
+    
+</form>
+<a style = "border:none;" href = "/backups"> <button>Backup Management</button></a>
+<a style = "border:none;" href = "/"> <button>Back</button></a>
+    </div>
+
+<hr>
+
+</div>
+
+</div>
+
+</section>
+{% endblock %}
