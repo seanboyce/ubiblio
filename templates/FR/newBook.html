@@ -11,32 +11,32 @@
 {% endfor %}
 <h1>Add a New Book</h1>
 {% if addISBN %} 
-<a style ="text-decoration:none !important; border:none;" onclick = "document.bookExistsAdder.action = '/addanotherisbn';document.bookExistsAdder.submit();"><button>Approve & Add Another</button></a>
+<a style ="text-decoration:none !important; border:none;" onclick = "document.bookExistsAdder.action = '/addanotherisbn';document.bookExistsAdder.submit();"><button>Valider & ajouter un nouveau</button></a>
 {% endif %}
 {% if book %} 									
 <form id ="bookExistsAdder" name = "bookExistsAdder" action="/add_book" method="post">
 <div style="display:block; clear:both; float:none;">
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
     <p>
-        <p><label for="">Title</label></p>
+        <p><label for="">Titre</label></p>
         <input type="text" name="title" value="{{ book.title }}" required>
     </p>
     <p>
-        <p><label for="">Author</label></p>
+        <p><label for="">Auteur</label></p>
         <input type="text" name="author" value="{{ book.author }}">
     </p>
     <p>
-        <p><label for="">Summary</label></p>
+        <p><label for="">Synopsis</label></p>
         <input type="text" name="summary" value="{{ book.summary }}">
     </p>
     <p>
-        <p><label for="">Cover Image</label></p>
+        <p><label for="">Couverture</label></p>
         <input type="text" name="coverImage" value="{{ book.coverImage }}">
     </p>
     <p>
         <p><label for="">Genre</label></p>
         <select name="genre" id="genre">
-					<option value="Uncategorized" selected="selected">Uncategorized</option>
+					<option value="Uncategorized" selected="selected">Non classé</option>
 					{% for genre in config.genres.split(",") %}
 						<option value="{{ genre }}">{{ genre }}</option>
 					{% endfor %}
@@ -44,8 +44,8 @@
     </p>
 <p><label for="">eBook</label></p>
 <select name="ebook" id="ebook">
-  <option value="True">True</option>
-  <option value="False" selected="selected">False</option>
+  <option value="True">Oui</option>
+  <option value="False" selected="selected">Non</option>
 </select>
     </p>
 				
@@ -62,12 +62,12 @@
             </div>
     <div style="width:30%; min-width: 300px; float:left;">
     <p>
-        <p><label for="">Library</label></p>
+        <p><label for="">Bibliothèque</label></p>
         <input type="text" name="library" value="{{ library }}">
     </p>
 
     <p>
-        <p><label for="">Shelf</label></p>
+        <p><label for="">Étagère</label></p>
         <input type="text" name="shelf" value="{{ shelf }}" >
     </p>
 
@@ -85,17 +85,17 @@
     </p>
     
         <p>
-        <p><label for="">Owned</label></p>
+        <p><label for="">Possédé</label></p>
 <select name="owned" id="owned">
-  <option value="True">True</option>
-  <option value="False">False</option>
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
 </select>
     </p>
 <p>
-        <p><label for="">Withdrawn</label></p>
+        <p><label for="">Retiré</label></p>
         <select name="withdrawn" id="withdrawn">
-			<option value="False">False</option>
-  <option value="True">True</option>
+			<option value="False">Oui</option>
+  <option value="True">Non</option>
   
 </select>
 
@@ -113,25 +113,25 @@
 <div style="display:block; clear:both; float:none;">
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
     <p>
-        <p><label for="">Title</label></p>
+        <p><label for="">Titre</label></p>
         <input type="text" name="title" value="{{ title }}" required>
     </p>
     <p>
-        <p><label for="">Author</label></p>
+        <p><label for="">Auteur</label></p>
         <input type="text" name="author" value="{{ author }}">
     </p>
     <p>
-        <p><label for="">Summary</label></p>
+        <p><label for="">Synopsis</label></p>
         <input type="text" name="summary" value="{{ summary }}">
     </p>
     <p>
-        <p><label for="">Cover Image</label></p>
+        <p><label for="">Couverture</label></p>
         <input type="text" name="coverImage" value="{{ coverImage }}">
     </p>
     <p>
         <p><label for="">Genre</label></p>
         <select name="genre" id="genre">
-			<option value="Uncategorized" selected="selected">Uncategorized</option>
+			<option value="Uncategorized" selected="selected">Non classé</option>
 			{% for genre in config.genres.split(",") %}
 				<option value="{{ genre }}">{{ genre }}</option>
 			{% endfor %}
@@ -139,8 +139,8 @@
     </p>
         <p><label for="">eBook</label></p>
 <select name="ebook" id="ebook">
-  <option value="True">True</option>
-  <option value="False" selected="selected">False</option>
+  <option value="True">Oui</option>
+  <option value="False" selected="selected">Non</option>
 </select>
     </p>
 {% if config.customFieldName1|length > 0 %}	
@@ -156,12 +156,12 @@
             </div>
     <div style="width:30%; min-width: 300px; float:left;">
     <p>
-        <p><label for="">Library</label></p>
+        <p><label for="">Bibliothèque</label></p>
         <input type="text" name="library" value="{{ library }}">
     </p>
 
     <p>
-        <p><label for="">Shelf</label></p>
+        <p><label for="">Étagère</label></p>
         <input type="text" name="shelf" value="{{ shelf }}" >
     </p>
 
@@ -179,27 +179,27 @@
     </p>
     
         <p>
-        <p><label for="">Owned</label></p>
+        <p><label for="">Possédé</label></p>
 <select name="owned" id="owned">
-  <option value="True">True</option>
-  <option value="False">False</option>
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
 </select>
     </p>
 <p>
-        <p><label for="">Withdrawn</label></p>
+        <p><label for="">Retiré</label></p>
 <select name="withdrawn" id="withdrawn">
-	<option value="False">False</option>
-  <option value="True">True</option>
+	<option value="False">Oui</option>
+  <option value="True">Non</option>
   
 </select>
     </p>
 
     </div>
     </div>
-    <input style= "display:block; clear:both;float:none;" type="submit" value="Submit">
+    <input style= "display:block; clear:both;float:none;" type="submit" value="Valider">
     
 </form>
-<a style ="text-decoration:none !important; border:none;" href="/addisbn"><button>Add by ISBN</button></a>
+<a style ="text-decoration:none !important; border:none;" href="/addisbn"><button>Ajouter par recherche ISBN</button></a>
 {% endif %}
 <hr>
 </div>

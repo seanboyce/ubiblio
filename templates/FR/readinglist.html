@@ -17,9 +17,9 @@
   <table>
     <thead class="visible@l">
       <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Summary</th>
+        <th>Titre</th>
+        <th>Auteur</th>
+        <th>Synopsis</th>
       </tr>
     </thead>
     <tbody id = "tablebody">
@@ -28,7 +28,7 @@
 		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.summary }}</td></tr>
 	{% endfor %}
 {% else %}
-		<tr><td>No results found</td><td></td><td></td></tr>
+		<tr><td>Aucun résultat.</td><td></td><td></td></tr>
 {% endif %}
       <!-- more table rows here -->
 

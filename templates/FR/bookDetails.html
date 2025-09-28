@@ -5,25 +5,25 @@
 	<!-- Two -->
 <div class="inner" style = "padding: 20px 0 5em 5em;">
 <div style="display:block; clear:both; float:none;">
-<h3><strong><u>Book Details</strong></u></h3>
+<h3><strong><u>Détails du livre</strong></u></h3>
 <div style="display:block; clear:both; float:none;">
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">								
 
 		
-		<p><strong>Title</strong>:  {{ book.title}}</p>
-        <p><strong>Author</strong>:  {{ book.author}}</p>
-        <p><strong>Summary</strong>:  {{ book.summary}}</p>
+		<p><strong>Titre</strong>:  {{ book.title}}</p>
+        <p><strong>Auteur</strong>:  {{ book.author}}</p>
+        <p><strong>Synopsis</strong>:  {{ book.summary}}</p>
         <p><strong>Genre</strong>:  {{ book.genre}}</p>
-        <p><strong>Library</strong>:  {{ book.library}}</p>
-		<p><strong>Shelf</strong>:  {{book.shelf}}</p>
+        <p><strong>Bibliothèque</strong>:  {{ book.library}}</p>
+		<p><strong>Étagère</strong>:  {{book.shelf}}</p>
 
                                 </div>
     <div style="width:30%; min-width: 280px; float:left;">
         <p><strong>Collection</strong>:  {{ book.collection}}</p>
         <p><strong>ISBN</strong>:  {{ book.ISBN}}</p>
 		<p><strong>Notes</strong>:  {{book.notes}}</p>
-		<p><strong>Owned</strong>:  {{ book.owned}}</p>
-		<p><strong>Withdrawn</strong>:  {{ book.withdrawn}}</p>
+		<p><strong>Possédé</strong>:  {{ book.owned}}</p>
+		<p><strong>Retiré</strong>:  {{ book.withdrawn}}</p>
 			{% if config.customFieldName1|length > 0 %}	
 <p><strong>{{config.customFieldName1}}</strong>:  {{book.customField1}}</p>
 	{% endif %}
@@ -36,7 +36,7 @@
 	<div style= "display:block; clear:both;float:none;">
 		
 		{% if config.coverImages %}	
-<h3 style="margin-top:25px;"><strong><u>Cover Images</strong></u></h3>		
+<h3 style="margin-top:25px;"><strong><u>Couverture(s)</strong></u></h3>		
 
 <div style = "margin-top:20px;margin-bottom:20px;">
 			{% if images %}
@@ -50,12 +50,12 @@
 	{% endif %}	
 	<div style= "display:block; clear:both;float:none;">
 	<hr>
-			<h3><strong><u>Checkout</strong></u></h3>
-			<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
+			<h3><strong><u>Emprunt</strong></u></h3>
+			<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Retirer</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Rendre</button></a>
      </div>  
 	<div style= "display:block; clear:both;float:none;">
-		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Reading List</strong></u></h3>
-		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Remove from Reading List</button></a>
+		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Liste de lecture</strong></u></h3>
+		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Retirer de la liste de lecture</button></a>
 	</div>
     </div>
       <!-- more table rows here -->
@@ -65,45 +65,45 @@
 	{% if user.isAdmin %}
 			<button class="accordion" style="margin-top:40px;">Admin Actions</button>
 			<div class="panel">
-			<a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Update</button></a>
-			<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Are you sure?')) return false;"><button style="margin-top:30px;">Delete</button></a>
+			<a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Mettre à jour</button></a>
+			<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Êtes-vous sûr?')) return false;"><button style="margin-top:30px;">Supprimer</button></a>
 		    	{% if config.coverImages %}	
 		
 				
 		{% if images %}
-<h3 style="margin-top:25px;"><strong><u>Book Image Management</strong></u></h3>
+<h3 style="margin-top:25px;"><strong><u>Gestion des images liées au livre</strong></u></h3>
 <div style = "margin-top:20px;margin-bottom:20px;">
 		{% for image in images %}
 <div style="float:left;">
 <a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
-<form action="/deleteImage/{{ image.id }}" method="post" ><button type="submit" style ="clear:both; display:block; float:none; line-height:0.5em; height:1.5em; padding: 0 1em 0 1em; margin:auto;" onclick="if (!confirm('Are you sure?')) return false;">Delete</button></form>
+<form action="/deleteImage/{{ image.id }}" method="post" ><button type="submit" style ="clear:both; display:block; float:none; line-height:0.5em; height:1.5em; padding: 0 1em 0 1em; margin:auto;" onclick="if (!confirm('Êtes-vous sûr?')) return false;">Supprimer</button></form>
 </div>
 		{% endfor %}
 </div>
 <div style ="clear:both; display:block; float:none; margin-top: 20px;">
 <form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
         <!-- File input field -->
-        <label style ="padding-top: 20px;" for="file">Upload another image: </label>
+        <label style ="padding-top: 20px;" for="file">Téléverser une autre image: </label>
         <input type="file" id="file" name="file" accept="image/jpeg" required>
  
         <br><br>
          
         <!-- Submit button -->
-        <input type="submit" value="Upload">
+        <input type="submit" value="Valider">
     </form>
 </div>
 </div>
 		{% else %}
-<p>No images exist for this book.</p>
+<p>Aucune image enregistrée pour ce livre.</p>
 <form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
         <!-- File input field -->
-        <label for="file">Upload an image: </label>
+        <label for="file">Téléverser une image: </label>
         <input type="file" id="file" name="file" accept="image/jpeg" required>
  
         <br><br>
          
         <!-- Submit button -->
-        <input type="submit" value="Upload">
+        <input type="submit" value="Valider">
     </form>
 		{% endif %}
 	{% endif %}

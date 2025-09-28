@@ -23,7 +23,7 @@
 
 				<!-- Header -->
 					<header id="header" class="alt">
-						<a href="/" class="logo"><strong>uBiblio</strong> <span>Personal Library</span></a>
+						<a href="/" class="logo"><strong>uBiblio</strong> <span>Librairie Personnelle</span></a>
 						<nav>
 							<a href="#menu">Menu</a>
 						</nav>
@@ -33,23 +33,23 @@
         {% if hideNav is defined and hideNav %}
 					<nav id="menu">
 						<ul class="links">
-							<li>Log In for Access</li>
+							<li>Connexion Requise</li>
 						</ul>
 					</nav>
           {% else %}
 						<nav id="menu">
 							<ul class="links">
-							<li><a href="/">Book Search</a></li>
-							<li><a href="/genre/">Browse by Genre</a></li>
-								<li><a href="/wishlist/">Wishlist</a></li>
-							<li><a href="/readingLists">Reading Lists</a></li>
-								<li><a href="/withdrawn">Withdrawn Books</a></li>
+							<li><a href="/">Recherche de livre</a></li>
+							<li><a href="/genre/">Parcourir par genres</a></li>
+								<li><a href="/wishlist/">Liste de souhaits</a></li>
+							<li><a href="/readingLists">Listes de lecture</a></li>
+								<li><a href="/withdrawn">Livres retirés</a></li>
 								{% if user.isAdmin %}
 								<li><a href="/config">Admin</a></li>
 								{% endif %}
 						</ul>
 						<ul class="actions stacked">
-							<li><a href="/auth/logout" class="button fit">Log Out</a></li>
+							<li><a href="/auth/logout" class="button fit">Déconnexion</a></li>
 						</ul>
 					</nav>
         {% endif %}
