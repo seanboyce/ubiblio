@@ -17,9 +17,9 @@
   <table>
     <thead class="visible@l">
       <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Withdrawn By</th>
+        <th>Titre</th>
+        <th>Auteur</th>
+        <th>Emprunté par</th>
       </tr>
     </thead>
     <tbody id = "tablebody">
@@ -28,7 +28,7 @@
 		<tr><td><a href="/bookDetails/{{ book.id }}">{{ book.title }}</a></td><td>{{ book.author }}</td><td>{{ book.withdrawnBy }}</td></tr>
 	{% endfor %}
 {% else %}
-		<tr><td>No withdrawn books</td><td></td><td></td></tr>
+		<tr><td>Aucun livre emprunté</td><td></td><td></td></tr>
 {% endif %}
     </tbody>
   </table>
