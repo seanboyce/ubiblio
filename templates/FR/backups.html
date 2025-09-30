@@ -4,48 +4,49 @@
 <!-- Two -->
 <div class="inner" style = "padding: 20px 0 5em 5em;">
 <div style="display:block; clear:both; float:none;">
-<h3><strong><u>Backup Management</strong></u></h3>
+<h3><strong><u>Gestion des Backups</strong></u></h3>
 
 	<a style="border:none; margin-right:25px;margin-right:25px;" href="/export"><button>Backup Now</button></a>
 <hr>
-	<h3><strong><u>Restore from Backup</strong></u></h3>
+	<h3><strong><u>Restaurer depuis un backup</strong></u></h3>
 	
-		<p>Restoring from one of the files below will wipe the database completely and re-load it from the file. You <b>cannot</b> undo this process.</p>
+		<p>Restaurer depuis l'un des fichiers ci-dessous écrasera la base de données avec la sauvegarde sélectionnée. Cette action est <b>irréversible</b>.</p>
 
       <!-- more table rows here -->
 	<div style = "">
   <table>
     <thead class="visible@l">
       <tr>
-        <th>Filename</th>
+        <th>Nom de fichier</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody id = "tablebody">	
 		{% for backup in backups %}
-		<tr><td>{{ backup }}</td><td><a class="confirm" style="border:none;" href="/restoreBackup/{{ backup }}" onclick="if (!confirm('This will delete the current DB and replace it with the backup. Are you sure?')) return false;">Restore</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ backup }}" onclick="if (!confirm('This will delete this backup. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ backup }}" >Download</a></td>
+		<tr><td>{{ backup }}</td><td><a class="confirm" style="border:none;" href="/restoreBackup/{{ backup }}" onclick="if (!confirm('Cette action écrasera la base de données actuelle avec ce backup. Êtes-vous sûr?')) return false;">Restaurer</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ backup }}" onclick="if (!confirm('Cette action supprimera le backup. Êtes-vous sûr?')) return false;">Supprimer</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ backup }}" >Télécharger</a></td>
 	
 {% endfor %}	
 			 </tbody>
   </table>
 		</div>
 <hr>
-	<h3><strong><u>File Backups</strong></u></h3>
+	<h3><strong><u>Backup de fichiers</strong></u></h3>
 	
 		<p>Below is all of your backups of ubiblio's files. This includes uploaded ebooks and images.</p>
+		<p>Ci-dessous se trouvent tous les backups des fichiers de ubiblio. Cela inclue les eBooks et images.</p>
 
       <!-- more table rows here -->
 	<div style = "">
   <table>
     <thead class="visible@l">
       <tr>
-        <th>Filename</th>
+        <th>Nom de fichier</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody id = "tablebody">	
 		{% for fileExport in fileExports %}
-		<tr><td>{{ fileExport }}</td><td><a class="confirm" style="border:none;" href="/restoreFileBackup/{{ fileExport }}" onclick="if (!confirm('This will delete the current DB and replace it with the backup. Are you sure?')) return false;">Restore</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ fileExport }}" onclick="if (!confirm('This will delete this backup. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ fileExport }}" >Download</a></td>
+		<tr><td>{{ fileExport }}</td><td><a class="confirm" style="border:none;" href="/restoreFileBackup/{{ fileExport }}" onclick="if (!confirm('Cette action écrasera la base de données actuelle avec ce backup. Êtes-vous sûr?')) return false;">Restaurer</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ fileExport }}" onclick="if (!confirm('Cette action supprimera le backup. Êtes-vous sûr?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ fileExport }}" >Télécharger</a></td>
 	
 {% endfor %}	
 			 </tbody>
