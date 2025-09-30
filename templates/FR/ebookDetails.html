@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+	<!-- Two -->
+<div class="inner" style = "padding: 20px 0 5em 5em;">
+<div style="display:block; clear:both; float:none;">
+<h3><strong><u>Book Details</strong></u></h3>
+<div style="display:block; clear:both; float:none;">
+<div style="width:30%; min-width: 300px; float:left; margin-right:30px;">								
+
+		
+		<p><strong>Titre</strong>:  {{ book.title}}</p>
+        <p><strong>Auteur</strong>:  {{ book.author}}</p>
+        <p><strong>Synopsis</strong>:  {{ book.summary}}</p>
+        <p><strong>Genre</strong>:  {{ book.genre}}</p>
+        <p><strong>Bibliothèque</strong>:  {{ book.library}}</p>
+
+                                </div>
+    <div style="width:30%; min-width: 280px; float:left;">
+        <p><strong>Collection</strong>:  {{ book.collection}}</p>
+        <p><strong>ISBN</strong>:  {{ book.ISBN}}</p>
+		<p><strong>Notes</strong>:  {{book.notes}}</p>
+		<p><strong>Possédé</strong>:  {{ book.owned}}</p>
+			{% if config.customFieldName1|length > 0 %}	
+<p><strong>{{config.customFieldName1}}</strong>:  {{book.customField1}}</p>
+	{% endif %}
+			{% if config.customFieldName2|length > 0 %}	
+<p><strong>{{config.customFieldName2}}</strong>:  {{book.customField2}}</p>
+	{% endif %}
+
+		</div>
+	
+	<div style= "display:block; clear:both;float:none;">
+		
+		{% if config.coverImages %}	
+<h3 style="margin-top:25px;"><strong><u>Images de couverture</strong></u></h3>		
+
+<div style = "margin-top:20px;margin-bottom:20px;">
+			{% if images %}
+				{% for image in images %}
+<div style="float:left;">
+<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a></div>
+
+				{% endfor %}
+		{% endif %}
+</div>
+	{% endif %}	
+	<div style= "display:block; clear:both;float:none;">
+		<h3 style="margin-top:25px;"><strong><u>Fichiers eBook</strong></u></h3>
+	{% if ebookFiles %}
+	{% if user.isAdmin %}
+	
+		<table>
+    <thead class="visible@l">
+      <tr>
+        <th>Nom de fichier</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+			<tbody id = "tablebody">
+{% for file in ebookFiles %}
+				<tr><td><strong>{{ file.filename }}</strong></td><td><strong><a class="confirm" style="border:none;" href="/downloadEbook/{{ file.filename }}" >Télécharger</a></strong>  |  <strong><a class="confirm" style="border:none;" href="/deleteEbook/{{ file.id }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Supprimer</a></strong></td>
+		
+		{% endfor %}
+						 </tbody>
+  </table>
+	{% else %}
+			<table>
+    <thead class="visible@l">
+      <tr>
+        <th>Nom de fichier</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+			<tbody id = "tablebody">
+{% for file in ebookFiles %}
+		<tr><td>{{ file.filename }}</td><td><a class="confirm" style="border:none;" href="/downloadEbook/{{ file.filename }}" >Télécharger</a></td>
+		
+		{% endfor %}
+						 </tbody>
+  </table>
+	{% endif %}
+		{% else %}
+		<p> Aucun fichier trouvé pour cet eBook. Un administrateur peut en téléverser.</p>
+		{% endif %}
+	<hr>
+			
+     </div>  
+	<div style= "display:block; clear:both;float:none;">
+		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Liste de lecture</strong></u></h3>
+		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Retirer de la liste de lecture</button></a>
+	</div>
+    </div>
+      <!-- more table rows here -->
+
+
+
+	{% if user.isAdmin %}
+			<button class="accordion" style="margin-top:40px;">Actions administrateur</button>
+			<div class="panel">
+			<a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Mettre à jour</button></a>
+			<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Êtes-vous sûr?')) return false;"><button style="margin-top:30px;">Supprimer</button></a>
+		    					<div style ="clear:both; display:block; float:none; margin-top: 20px;">
+<form action="/uploadEbook/{{ book.id }}" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label style ="padding-top: 20px;" for="file">Upload ebook files: </label>
+        <input type="file" id="file" name="file" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Upload">
+    </form>
+</div>
+				
+				{% if config.coverImages %}	
+		
+				
+		{% if images %}
+<h3 style="margin-top:25px;"><strong><u>Gestion des images liées au livre</strong></u></h3>
+<div style = "margin-top:20px;margin-bottom:20px;">
+		{% for image in images %}
+<div style="float:left;">
+<a style = "border:none; margin-right:10px;" href ="{{ url_for('static', path='bookImages')}}/{{ image.filename }}.jpg" target=”_blank”><img src="{{ url_for('static', path='bookImages')}}/{{ image.filename }}_thumbnail.jpg"></a>
+<form action="/deleteImage/{{ image.id }}" method="post" ><button type="submit" style ="clear:both; display:block; float:none; line-height:0.5em; height:1.5em; padding: 0 1em 0 1em; margin:auto;" onclick="if (!confirm('Êtes-vous sûr?')) return false;">Supprimer</button></form>
+</div>
+		{% endfor %}
+</div>
+<div style ="clear:both; display:block; float:none; margin-top: 20px;">
+<form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label style ="padding-top: 20px;" for="file">Téléverser une autre image: </label>
+        <input type="file" id="file" name="file" accept="image/jpeg" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Valider">
+    </form>
+</div>
+</div>
+		{% else %}
+<p>Aucune image enregistrée pour ce livre.</p>
+<form action="/upload/{{ book.id }}" method="post" enctype="multipart/form-data">
+        <!-- File input field -->
+        <label for="file">Téléverser une image: </label>
+        <input type="file" id="file" name="file" accept="image/jpeg" required>
+ 
+        <br><br>
+         
+        <!-- Submit button -->
+        <input type="submit" value="Valider">
+    </form>
+		{% endif %}
+
+	{% endif %}
+
+			</div>
+		{% endif %}
+
+</div>
+
+</div>
+<script>
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var panel = this.nextElementSibling;
+    if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+{% endblock %}
