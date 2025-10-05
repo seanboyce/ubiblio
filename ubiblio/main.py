@@ -70,8 +70,9 @@ async def startup():
         #redis_connection = redis.from_url(REDIS_URL, username=None, password=None, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
-
-templates = Jinja2Templates(directory="templates")
+language_templates = "templates/" + LANGUAGE
+print(language_templates)
+templates = Jinja2Templates(directory=language_templates)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 settings = Settings()
 

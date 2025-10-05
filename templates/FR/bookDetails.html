@@ -22,8 +22,16 @@
         <p><strong>Collection</strong>:  {{ book.collection}}</p>
         <p><strong>ISBN</strong>:  {{ book.ISBN}}</p>
 		<p><strong>Notes</strong>:  {{book.notes}}</p>
-		<p><strong>Possédé</strong>:  {{ book.owned}}</p>
-		<p><strong>Emprunté</strong>:  {{ book.withdrawn}}</p>
+		{% if book.owned %}
+		<p><strong>Possédé</strong>:  Oui</p>
+		{% else %}
+		<p><strong>Possédé</strong>:  Non</p>
+		{% endif %}
+		{% if book.withdrawn %}
+		<p><strong>Emprunté</strong>:  Oui</p>
+		{% else %}
+		<p><strong>Emprunté</strong>:  Non</p>
+		{% endif %}
 			{% if config.customFieldName1|length > 0 %}	
 <p><strong>{{config.customFieldName1}}</strong>:  {{book.customField1}}</p>
 	{% endif %}
@@ -55,7 +63,7 @@
      </div>  
 	<div style= "display:block; clear:both;float:none;">
 		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Liste de lecture</strong></u></h3>
-		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Add to Reading List</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Retirer de la liste de lecture</button></a>
+		<a style="border:none;margin-right:25px;" href="/read/{{book.id}}"><button style="margin-top:20px;">Ajouter</button></a><a style="border:none;" href="/unread/{{book.id}}"><button style="margin-top:20px;">Retirer</button></a>
 	</div>
     </div>
       <!-- more table rows here -->
@@ -63,7 +71,7 @@
 
 
 	{% if user.isAdmin %}
-			<button class="accordion" style="margin-top:40px;">Admin Actions</button>
+			<button class="accordion" style="margin-top:40px;">Admin</button>
 			<div class="panel">
 			<a style="border:none; margin-right:25px;margin-right:25px;" href="/update_book/{{book.id}}"><button>Mettre à jour</button></a>
 			<a class="confirm" style="border:none;" href="/delete_book/{{book.id}}" onclick="if (!confirm('Êtes-vous sûr?')) return false;"><button style="margin-top:30px;">Supprimer</button></a>

@@ -19,7 +19,11 @@
     <p>
         <p><label for="">Activer les images de couverture: </label></p>
 	<select name="coverImages" id="coverImages">
-					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
+		{% if config.coverImages %}
+					<option value="{{ config.coverImages }}" selected>Oui</option>
+		{% else %}
+		<option value="{{ config.coverImages }}" selected>Non</option>
+		{% endif %}
   <option value="True">Oui</option>
   <option value="False">Non</option>
 </select>
@@ -41,7 +45,7 @@
     </p>
     </div>
     <div style= "display:block; clear:both;float:none;">
-    <input  type="submit" value="Submit">
+    <input  type="submit" value="Appliquer">
     
 </form>
 <a style = "border:none;" href = "/backups"> <button>Gestion des backups</button></a>

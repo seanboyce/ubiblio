@@ -85,17 +85,24 @@
         <input type="text" name="notes" value="{{ book.notes }}" >
     </p>
     
-
         <p><label for="">Possédé: </label></p>
 	<select name="owned" id="owned">
-					<option value="{{ book.owned }}" selected>{{ book.owned }}</option>
+		{% if book.owned %}
+					<option value="{{ book.owned }}" selected>Oui</option>
+		{% else %}
+		<option value="{{ book.owned }}" selected>Non</option>
+		{% endif %}
   <option value="True">Oui</option>
   <option value="False">Non</option>
 </select>
 
         <p><label for="">Emprunté: </label></p>
 	<select name="withdrawn" id="withdrawn">
-					<option value="{{ book.withdrawn }}" selected>{{ book.withdrawn }}</option>
+		{% if book.withdrawn %}
+					<option value="{{ book.withdrawn }}" selected>Oui</option>
+		{% else %}
+		<option value="{{ book.withdrawn }}" selected>Non</option>
+		{% endif %}
   <option value="True">Oui</option>
   <option value="False">Non</option>
 </select>
