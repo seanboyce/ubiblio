@@ -70,8 +70,9 @@ async def startup():
         #redis_connection = redis.from_url(REDIS_URL, username=None, password=None, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
-
-templates = Jinja2Templates(directory="templates")
+language_templates = "templates/" + LANGUAGE
+print(language_templates)
+templates = Jinja2Templates(directory=language_templates)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 settings = Settings()
 
@@ -419,21 +420,21 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
     return templates.TemplateResponse("booksearch.html", context)
 
 @app.post("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%"):
+def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%",onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip)))
+        books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
         books = json.dumps(books)
         db.close()
         return books
     except Exception as e:
         db.close()
-        return "An error has occured."
+        return e
 @app.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0):
+def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip)))
+        books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
         books = json.dumps(books)
         db.close()
         return books
@@ -442,10 +443,10 @@ def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_
         return "An error has occured."
 
 @app.post("/searchBooksByTitle", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0):
+def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip)))
+        books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks)))
         books = json.dumps(books)
         db.close()
         return books
@@ -1006,7 +1007,10 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
             bookId,dbpath = crud.deleteEbook(db, ebookId)
             db.close()
             ebookPath = os.path.join('./static/eBooks/', str(dbpath))
-            os.remove(ebookPath)
+            try:
+                os.remove(ebookPath)
+            except:
+                print("Tried to delete an ebook file that doesn't exist, removing DB entry")
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
         db.close()

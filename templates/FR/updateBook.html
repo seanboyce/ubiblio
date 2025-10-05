@@ -6,7 +6,7 @@
 <section id="two">
 	<div class="inner" style = "padding: 20px 0 1em 0;">
 
-<h1>Update a Book</h1>
+<h1>Modifier un livre</h1>
 
 {% for error in errors %}
     <p style="color: red">{{ error }}</p>
@@ -15,15 +15,15 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/update_book/{{ book.id }}" method="post">
     <p>
-        <p><label for="">Title</label></p>
+        <p><label for="">Titre</label></p>
         <input type="text" name="title" value="{{ book.title }}" required>
     </p>
     <p>
-        <p><label for="">Author</label></p>
+        <p><label for="">Auteur</label></p>
         <input type="text" name="author" value="{{ book.author }}">
     </p>
     <p>
-        <p><label for="">Summary</label></p>
+        <p><label for="">Synopsis</label></p>
         <input type="text" name="summary" value="{{ book.summary }}">
     </p>
        <p>
@@ -39,15 +39,15 @@
 {% if book.ebook %}	
 								<p><label for="ebook">eBook</label></p>
 <select name="ebook" id="ebook">
-  <option value="True">True</option>
-  <option value="False">False</option>
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
 </select>
     </p>
 {% else %}								
 <p><label for="ebook">eBook</label></p>
 <select name="ebook" id="ebook">
-  <option value="False">False</option>
-  <option value="True">True</option>
+  <option value="False">Non</option>
+  <option value="True">Oui</option>
 </select>
     </p>
 {% endif %}
@@ -65,11 +65,11 @@
                 </div>
     <div style="width:30%; min-width: 300px; float:left;">
     <p>
-        <p><label for="">Library</label></p>
+        <p><label for="">Bibliothèque</label></p>
         <input type="text" name="library" value="{{ book.library }}">
     </p>
     <p>
-        <p><label for="">Shelf</label></p>
+        <p><label for="">Étagère</label></p>
         <input type="text" name="shelf" value="{{ book.shelf }}" >
     </p>
     <p>
@@ -85,28 +85,35 @@
         <input type="text" name="notes" value="{{ book.notes }}" >
     </p>
     
-
-        <p><label for="">Owned: </label></p>
+        <p><label for="">Possédé: </label></p>
 	<select name="owned" id="owned">
-					<option value="{{ book.owned }}" selected>{{ book.owned }}</option>
-  <option value="True">True</option>
-  <option value="False">False</option>
+		{% if book.owned %}
+					<option value="{{ book.owned }}" selected>Oui</option>
+		{% else %}
+		<option value="{{ book.owned }}" selected>Non</option>
+		{% endif %}
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
 </select>
 
-        <p><label for="">Withdrawn: </label></p>
+        <p><label for="">Emprunté: </label></p>
 	<select name="withdrawn" id="withdrawn">
-					<option value="{{ book.withdrawn }}" selected>{{ book.withdrawn }}</option>
-  <option value="True">True</option>
-  <option value="False">False</option>
+		{% if book.withdrawn %}
+					<option value="{{ book.withdrawn }}" selected>Oui</option>
+		{% else %}
+		<option value="{{ book.withdrawn }}" selected>Non</option>
+		{% endif %}
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
 </select>
 
         </div>
     </div>
     <div style= "display:block; clear:both;float:none;">
-    <input  type="submit" value="Submit">
+    <input  type="submit" value="Valider">
     
 </form>
-<a style = "border:none;" href = "/"> <button>Back</button></a>
+<a style = "border:none;" href = "/"> <button>Retour</button></a>
     </div>
 
 <hr>

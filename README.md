@@ -20,9 +20,10 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
 13. Backup management, for both the database and files! 
 14. Ebook support, with the ability to store ebook files and download from your reader (as long as it has a web browser)
-15. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
-16. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
-17. It even runs on RISCV64 with memory to spare (check out the cursed branch)!
+15. You can search for only ebooks or only physical books (e.g. when browsing a physical library vs. from an e-reader)
+16. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
+17. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
+18. It even runs on RISCV64 with memory to spare (check out the cursed branch)!
 
 # Setup
 
@@ -39,10 +40,10 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 The HTML theme is modified from "forty" by HTML5UP (https://html5up.net/). Actually, check out their other themes too. They are excellent and provide the themes under CC Attribution 3.0 (https://html5up.net/license). It's a huge timesaver for building things like this. So please leave the attribution in the footer.
 
 # Menu System
-![Screenshot of the menu system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_menu.png)
+![Screenshot of the menu system](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_menu.png)
 
 # Book Search
-![Screenshot of the book search system](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_search.png)
+![Screenshot of the book search system](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_search.png)
 
 # Reading list / Browse by Genre / Wishlist / Withdrawn Books List
-![Screenshot of a more detailed list of books](https://github.com/seanboyce/ubiblio/blob/main/ubiblio_readling_list.png)
+![Screenshot of a more detailed list of books](https://raw.githubusercontent.com/seanboyce/ubiblio/refs/heads/dev/ubiblio_readling_list.png)

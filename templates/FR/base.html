@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+		<title>uBiblio</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/main.css')}}" />
+		<link rel="stylesheet" href="{{ url_for('static', path='assets/css/extra.css')}}" />
+		<link rel="icon" href="{{ url_for('static', path='images/favicon.svg') }}">
+		<noscript><link rel="stylesheet" href="{{ url_for('static', path='assets/css/noscript.css')}}" /></noscript>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<a href="/" class="logo"><strong>uBiblio</strong> <span>Librairie Personnelle</span></a>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+        {% if hideNav is defined and hideNav %}
+					<nav id="menu">
+						<ul class="links">
+							<li>Connexion Requise</li>
+						</ul>
+					</nav>
+          {% else %}
+						<nav id="menu">
+							<ul class="links">
+							<li><a href="/">Recherche de livre</a></li>
+							<li><a href="/genre/">Parcourir par genres</a></li>
+								<li><a href="/wishlist/">Liste de souhaits</a></li>
+							<li><a href="/readingLists">Listes de lecture</a></li>
+								<li><a href="/withdrawn">Livres empruntés</a></li>
+								{% if user.isAdmin %}
+								<li><a href="/config">Admin</a></li>
+								{% endif %}
+						</ul>
+						<ul class="actions stacked">
+							<li><a href="/auth/logout" class="button fit">Déconnexion</a></li>
+						</ul>
+					</nav>
+        {% endif %}
+
+        {% block main %}{% endblock %}
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							
+							<ul class="copyright">
+								<li>&copy; Sean Boyce</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrolly.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/jquery.scrollex.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/browser.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/breakpoints.min.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static', path='assets/js/main.js')}}"></script>
+
+	</body>
+</html>

@@ -44,4 +44,13 @@ border-color:#242943;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }
+.mobileshow{
+display:none;
+}
 
+
+@media screen and (max-width: 736px) {
+.mobileshow{
+display:inline;
+}
+}

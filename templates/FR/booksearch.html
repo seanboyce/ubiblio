@@ -13,27 +13,27 @@
 
 <form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
   <input type="text" id = "searchboxInput" name="searchboxInput" value="" />
-<span>Search By:&nbsp;&nbsp;<br class="mobileshow"></span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
-  <label for="authorSearch"> Author</label>
+<span>Rechercher Par:&nbsp;&nbsp;<br class="mobileshow"></span><input type="checkbox" id="authorSearch" name="authorSearch" value="author" checked>
+  <label for="authorSearch"> Auteur</label>
   <input type="checkbox" id="titleSearch" name="titleSearch" value="title" checked>
-  <label for="titleSearch"> Title</label>
+  <label for="titleSearch"> Titre</label>
 	<input type="checkbox" id="ebookSearch" name="ebookSearch" value="ebook">
-  <label for="ebookSearch"> Only Ebooks</label>
+  <label for="ebookSearch"> eBooks uniquement</label>
 	<input type="checkbox" id="noEbookSearch" name="noEbookSearch" value="noebook">
-  <label for="noEbookSearch"> No Ebooks</label><br>
-  <input style ="float:left;" type="submit" value="Search">										
+  <label for="noEbookSearch"> Exclure les eBooks</label><br>
+  <input style ="float:left;" type="submit" value="Rechercher">										
 </form>
-<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add New</button></a>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Ajouter un livre</button></a>
 		
-<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+<h2 style="margin-top:25px; margin-bottom:15px;">Liste des Livres</h2>
 
 <div class="container">  
   <table>
     <thead class="visible@l">
       <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Location</th>
+        <th>Titre</th>
+        <th>Auteur</th>
+        <th>Emplacement</th>
       </tr>
     </thead>
     <tbody id = "tablebody">
@@ -81,7 +81,7 @@ $.post(searchEndpoint,function(data, status){
 });
 
 if (itemdata.length === 0){
-        $("#tablebody").append('<tr><td>' + "No results found" + '</td><td></td><td></td></tr>');
+        $("#tablebody").append('<tr><td>' + "Aucune résultat" + '</td><td></td><td></td></tr>');
     }
 if (pagination > 0){
 $("#pagination").append("<button onclick='previous();'>Previous</button>");
