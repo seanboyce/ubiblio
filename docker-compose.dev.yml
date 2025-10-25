@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  ubiblio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DEV=true
+      - DB_LOCATION=./config/sql_app.db
+      - SECRET_KEY_FILE=/app/config/secret_key.txt
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CREATE_ADMIN_USER=True
+    volumes:
+      - ./:/app:cached
+    ports:
+      - "8000:8000"
+    command: ["./entrypoint.sh"]
+    # Use a bind mount so edits you make on the host are visible inside the container.
+    # The image will run uvicorn with --reload (because DEV=true) and pick up changes.
