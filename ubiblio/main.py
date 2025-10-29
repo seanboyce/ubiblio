@@ -514,7 +514,7 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
-        errors = ["ISBN not found -- try another."]
+        errors = ["ISBN" + str(isbn) + "not found -- try another."]
         context = {
         "errors": errors,
         "user": user,
