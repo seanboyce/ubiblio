@@ -485,8 +485,8 @@ def get_metadata(isbn: str, service: str):
 
     return None
 
-@app.get("/isbn/{isbn}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+@app.get("/isbn/{isbn}/{method}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+def new_isbn(isbn, method, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
             book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
@@ -514,13 +514,17 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
-        errors = ["ISBN" + str(isbn) + "not found -- try another."]
+        errors = ["ISBN " + str(isbn) + " not found -- try another."]
         context = {
         "errors": errors,
         "user": user,
         "request": request
     }
-        return templates.TemplateResponse("addisbn.html", context)
+    #Return user to the page they were already on if no book found with this ISBN -- they can try again if they wish, or move to the next book.
+        if method == "scan":
+            return templates.TemplateResponse("scanIsbn.html", context)
+        else:
+            return templates.TemplateResponse("addisbn.html", context)
 
 @app.get("/addisbn", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):

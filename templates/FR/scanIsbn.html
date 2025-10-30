@@ -7,19 +7,19 @@
     {% for error in errors %}
     <p style="color: red">{{ error }}</p>
     {% endfor %}
-    <h1>Scan ISBN</h1>
+    <h1>Scannez un ISBN</h1>
 
     <!-- Scanner UI -->
     <div id="scannerControls">
       <div style="margin-bottom: 10px">
-        <label for="cameraSelect">Camera: </label>
+        <label for="cameraSelect">Caméra: </label>
         <select id="cameraSelect" style="padding: 5px">
-          <option value="">Select a camera...</option>
+          <option value="">Sélectionner une caméra...</option>
         </select>
       </div>
-      <button id="startScanBtn" type="button">Start Camera Scan</button>
-      <button id="stopScanBtn" type="button" style="display:none">Stop Scan</button>
-	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Manual Entry</button></a>
+      <button id="startScanBtn" type="button">Démarrer</button>
+      <button id="stopScanBtn" type="button" style="display:none">Arrêter</button>
+	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Entrée Manuelle</button></a>
       <p id="scanMsg" style="color: #555"></p>
       <div id="scannerContainer" style="margin-top:8px; position:relative">
         <div id="interactive" class="viewport" style="width:100%;max-width:420px;display:none"></div>
@@ -100,11 +100,11 @@
 
   function startScanner() {
     if (!selectedDeviceId) {
-      scanMsg.textContent = 'Please select a camera first';
+      scanMsg.textContent = 'Veuillez sélectionner une caméra';
       return;
     }
     
-    scanMsg.textContent = 'Initializing camera...';
+    scanMsg.textContent = 'Initialisation de la caméra...';
     interactive.style.display = 'block';
     startBtn.style.display = 'none';
     stopBtn.style.display = 'inline-block';
@@ -137,7 +137,7 @@
         stopScanner();
         return;
       }
-      scanMsg.textContent = 'Camera ready. Point at barcode...';
+      scanMsg.textContent = 'Caméra prêt. Pointez-le vers le code-barres...';
       Quagga.start();
     });
 
@@ -148,7 +148,7 @@
       
       // Navigate to ISBN page
       stopScanner();
-      window.location.href = "/isbn/" + encodeURIComponent(code) + "/scan";
+      window.location.href = "/isbn/" + encodeURIComponent(code) +"/scan";
     });
   }
 
