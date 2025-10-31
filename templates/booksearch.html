@@ -23,9 +23,10 @@
   <label for="noEbookSearch"> No Ebooks</label><br>
   <input style ="float:left;" type="submit" value="Search">										
 </form>
+		{% if user.isAdmin %}
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add</button></a>
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/scan_isbn"><button style="margin-bottom:25px;">Scan</button></a>
-
+{% endif %}
 <h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
 
 <div class="container">  
@@ -53,7 +54,7 @@
 
 
 <script>
-//Default view is to show first 50 customers until user enters something into search
+//Default view is to show first 50 books until user enters something into search
 var pagination=0;
 var itemdata = []
 //Core search function

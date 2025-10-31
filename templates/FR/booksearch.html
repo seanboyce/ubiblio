@@ -23,8 +23,10 @@
   <label for="noEbookSearch"> Exclure les eBooks</label><br>
   <input style ="float:left;" type="submit" value="Rechercher">										
 </form>
+{% if user.isAdmin %}
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Ajouter</button></a>
-<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/scan_isbn"><button style="margin-bottom:25px;">Scan</button></a>		
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/scan_isbn"><button style="margin-bottom:25px;">Scan</button></a>	
+{% endif %}
 <h2 style="margin-top:25px; margin-bottom:15px;">Liste des Livres</h2>
 
 <div class="container">  
