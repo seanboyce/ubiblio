@@ -132,6 +132,7 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 | SECRET_KEY | Randomly generated secret key for session validation | No | - |
 | SECRET_KEY_FILE | File containing the `SECRET_KEY` for session validation | No | `./secret_key.txt` |
 | LANGUAGE | Set the language | No | -|
+| DEV | ubiblio will reload on changes to any file | No | False |
 
 
 To build:

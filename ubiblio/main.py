@@ -1,7 +1,7 @@
 import datetime as dt
 from os import listdir, path, remove
 from typing import Dict, List, Optional, Union
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, File, UploadFile, Cookie
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, File, UploadFile
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.encoders import jsonable_encoder
