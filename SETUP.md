@@ -62,12 +62,15 @@ There are a number of environment variables you can set to slightly change the b
 | USER_PASSWORD | Password to create | No | - |
 | USE_REDIS | Use Redis for DDOS protection? | No | False |
 | REDIS_URI | External Redis URI | No | - |
+| LANGUAGE | Set the language | No | -|
 
 For example, to set up an admin user at first launch, you'll need to run a command like below (replacing username and password as you see fit):
 ```bash
 env CREATE_ADMIN_USER=True ADMIN_USERNAME=username ADMIN_PASSWORD=password uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Then visit /user-setup and the account will be created. It will return you to login.
+
+To set the language to French, launch with LANGUAGE=FR
 
 ## Launching
 
@@ -128,6 +131,7 @@ I've left this in a bash script in daily_backup.sh. You can set it as a cron job
 | DB_LOCATION | Path to SQLite database file | No | `./sql_app.db` |
 | SECRET_KEY | Randomly generated secret key for session validation | No | - |
 | SECRET_KEY_FILE | File containing the `SECRET_KEY` for session validation | No | `./secret_key.txt` |
+| LANGUAGE | Set the language | No | -|
 
 
 To build:
@@ -179,6 +183,8 @@ docker run -p 8000:8000 -v config_dir:/app/config -e CREATE_ADMIN_USER='True' -e
 Be sure to visit user-setup/ to create the user! This launches by default with uvicorn and no https support. 
 
 Note that passing environment variables this way will show in your bash history, and possibly other places. If this is a problem, consider (for example) storing the variables in a file, pulling them from the file in your command, then deleting the file (there are many examples online on how to do this).
+
+Pour démarrer ubiblio en français, définissez LANGUAGE=FR
 
 # Useful Guides
 
