@@ -8,7 +8,7 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 
 1. Add, remove, update books
 2. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
-3. Autopopulate a book's fields by entering an ISBN (either by typing /isbn/[your-isbn]) into the address bar, or from the 'Add New Book" interface
+3. Autopopulate a book's fields by entering an ISBN, either manually or with your device's camera!
 4. Reading list management for each user
 5. Book wishlist (just set owned=False, then update to True when you buy it)
 6. Withdraw and return books. Display a list of withdrawn books (to help put them away or figure out who has them).
@@ -24,6 +24,7 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 16. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
 17. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
 18. It even runs on RISCV64 with memory to spare (check out the cursed branch)!
+19. Aussi disponible en français! Démarrez ubiblio avec LANGUAGE='FR'
 
 # Setup
 

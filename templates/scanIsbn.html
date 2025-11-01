@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+  <div class="inner" style="padding: 20px 0 1em 0">
+    {% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+    {% endfor %}
+    <h1>Scan ISBN</h1>
+
+    <!-- Scanner UI -->
+    <div id="scannerControls">
+      <div style="margin-bottom: 10px">
+        <label for="cameraSelect">Camera: </label>
+        <select id="cameraSelect" style="padding: 5px">
+          <option value="">Select a camera...</option>
+        </select>
+      </div>
+      <button id="startScanBtn" type="button">Start Camera Scan</button>
+      <button id="stopScanBtn" type="button" style="display:none">Stop Scan</button>
+	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Manual Entry</button></a>
+		<div style="display: block, float:none; clear:both; padding-top:10px;">
+<input id="savecamera" type="button" value="Save Camera" onclick="saveCamera();" />
+		</div>
+      <p id="scanMsg" style="color: #555"></p>
+      <div id="scannerContainer" style="margin-top:8px; position:relative">
+        <div id="interactive" class="viewport" style="width:100%;max-width:420px;display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
+<script>
+function saveCamera() {		
+        document.cookie = "cameraIndex=" + (cameraSelect.selectedIndex - 1); //index is off-by-one so we correct here.
+  }
+	
+function getCookie(name) {
+    var dc = document.cookie;
+    var prefix = name + "=";
+    var begin = dc.indexOf("; " + prefix);
+    if (begin == -1) {
+        begin = dc.indexOf(prefix);
+        if (begin != 0) return null;
+    }
+    else
+    {
+        begin += 2;
+        var end = document.cookie.indexOf(";", begin);
+        if (end == -1) {
+        end = dc.length;
+        }
+    }
+    // because unescape has been deprecated, replaced with decodeURI
+    //return unescape(dc.substring(begin + prefix.length, end));
+    return decodeURI(dc.substring(begin + prefix.length, end));
+} 
+
+
+  function isbn() {
+    var isbnLink = document.getElementsByName("isbnLink")[0].value;
+    if (isbnLink) window.location.href = "/isbn/" + encodeURIComponent(isbnLink)+"/scan";
+  }
+
+  // Quagga camera scanner implementation
+  const startBtn = document.getElementById('startScanBtn');
+  const stopBtn = document.getElementById('stopScanBtn');
+  const scanMsg = document.getElementById('scanMsg');
+  const interactive = document.getElementById('interactive');
+  const cameraSelect = document.getElementById('cameraSelect');
+  
+  let selectedDeviceId = null;
+  let isScanning = false;
+
+  // Populate camera list -- TODO index is off by 1
+  async function populateCameraList() {
+  let savedCamera = getCookie("cameraIndex");
+	  console.log(savedCamera);
+	  if (savedCamera == null) {
+		  savedCamera = 0;
+	  }
+    try {
+      // Request camera permission first
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      
+      // Now enumerate devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      cameraSelect.innerHTML = '<option value="">Select a camera...</option>';
+      videoDevices.forEach((device, index) => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.text = device.label || `Camera ${index + 1}`;
+        cameraSelect.appendChild(option);
+      });
+      
+      // Auto-select the first camera if available
+      if (videoDevices.length > 0) {
+        cameraSelect.value = videoDevices[savedCamera].deviceId;
+        selectedDeviceId = videoDevices[savedCamera].deviceId;
+        // Might as well start scanning right away
+        startScanner();
+      }
+    } catch (err) {
+      console.error('Error enumerating devices:', err);
+      scanMsg.textContent = 'Error accessing cameras: ' + err.message;
+    }
+  }
+
+  // Camera selection change
+  cameraSelect.addEventListener('change', async function() {
+    selectedDeviceId = this.value;
+    
+    // If already scanning, restart with new camera
+    if (isScanning) {
+      stopScanner();
+      // Small delay before restarting
+      setTimeout(() => startScanner(), 300);
+    }
+  });
+
+  startBtn.addEventListener('click', function() {
+    startScanner();
+  });
+
+  stopBtn.addEventListener('click', function() {
+    stopScanner();
+  });
+
+  function startScanner() {
+    if (!selectedDeviceId) {
+      scanMsg.textContent = 'Please select a camera first';
+      return;
+    }
+    
+    scanMsg.textContent = 'Initializing camera...';
+    interactive.style.display = 'block';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    isScanning = true;
+
+    const config = {
+      inputStream: {
+        name: "Live",
+        type: "LiveStream",
+        target: document.querySelector('#interactive'),
+        constraints: {
+          deviceId: selectedDeviceId,
+          facingMode: "environment"
+        }
+      },
+      decoder: {
+        readers: [
+          "ean_reader", // EAN-13 (most common for books)
+        ]
+      },
+      locate: true,
+      numOfWorkers: navigator.hardwareConcurrency || 4,
+      frequency: 10
+    };
+
+    Quagga.init(config, function(err) {
+      if (err) {
+        console.error(err);
+        scanMsg.textContent = 'Error: ' + err.message;
+        stopScanner();
+        return;
+      }
+      scanMsg.textContent = 'Camera ready. Point at barcode...';
+      Quagga.start();
+    });
+
+    // Handle detected barcodes
+    Quagga.onDetected(function(result) {
+      const code = result.codeResult.code;
+      console.log("Barcode detected:", code);
+      
+      // Navigate to ISBN page
+      stopScanner();
+      window.location.href = "/isbn/" + encodeURIComponent(code) + "/scan";
+    });
+  }
+
+  function stopScanner() {
+    Quagga.stop();
+    interactive.style.display = 'none';
+    startBtn.style.display = 'inline-block';
+    stopBtn.style.display = 'none';
+    scanMsg.textContent = '';
+    isScanning = false;
+  }
+
+  // Initialize camera list on page load
+  populateCameraList();
+</script>
+
+<style>
+  #interactive.viewport {
+    position: relative;
+  }
+  #interactive.viewport canvas,
+  #interactive.viewport video {
+    width: 100%;
+    height: auto;
+  }
+  #interactive.viewport canvas.drawingBuffer {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  #cameraSelect {
+    min-width: 200px;
+    max-width: 100%;
+  }
+</style>
+{% endblock %}

@@ -406,6 +406,25 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
         print(e)
         return "An error has occured."
 
+@app.get("/scan_isbn", dependencies=[get_rate_limiter(times=3, seconds=2)], response_class=HTMLResponse)
+def scan_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin:
+            db = SessionLocal()
+            config = crud.getConfig(db)
+            db.close()
+            context = {
+            "config": config,
+            "user": user,
+            "request": request,
+            }
+            return templates.TemplateResponse("scanIsbn.html", context)
+        if not user.isAdmin:
+            return "You are not authorized to add books. Only an admin can do this."
+    except Exception as e:
+        print(e)
+        return "An error has occured."
+
 # --------------------------------------------------------------------------
 # Search
 # --------------------------------------------------------------------------
@@ -456,18 +475,9 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
-def get_metadata(isbn: str, service: str):
-    try:
-        book = meta(isbn, service=service)
-        if "Title" in book:
-            return book
-    except Exception as e:
-        print(e)
 
-    return None
-
-@app.get("/isbn/{isbn}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+@app.get("/isbn/{isbn}/{method}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+def new_isbn(isbn, method, response: Response, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
             book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
@@ -495,13 +505,17 @@ def new_isbn(isbn, request: Request, user: schemas.User = Depends(get_current_us
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
-        errors = ["ISBN not found -- try another."]
+        errors = ["ISBN " + str(isbn) + " not found -- try another."]
         context = {
         "errors": errors,
         "user": user,
         "request": request
     }
-        return templates.TemplateResponse("addisbn.html", context)
+    #Return user to the page they were already on if no book found with this ISBN -- they can try again if they wish, or move to the next book.
+        if method == "scan":
+            return templates.TemplateResponse("scanIsbn.html", context)
+        else:
+            return templates.TemplateResponse("addisbn.html", context)
 
 @app.get("/addisbn", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -532,6 +546,25 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
     }
         return templates.TemplateResponse("addisbn.html", context)
     if not user.isAdmin == True:
+        return "You are not authorized to add books. Only an admin can do this."
+    
+@app.post("/scananotherisbn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def scanAnotherIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if user.isAdmin:
+        #Add book
+        form = bookForm(request)
+        await form.load_data()
+        if await form.is_valid():
+            db = SessionLocal()
+            newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
+            crud.createBook(db, newBook)
+            db.close()
+            context = {
+            "user": user,
+        "request": request
+    }
+        return templates.TemplateResponse("scanIsbn.html", context)
+    if not user.isAdmin:
         return "You are not authorized to add books. Only an admin can do this."
 # --------------------------------------------------------------------------
 # Reading Lists
