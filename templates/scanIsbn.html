@@ -19,6 +19,7 @@
       </div>
       <button id="startScanBtn" type="button">Start Camera Scan</button>
       <button id="stopScanBtn" type="button" style="display:none">Stop Scan</button>
+	  <input id="savecamera" type="button" value="Save Camera" onclick="saveCamera();" />
 	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Manual Entry</button></a>
       <p id="scanMsg" style="color: #555"></p>
       <div id="scannerContainer" style="margin-top:8px; position:relative">
@@ -31,6 +32,32 @@
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
 <script>
+function saveCamera() {		
+        document.cookie = "cameraIndex=" + (cameraSelect.selectedIndex - 1); //index is off-by-one so we correct here.
+  }
+	
+function getCookie(name) {
+    var dc = document.cookie;
+    var prefix = name + "=";
+    var begin = dc.indexOf("; " + prefix);
+    if (begin == -1) {
+        begin = dc.indexOf(prefix);
+        if (begin != 0) return null;
+    }
+    else
+    {
+        begin += 2;
+        var end = document.cookie.indexOf(";", begin);
+        if (end == -1) {
+        end = dc.length;
+        }
+    }
+    // because unescape has been deprecated, replaced with decodeURI
+    //return unescape(dc.substring(begin + prefix.length, end));
+    return decodeURI(dc.substring(begin + prefix.length, end));
+} 
+
+
   function isbn() {
     var isbnLink = document.getElementsByName("isbnLink")[0].value;
     if (isbnLink) window.location.href = "/isbn/" + encodeURIComponent(isbnLink)+"/scan";
@@ -46,8 +73,13 @@
   let selectedDeviceId = null;
   let isScanning = false;
 
-  // Populate camera list
+  // Populate camera list -- TODO index is off by 1
   async function populateCameraList() {
+  let savedCamera = getCookie("cameraIndex");
+	  console.log(savedCamera);
+	  if (savedCamera == null) {
+		  savedCamera = 0;
+	  }
     try {
       // Request camera permission first
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -67,8 +99,8 @@
       
       // Auto-select the first camera if available
       if (videoDevices.length > 0) {
-        cameraSelect.value = videoDevices[0].deviceId;
-        selectedDeviceId = videoDevices[0].deviceId;
+        cameraSelect.value = videoDevices[savedCamera].deviceId;
+        selectedDeviceId = videoDevices[savedCamera].deviceId;
         // Might as well start scanning right away
         startScanner();
       }

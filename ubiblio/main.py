@@ -1,7 +1,7 @@
 import datetime as dt
 from os import listdir, path, remove
 from typing import Dict, List, Optional, Union
-from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, File, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status, File, UploadFile, Cookie
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.encoders import jsonable_encoder
@@ -475,18 +475,9 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
-def get_metadata(isbn: str, service: str):
-    try:
-        book = meta(isbn, service=service)
-        if "Title" in book:
-            return book
-    except Exception as e:
-        print(e)
-
-    return None
 
 @app.get("/isbn/{isbn}/{method}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-def new_isbn(isbn, method, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def new_isbn(isbn, method, response: Response, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
             book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
