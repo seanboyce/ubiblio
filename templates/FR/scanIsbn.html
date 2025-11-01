@@ -20,6 +20,9 @@
       <button id="startScanBtn" type="button">Démarrer</button>
       <button id="stopScanBtn" type="button" style="display:none">Arrêter</button>
 	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Entrée Manuelle</button></a>
+		<div style="display: block, float:none; clear:both; padding-top:10px;">
+<input id="savecamera" type="button" value="Enregistrer Cette Caméra" onclick="saveCamera();" />
+		</div>
       <p id="scanMsg" style="color: #555"></p>
       <div id="scannerContainer" style="margin-top:8px; position:relative">
         <div id="interactive" class="viewport" style="width:100%;max-width:420px;display:none"></div>
@@ -31,6 +34,32 @@
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
 <script>
+function saveCamera() {		
+        document.cookie = "cameraIndex=" + (cameraSelect.selectedIndex - 1); //index is off-by-one so we correct here.
+  }
+	
+function getCookie(name) {
+    var dc = document.cookie;
+    var prefix = name + "=";
+    var begin = dc.indexOf("; " + prefix);
+    if (begin == -1) {
+        begin = dc.indexOf(prefix);
+        if (begin != 0) return null;
+    }
+    else
+    {
+        begin += 2;
+        var end = document.cookie.indexOf(";", begin);
+        if (end == -1) {
+        end = dc.length;
+        }
+    }
+    // because unescape has been deprecated, replaced with decodeURI
+    //return unescape(dc.substring(begin + prefix.length, end));
+    return decodeURI(dc.substring(begin + prefix.length, end));
+} 
+
+
   function isbn() {
     var isbnLink = document.getElementsByName("isbnLink")[0].value;
     if (isbnLink) window.location.href = "/isbn/" + encodeURIComponent(isbnLink)+"/scan";
@@ -46,8 +75,13 @@
   let selectedDeviceId = null;
   let isScanning = false;
 
-  // Populate camera list
+  // Populate camera list -- TODO index is off by 1
   async function populateCameraList() {
+  let savedCamera = getCookie("cameraIndex");
+	  console.log(savedCamera);
+	  if (savedCamera == null) {
+		  savedCamera = 0;
+	  }
     try {
       // Request camera permission first
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -67,8 +101,8 @@
       
       // Auto-select the first camera if available
       if (videoDevices.length > 0) {
-        cameraSelect.value = videoDevices[0].deviceId;
-        selectedDeviceId = videoDevices[0].deviceId;
+        cameraSelect.value = videoDevices[savedCamera].deviceId;
+        selectedDeviceId = videoDevices[savedCamera].deviceId;
         // Might as well start scanning right away
         startScanner();
       }
@@ -100,11 +134,11 @@
 
   function startScanner() {
     if (!selectedDeviceId) {
-      scanMsg.textContent = 'Veuillez sélectionner une caméra';
+      scanMsg.textContent = 'Please select a camera first';
       return;
     }
     
-    scanMsg.textContent = 'Initialisation de la caméra...';
+    scanMsg.textContent = 'Initializing camera...';
     interactive.style.display = 'block';
     startBtn.style.display = 'none';
     stopBtn.style.display = 'inline-block';
@@ -137,7 +171,7 @@
         stopScanner();
         return;
       }
-      scanMsg.textContent = 'Caméra prêt. Pointez-le vers le code-barres...';
+      scanMsg.textContent = 'Camera ready. Point at barcode...';
       Quagga.start();
     });
 
@@ -148,7 +182,7 @@
       
       // Navigate to ISBN page
       stopScanner();
-      window.location.href = "/isbn/" + encodeURIComponent(code) +"/scan";
+      window.location.href = "/isbn/" + encodeURIComponent(code) + "/scan";
     });
   }
 

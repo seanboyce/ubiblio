@@ -19,8 +19,10 @@
       </div>
       <button id="startScanBtn" type="button">Start Camera Scan</button>
       <button id="stopScanBtn" type="button" style="display:none">Stop Scan</button>
-	  <input id="savecamera" type="button" value="Save Camera" onclick="saveCamera();" />
 	<a style ="text-decoration:none !important; border:none; margin-top: 10px;" href="/addisbn"><button>Manual Entry</button></a>
+		<div style="display: block, float:none; clear:both; padding-top:10px;">
+<input id="savecamera" type="button" value="Save Camera" onclick="saveCamera();" />
+		</div>
       <p id="scanMsg" style="color: #555"></p>
       <div id="scannerContainer" style="margin-top:8px; position:relative">
         <div id="interactive" class="viewport" style="width:100%;max-width:420px;display:none"></div>
