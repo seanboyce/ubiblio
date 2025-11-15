@@ -115,3 +115,13 @@ class ebookBase(BaseModel):
 class ebook(ebookBase):  
     id: int 
 
+#These are for temporary access links to create new users. Datetime will be the DB datetime.
+class linkBase(BaseModel):
+    accessCode: str
+    
+class link(linkBase):
+    id: int  
+    validity: datetime
+    class Config:
+        orm_mode = True
+

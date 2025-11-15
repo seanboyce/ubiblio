@@ -754,7 +754,7 @@ async def exportcsv(request: Request, user: schemas.User = Depends(get_current_u
            return "Only an admin can export the database." 
 
            
-@app.get("/backups", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.get("/backups", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def backups(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -881,7 +881,7 @@ async def restoreFiles(filename, request: Request, user: schemas.User = Depends(
 # Library Configuration
 # --------------------------------------------------------------------------            
 
-@app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def config(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -897,7 +897,7 @@ async def config(request: Request, user: schemas.User = Depends(get_current_user
     except:
            return "Only an admin can edit the library configuration."    
    
-@app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def updateConfig(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -980,13 +980,13 @@ async def uploadfile(file: UploadFile, bookId: int, user: schemas.User = Depends
                     #finally, add to db only if all suceeds
                     newImage = schemas.bookImageBase(bookId = bookId, filename = dbpath)
                     crud.addImage(db,newImage)  
-                    db.close()
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
         if not (extension == ".jpg") or (extension =="jpeg"):
-            db.close()
             return "Not a valid jpg image"
     except Exception as e:
         return {"message": e.args}
+    finally:
+        db.close()
 
         
 @app.post("/getImages/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
@@ -1007,17 +1007,17 @@ def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(ge
         if user.isAdmin == True:
             db = SessionLocal()
             bookId,dbpath = crud.deleteImage(db, imageId)
-            db.close()
             jpgPath = os.path.join('./static/bookImages/', str(dbpath) + ".jpg")
             thumbPath = os.path.join('./static/bookImages/', str(dbpath) + "_thumbnail.jpg")
             os.remove(thumbPath)
             os.remove(jpgPath)
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
-        db.close()
         print(e)
         #just return the page if it errors out. This can happen if the file link in the DB is broken. It will remove the DB entry, then fail to find and delete the file, which is not a disaster.
         return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND)
+    finally:
+        db.close()
 
 # --------------------------------------------------------------------------
 # E-book handling
@@ -1038,7 +1038,6 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
         if user.isAdmin == True:
             db = SessionLocal()
             bookId,dbpath = crud.deleteEbook(db, ebookId)
-            db.close()
             ebookPath = os.path.join('./static/eBooks/', str(dbpath))
             try:
                 os.remove(ebookPath)
@@ -1046,9 +1045,10 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
                 print("Tried to delete an ebook file that doesn't exist, removing DB entry")
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
-        db.close()
         print(e)
         return "An error has occured."
+    finally:
+        db.close()
 
 @app.post("/uploadEbook/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def uploadEbook(file: UploadFile, request: Request, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
@@ -1069,10 +1069,11 @@ async def uploadEbook(file: UploadFile, request: Request, bookId: int, user: sch
                 #finally, add to db only if all suceeds
                 newEbook = schemas.ebookBase(bookId = bookId, filename = dbpath)
                 crud.addEbook(db,newEbook)  
-            db.close()
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
         return {"message": e.args}
+    finally:
+        db.close()
 
 # --------------------------------------------------------------------------
 # Wishlist (of books)
@@ -1092,6 +1093,152 @@ async def wishlist(request: Request, user: schemas.User = Depends(get_current_us
         return templates.TemplateResponse("wishlist.html", context)
     if not user:
         return "You are not logged in. Login to view books."
+
+# --------------------------------------------------------------------------
+# New User Creation and Management
+# --------------------------------------------------------------------------
+
+@app.get("/userManagement", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userManagement(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            context = {
+            "user": user,
+        "request": request
+    }
+            return templates.TemplateResponse("userManagement.html", context)
+    except:
+           return "Only an admin can manage users."  
+
+@app.get("/promote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userPromote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.promoteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+#    except:
+#           return "Only an admin can manage users."
+@app.get("/demote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userDemote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.demoteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+    except:
+           return "Only an admin can manage users."
+
+@app.get("/deleteUser/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userDelete(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.deleteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+    except:
+           return "Only an admin can manage users."
+           
+@app.get("/userManagement", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userManagement(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            context = {
+            "user": user,
+        "request": request
+    }
+            return templates.TemplateResponse("userManagement.html", context)
+    except:
+           return "Only an admin can manage users."
+
+           
+@app.post("/searchUsers", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
+def searchUsers(request: Request, user: schemas.User = Depends(get_current_user_from_token), username: str = "%"):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            users = jsonable_encoder(crud.searchUsers(db, str(username)))
+            users = json.dumps(users)
+            return users
+        else:
+            return "Only an admin can manage users."  
+    except Exception as e:
+        return "Only an admin can manage users."  
+    finally:
+        db.close()
+
+@app.get("/newUserCode", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def newUserGet(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            valid_uuid = crud.newUserLink(db)
+            context = {
+        "valid_uuid": valid_uuid,
+        "request": request,
+        "user": user
+    }
+        return templates.TemplateResponse("userLink.html", context)
+    except:
+           return "Only an admin can add users."  
+    finally:
+        db.close()
+  
+#Note: Public endpoint below! Heavy rate limiting in place.   
+@app.get("/auth/create/{accessCode}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def newUserPost(request: Request, accessCode: str):
+    try:
+        db = SessionLocal()
+        if crud.codeValidate(db, accessCode) == True:
+            context = {
+        "accessCode": accessCode,
+        "request": request
+    }
+            return templates.TemplateResponse("createUser.html", context)
+        else:
+            return "Your access code is invalid or expired." 
+    except:
+           return "An error has occurred." 
+    finally:
+           db.close()
+
+@app.post("/auth/create/", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def createUserWithCode(request: Request):
+    #Add new user from form data
+    form = newUserForm(request)
+    await form.load_data()
+    if await form.is_valid():
+        db = SessionLocal()
+        user = schemas.UserCreate(
+               username=form.username, password=form.password, isAdmin=False
+               )
+        success = crud.createWithCode(db, user, form.accessCode)
+        if success == True:
+            #A bit wrong to use an error message for this, but I'm not going to create a separate notification style just for this.
+            errors = ["Account created successfully! Please log in with your new account."]
+            context = {
+            "user": user,
+            "request": request,
+            "errors":errors
+            }
+            return templates.TemplateResponse("login.html", context)
+        else: 
+            return "Error creating your account."
+    else:
+        return "The form you submitted is not valid. Try your access link again, or contact the library admin."
+
 
 
 # --------------------------------------------------------------------------
@@ -1125,6 +1272,31 @@ class LoginForm:
             self.errors.append("Please enter your username")
         if not self.password or not len(self.password) >= 3:
             self.errors.append("A valid password is required")
+        if not self.errors:
+            return True
+        return False
+
+class newUserForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.errors: List = []
+        self.username: Optional[str] = None
+        self.password: Optional[str] = None
+        self.accessCode: Optional[str] = None
+
+    async def load_data(self):
+        form = await self.request.form()
+        self.username = form.get("username")
+        self.password = form.get("password")
+        self.accessCode = form.get("accessCode")
+
+    async def is_valid(self):
+        if not self.username:
+            self.errors.append("Please enter your username")
+        if not self.password or not len(self.password) >= 3:
+            self.errors.append("A valid password over 3 characters is required")
+        if not self.accessCode:
+            self.errors.append("Something went wrong with your access link. Reload this page, or contact your library admin.")
         if not self.errors:
             return True
         return False

@@ -3,12 +3,12 @@ from sqlalchemy import or_
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from . import models, schemas
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3
 import csv
 from .vars import *
 from os import remove, path
-
+import uuid
 
 
 def get_user(db: Session, user_id: int):
@@ -431,4 +431,92 @@ def getEbookFiles(db: Session, bookId: int):
    except Exception as e:
         print(e)
         return        
+
+def newUserLink(db: Session):
+    try:
+        unique_id = str(uuid.uuid4())
+        newUserLink = models.link(accessCode=unique_id)
+        db.add(newUserLink)
+        db.commit()
+        db.refresh(newUserLink)
+        return unique_id
+    except: return False        
+    
+def codeValidate(db: Session, accessCode: str):
+    try:
+        exists = db.query(models.link).filter(models.link.accessCode == accessCode).first()
+        #timestamp depends on the DB, which ought to be UTC. It must be at most 3 days old.
+        lastValid = datetime.utcnow() - timedelta(days = 3)
+        if (exists is not None) and (exists.validity >= lastValid):
+            #Link exists and is valid
+            return True
+        elif (exists is not None) and (exists.validity < lastValid):
+            #Link exists, but is not valid
+            db.delete(exists)
+            db.commit()
+            return False
+        else:
+            return False           
+    except Exception as e: 
+        print(e)
+        return False 
         
+def createWithCode(db: Session, user: schemas.UserCreate, accessCode: str):
+    try:
+        exists = db.query(models.link).filter(models.link.accessCode == accessCode).first()
+        #timestamp depends on the DB, which ought to be UTC. It must be at most 3 days old.
+        lastValid = datetime.utcnow() - timedelta(days = 3)
+        if (exists is not None) and (exists.validity >= lastValid):
+            #Link exists and is valid, void the link and create the user
+            db.delete(exists)
+            db.commit()
+            passhash = crypto.hash(str(user.password))
+            db_user = models.User(username=user.username, passhash=passhash, isAdmin = user.isAdmin)
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            return True
+        elif (exists is not None) and (exists.validity < lastValid):
+            #Link exists, but is not valid, delete the 
+            db.delete(exists)
+            db.commit()
+            return False
+        else:
+            return False           
+    except Exception as e: 
+        return False 
+        
+def searchUsers(db: Session, name: str):
+    try:
+        return db.query(models.User).filter(models.User.username.icontains(name)).all()
+    except:
+        return False
+
+def promoteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        user.isAdmin = True
+        db.merge(user)
+        db.commit()
+        return True
+    except:
+        return False
+def demoteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        user.isAdmin = False
+        db.merge(user)
+        db.commit()
+        return True
+    except:
+        return False
+
+def deleteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        db.delete(user)
+        db.commit()
+        return True
+    except:
+        return False  
+    

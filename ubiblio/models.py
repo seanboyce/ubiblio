@@ -62,3 +62,9 @@ class emails(Base):
     email = Column(String, nullable=True)
     user_id = Column(Integer)
     
+class link(Base):
+    __tablename__ = "links"
+    id = Column(Integer, primary_key=True)
+    accessCode = Column(String, index=True)
+    validity = Column(DateTime(timezone=True), server_default=func.now())
+    
