@@ -1112,7 +1112,7 @@ async def userManagement(request: Request, user: schemas.User = Depends(get_curr
 
 @app.get("/promote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def userPromote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
+    try:
         if user.isAdmin == True:
             db = SessionLocal()
             crud.promoteUser(db, userId)
@@ -1121,8 +1121,8 @@ async def userPromote(request: Request, userId: int, user: schemas.User = Depend
         "request": request
     }
             return RedirectResponse(url='/userManagement')
-#    except:
-#           return "Only an admin can manage users."
+    except:
+           return "Only an admin can manage users."
 @app.get("/demote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def userDemote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
     try:

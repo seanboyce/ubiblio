@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block main %}
 
 <!-- Banner -->
@@ -86,11 +86,11 @@ if (itemdata.length === 0){
         $("#tablebody").append('<tr><td>' + "Aucune résultat" + '</td><td></td><td></td></tr>');
     }
 if (pagination > 0){
-$("#pagination").append("<button onclick='previous();'>Previous</button>");
+$("#pagination").append("<button onclick='previous();'>Précédente</button>");
 }
 
 if(itemdata.length > 49){
-$("#pagination").append("<button onclick='next();'>Next</button>");
+$("#pagination").append("<button onclick='next();'>Suivante</button>");
 }
 
 });}
