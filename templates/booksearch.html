@@ -30,7 +30,7 @@
 <br><br>		
 		{% endif %}
 		
-<h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
+<h2 id="result_count" style="margin-top:25px; margin-bottom:15px;">Search Results</h2>
 
 <div class="container">  
   <table>
@@ -78,9 +78,12 @@ if (searchTitle !== true){
     var searchEndpoint = "/searchbooks?title="+searchTerm+"&author="+searchTerm+"&skip="+skip+"&onlyEbooks="+onlyEbooks+"&noEbooks="+noEbooks;
 }
 $.post(searchEndpoint,function(data, status){
-    itemdata = jQuery.parseJSON(data);
+    result = jQuery.parseJSON(data);
     $("#tablebody").empty();
     $("#pagination").empty();
+	var count = result.count;
+	document.getElementById("result_count").textContent="Search Results (" + count + ")";
+	var itemdata = jQuery.parseJSON(result.result);
     itemdata.forEach(function(item) {
     $("#tablebody").append('<tr><td><a style = "border:none;text-decoration: underline;" href="/bookDetails/'+item.id+'">'+item.title+"</a></td><td>"+item.author+"</td><td>"+item.shelf+'</td></tr>');
 });

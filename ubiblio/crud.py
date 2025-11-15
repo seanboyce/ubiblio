@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.sql import func
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from . import models, schemas
 from pydantic import BaseModel
@@ -88,43 +89,78 @@ def updateBook(db: Session, book: schemas.Book):
         return False
         
 def getBooks(db: Session, skip: int = 0, limit: int = 50):
-    return db.query(models.Book).offset(skip).limit(limit).all()
+    result = db.query(models.Book).offset(skip).limit(limit).all()
+    resultCount = db.query(models.Book).with_entities(func.count()).scalar()
+    return result, resultCount
+  
+  
+  
     
 def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).limit(limit).offset(skip).all()
+        return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
-         return db.query(models.Book).filter(
+         resultCount = db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).with_entities(func.count()).scalar()
+         result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).limit(limit).offset(skip).all()
+         return result, resultCount
     else:
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+        return result, resultCount
 
 def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+        return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
-        return db.query(models.Book).filter(
+        result = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
+        return result, resultCount
     else:
-        return db.query(models.Book).filter(
-    models.Book.author.icontains(author) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
+        result = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        return result, resultCount
 
 def searchBooksbyTitle(db: Session, title, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
+        return result, resultCount    
     elif (onlyEbooks==False) and (noEbooks==True):
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)) .limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
+        return result, resultCount
     else:
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True)) .limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True)).limit(limit).offset(skip).all()    
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        return result, resultCount
 
 def browseBooksByGenre(db: Session, genre):
     return db.query(models.Book).filter(models.Book.genre == genre)
@@ -244,6 +280,7 @@ def wipeAndRestore(filename):
     cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'links';")
     cursor.close()
     conn.commit()
     f = open(filename,'r')

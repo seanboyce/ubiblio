@@ -304,14 +304,9 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
             db = SessionLocal()
             newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
-            books = crud.getBooks(db)
             db.close()
-            context = {
-        "books": books,
-        "user": user,
-        "request": request,
-    }
-            return templates.TemplateResponse("booksearch.html", context)
+            return RedirectResponse(url='/searchbooks/', 
+        status_code=status.HTTP_302_FOUND)
         except Exception as e:
             print(e)
             return "Fail"
@@ -322,14 +317,8 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
     if user.isAdmin == True:
         db = SessionLocal()
         crud.deleteBook(db,bookId)
-        books = crud.getBooks(db)
         db.close()
-        context = {
-        "books": books,
-        "user": user,
-        "request": request
-        }
-        return templates.TemplateResponse("booksearch.html", context)
+        return RedirectResponse(url='/searchbooks/')
     if not user.isAdmin == True:
         return "You are not authorized to delete books. Only an admin can do this."
 
@@ -442,10 +431,14 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
 def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%",onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        books = crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
+        #This is really ugly -- did I really need to deal with it this way?
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
         db.close()
         return e
@@ -454,9 +447,13 @@ def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        db.close()
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
         db.close()
         return "An error has occured."
@@ -466,9 +463,13 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        db.close()
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
         db.close()
         return "An error has occured."
@@ -538,7 +539,6 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
             db = SessionLocal()
             newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
-            books = crud.getBooks(db)
             db.close()
             context = {
             "user": user,
@@ -699,7 +699,7 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
 #This is the function for DB updates except in the very first version of the uBiblio.
 @app.get("/updateDBVersion", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
+    try:
         if user.isAdmin == True:
             dbVersion = crud.getVersion()
             conn = sqlite3.connect(DB_LOCATION)
@@ -713,8 +713,8 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
             crud.updateDBVersion(db, dbVersion)
             db.close()
         return RedirectResponse(url='/searchbooks')
-#    except:
-#           return "Only an admin can export the database." 
+    except:
+           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
