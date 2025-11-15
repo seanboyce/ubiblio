@@ -31,8 +31,7 @@
   </div>
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-
+<script src="{{ url_for('static', path='assets/js/quagga.min.js') }}"></script>
 <script>
 function saveCamera() {		
         document.cookie = "cameraIndex=" + (cameraSelect.selectedIndex - 1); //index is off-by-one so we correct here.
