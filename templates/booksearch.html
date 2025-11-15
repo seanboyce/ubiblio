@@ -26,7 +26,10 @@
 		{% if user.isAdmin %}
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add</button></a>
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/scan_isbn"><button style="margin-bottom:25px;">Scan</button></a>
-{% endif %}
+{% else %}
+<br><br>		
+		{% endif %}
+		
 <h2 style="margin-top:25px; margin-bottom:15px;">Book List</h2>
 
 <div class="container">  
