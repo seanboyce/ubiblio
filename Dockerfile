@@ -11,11 +11,13 @@ RUN mkdir /app
 
 WORKDIR /app
 
-COPY . .
+COPY ./requirements.txt ./
 
 RUN \
   cd /app && \
   pip install -r requirements.txt --break-system-packages
+
+COPY . .
 
 RUN chmod +x entrypoint.sh
 
