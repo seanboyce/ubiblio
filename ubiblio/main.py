@@ -1254,7 +1254,7 @@ async def verifyKey(request: Request):
            return #return empty if not defined for some reason.
 
 @app.post("/signsearch", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-async def signsearch(body: bytes = Depends(get_body)):
+async def signsearch(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
     try:
         data = {}
         body = json.loads(body) # make sure it's JSON
