@@ -6,25 +6,22 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 
 # Main Features:
 
-1. Add, remove, update books
-2. Search books and see their location (useful if stored in bins, because you don't have space for tons of bookshelves)
+1. Add, remove, update and search books. Physical and ebook management.
+2. User management! Admins can invite new users via one-time-use link.
 3. Autopopulate a book's fields by entering an ISBN, either manually or with your device's camera!
-4. Reading list management for each user
-5. Book wishlist (just set owned=False, then update to True when you buy it)
-6. Withdraw and return books. Display a list of withdrawn books (to help put them away or figure out who has them).
-7. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
-8. Content discovery (browse by genre).
-9. Works on most phones and ebook readers.
-10. Really quite fast, low memory requirements for hosting (~100MB). 
-11. No distractions -- it does what it needs to do and nothing else (by default).
-12. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
-13. Backup management, for both the database and files! 
-14. Ebook support, with the ability to store ebook files and download from your reader (as long as it has a web browser)
-15. You can search for only ebooks or only physical books (e.g. when browsing a physical library vs. from an e-reader)
-16. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
-17. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
-18. It even runs on RISCV64 with memory to spare (check out the cursed branch)!
-19. Aussi disponible en français! Démarrez ubiblio avec LANGUAGE='FR'
+4. Reading list management for each user, and a wishlist for the library (set owned=False)
+5. Withdraw and return books. Display a list of withdrawn books (to help put them away or figure out who has them).
+6. Admin users can access all features. Non-admin can only search, manage their reading list, and withdraw/return books.
+7. Content discovery (browse by genre).
+8. Works on most phones and ebook readers.
+9. Really quite fast, low memory requirements for hosting (~100MB). 
+10. No distractions -- it does what it needs to do and nothing else (by default).
+11. Docker, Docker Hub image, and no-container install options. A big thanks to m0ngr31 for helping with this!
+12. Backup management, for both the database and files! 
+13. Optional support for cover / book images (up to 16 for each book), with thumbnail support. You can now judge books by their cover (but only if you want to)!
+14. A luxurious TWO optional custom fields, in case your library is structured differently than mine. Set them up in the admin menu.
+15. It even runs on RISCV64 with memory to spare (check out the cursed branch)!
+16. Aussi disponible en français! Démarrez ubiblio avec LANGUAGE='FR'
 
 # Setup
 
@@ -32,9 +29,7 @@ You don't have to connect it to the Internet. It can run on your LAN. Or even on
 
 
 # Possible future features (in no particular order):
-1. Modify content discovery via 'browse by genre' to be more practical for high numbers of books.
-2. Search by a specific location would be nice -- can be another interface.
-3. Limited UI customization -- what fields are displayed on the search results interface. This can easily break mobile compatibility though, but not everyone is using this on their phone, so being able to take advantage of that extra space is fine.
+![Roadmap has moved to it's own file to keep things organized](https://github.com/seanboyce/ubiblio/blob/main/ROADMAP.md)
 
 
 # HTML Theme

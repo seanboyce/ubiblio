@@ -125,3 +125,12 @@ class link(linkBase):
     class Config:
         orm_mode = True
 
+class vkeyBase(BaseModel):
+    vkey: str
+    url: str
+    
+class vkey(vkeyBase):
+    id: int  
+    class Config:
+        orm_mode = True
+

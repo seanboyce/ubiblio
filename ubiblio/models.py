@@ -68,3 +68,10 @@ class link(Base):
     accessCode = Column(String, index=True)
     validity = Column(DateTime(timezone=True), server_default=func.now())
     
+class vkey(Base):
+    __tablename__ = "vkeys"
+    id = Column(Integer, primary_key=True)
+    vkey = Column(String, index=True)
+    url = Column(String, index=True)
+    
+    

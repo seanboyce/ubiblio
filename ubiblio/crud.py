@@ -556,4 +556,56 @@ def deleteUser(db: Session, userId: int):
         return True
     except:
         return False  
-    
+        
+def haveKey(db: Session, key: str):
+    try:
+        result = db.query(models.vkey).filter(models.vkey.vkey==key)
+        assert db.query(result.exists()).scalar()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+def deleteVkey(db: Session, keyId: int):
+    try:
+        vkey = db.query(models.vkey).filter(models.vkey.id == keyId).first()
+        db.delete(vkey)
+        db.commit()
+        return True
+    except:
+        return False 
+        
+def addVkey(db: Session, newKey: schemas.vkeyBase):
+    try:
+        vkey = models.vkey(** newKey.dict())
+        db.add(vkey)
+        db.commit()
+        db.refresh(vkey)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+def getAllVkeys (db: Session):
+    try:
+        return db.query(models.vkey).all()
+    except Exception as e:
+        print(e)
+        return
+        
+def getVkeyById(db: Session, keyId: int):
+    try:
+        result = db.query(models.vkey).filter(models.vkey.id==keyId).first()
+        return result
+    except Exception as e:
+        print(e)
+        return False
+        
+def updateVkey(db: Session, newKey: schemas.vkey):
+    try:  
+        oldVkey = db.query(models.vkey).filter(models.vkey.id == newKey.id).first()
+        oldVkey.vkey = newKey.vkey
+        db.merge(oldVkey)  
+        db.commit()
+    except Exception as e:
+        print(e)
+        return False
