@@ -30,7 +30,7 @@
 		<tr>
 			<td>{{ vkey.url }}</td>
 			<td>{{ vkey.vkey[0:12] }}...</td>
-			<td><a href="/deleteVkey/{{ vkey.id }}">Delete</a>&nbsp;&nbsp;&nbsp;<a href="/refreshVkey/{{ vkey.id }}">Refresh</a></td>
+			<td><a href="/deleteVkey/{{ vkey.id }}">Delete</a>&nbsp;&nbsp;&nbsp;<a href="#" onclick="getPubkey('{{ vkey.url }}','{{ vkey.id }}');">Refresh</a></td>
 		</tr>
 {% endfor %}
 {% else %}
@@ -47,6 +47,36 @@
 </div>
 		
 </section>
+
+<script>
+async function getPubkey(vkeyURL, vkeyId)
+{
+	vkeyURLget = vkeyURL + "vkey";
+    var xhr = new XMLHttpRequest();
+    xhr.open( "GET", vkeyURLget, true );
+	xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        submitVkey(xhr.responseText, vkeyId);
+		
+    }
+};	
+    xhr.send( null );
+}
+	
+function submitVkey(newVkey, vkeyId){	
+var xhr = new XMLHttpRequest()
+var data = JSON.stringify({"id": vkeyId, "vkey": newVkey});	
+xhr.open("POST", "/refreshVkey", false);
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		window.location.href = "/manageVkeys";
+};		
+}
+xhr.send(data);
+}	
+
+
+</script>
 
 
 

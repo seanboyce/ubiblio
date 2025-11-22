@@ -90,10 +90,12 @@ Note that this example above does not enable SSL. It will accept all incoming co
 
 ## Launching with Gunicorn and SSL / HTTPS
 
-gunicorn will launch multiple instances of uvicorn as needed to support even more concurrent users. You need to add the paths to your cert files and choose a port. Certs from letsencrypt are just fine :)
+gunicorn will launch multiple instances of uvicorn as needed to support even more concurrent users. You need to add the paths to your cert files and choose a port. Certs from letsencrypt are just fine!
+
+NEW: uBiblio can also use more than one worker. An example is below.
 
 ```bash
-python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker --certfile= --keyfile=
+python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker -t 2 -w 4 --certfile= --keyfile=
 ```
 
 # Password Recovery

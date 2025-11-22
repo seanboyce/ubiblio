@@ -9,6 +9,7 @@ from fastapi.security import OAuth2, OAuth2PasswordRequestForm
 from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from pydantic import BaseModel
@@ -63,6 +64,16 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 favicon_path = 'favicon.ico'
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=['POST'],
+    allow_headers=['*']
+)
+
 
 # Connect to local Redis for rate-limiting function -- this is for some DDoS resistance so you don't have to use Cloudflare for every little thing.
 @app.on_event("startup")
@@ -1268,6 +1279,20 @@ async def signsearch(body: bytes = Depends(get_body), user: schemas.User = Depen
         return e
 
 
+@app.get("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def signUserSearch(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        db = SessionLocal()
+        vkeys = crud.getAllVkeys(db)
+        context = {
+            "user": user,
+        "request": request,
+        "vkeys":vkeys
+    }
+        return templates.TemplateResponse("fedsearch.html", context)
+    except:
+           return "FAIL"
+
 # Heavy rate limiting, public endpoint for federated search    
 @app.post("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def fedsearchBooks(body: bytes = Depends(get_body)):
@@ -1285,6 +1310,7 @@ async def fedsearchBooks(body: bytes = Depends(get_body)):
         noEbooks = signedRequest["message"]["noEbooks"]
         skip = signedRequest["message"]["skip"]
         db = SessionLocal()
+        # Todo: this is searching for author OR title, it should be searching author AND title, e.g. if one is blank it returns all results.
         books = crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)) #Federated searches work the same as local searches (title+author). I should consider moving all searches to this JSON format eventually if I can. It would be an easy way to eliminate the need for different search endpoints.
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
@@ -1298,6 +1324,45 @@ async def fedsearchBooks(body: bytes = Depends(get_body)):
         return "This key is not authorized yet"
     finally:
         db.close()
+
+@app.get("/fedBookDetails/{bookId}/{vkeyId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def getFedBookDetails(request: Request, bookId: int, vkeyId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        db = SessionLocal()
+        vkey = crud.getVkeyById(db, vkeyId)
+        context = {
+            "user": user,
+        "request": request,
+        "vkey": vkey,
+        "bookId": bookId
+    }
+        return templates.TemplateResponse("fedBookDetails.html", context)
+    except:
+           return "FAIL"
+           
+# Heavy rate limiting, public endpoint for federated search    
+@app.post("/fedBookDetails/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def fedBooksDetails(body: bytes = Depends(get_body)):
+    try:
+        signedRequest = json.loads(body)
+        db = SessionLocal()
+        assert crud.haveKey(db, signedRequest["vkey"]) # Check that we know this key.
+        sig = bytearray.fromhex(signedRequest["signature"])
+        message = json.dumps(signedRequest["message"])  
+        bytesMessage = bytearray(message, "utf-8")
+        assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage) #Verify that the signature is valid for the key, e.g. was created with the signing key (private key) associated with the verification key (public key).
+        bookId = signedRequest["message"]["bookId"]
+        db = SessionLocal()
+        book = crud.getBookById(db, int(bookId)) #Federated getbook works the same as local
+        db.close()
+        return json.dumps(jsonable_encoder(book))
+    except BadSignatureError: 
+        return "Signature verification failed" # The signature does not match the key.
+    except AssertionError:
+        return "This key is not authorized yet"
+    finally:
+        db.close()
+
         
 @app.get("/manageVkeys", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def managekeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -1335,45 +1400,45 @@ async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(g
     finally:
         db.close()
         
-@app.get("/refreshVkey/{vkey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
-    try:
-        if user.isAdmin == True:
-           db = SessionLocal()
-           vkey = crud.getVkeyById(db, vkey)
-           URL = vkey.url
-           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
-           assert fetch.status_code == 200
-           if len(fetch.text) == 128: #signatures are 128 hex characters long
-               vkey.vkey = str(fetch.text)
-               crud.updateVkey(db, vkey)
-           return RedirectResponse(url='/manageVkeys')
-        else:
-            return "Only an admin can refresh verification keys."  
-    except Exception as e:
-        print(e)
-        return "Only an admin can refresh verification keys."  
-    finally:
-        db.close()
+#@app.get("/refreshVkey/{vkey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+#async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+#        if user.isAdmin == True:
+#           db = SessionLocal()
+#           vkey = crud.getVkeyById(db, vkey)
+#           URL = vkey.url
+#           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
+#           assert fetch.status_code == 200
+#           if len(fetch.text) == 128: #signatures are 128 hex characters long
+#               vkey.vkey = str(fetch.text)
+#               crud.updateVkey(db, vkey)
+#           return RedirectResponse(url='/manageVkeys')
+#        else:
+#            return "Only an admin can refresh verification keys."  
+#    except Exception as e:
+#        print(e)
+#        return "Only an admin can refresh verification keys."  
+#    finally:
+#        db.close()
         
-@app.get("/grabVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
-    try:
-        if user.isAdmin == True:
-           db = SessionLocal()
-           vkey = crud.getVkeyById(db, vkey)
-           URL = vkey.url
-           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
-           assert fetch.status_code == 200
-           if len(fetch.text) == 128: #signatures are 128 hex characters long
-               crud.addVkey(db, str(fetch.text))
-           return RedirectResponse(url='/manageVkeys')
-        else:
-            return "Only an admin can refresh verification keys."  
-    except Exception as e:
-        return "Only an admin can refresh verification keys."  
-    finally:
-        db.close()
+#@app.get("/grabVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+#async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
+#    try:
+#        if user.isAdmin == True:
+#           db = SessionLocal()
+#           vkey = crud.getVkeyById(db, vkey)
+#           URL = vkey.url
+#           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
+#           assert fetch.status_code == 200
+#           if len(fetch.text) == 128: #signatures are 128 hex characters long
+#               crud.addVkey(db, str(fetch.text))
+#           return RedirectResponse(url='/manageVkeys')
+#        else:
+#            return "Only an admin can refresh verification keys."  
+#    except Exception as e:
+#        return "Only an admin can refresh verification keys."  
+#    finally:
+#        db.close()
 
 @app.get("/newVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def managekeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -1392,31 +1457,48 @@ async def managekeys(request: Request, user: schemas.User = Depends(get_current_
 
 
 @app.post("/addVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def addVkey(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def addVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
         return "You are not authorized to add validation keys. Only an admin can do this."
-    form = newVkeyForm(request)
-    await form.load_data()
-    if await form.is_valid():
-        try:
+    body = json.loads(body)
+    try:
+        if body["url"][-1] != "/":
+               body["url"] = body["url"] + "/" # This is just in case the trailing slash is missing somehow
+        if len(body["vkey"]) == 128:
             db = SessionLocal()
-            if form.url[-1] != "/":
-               form.url = form.url + "/" # This is so that the user doesn't have to worry about whether to add the trailing slash or not
-            if len(form.vkey) == 128:
-                newVkey = schemas.vkeyBase(vkey = form.vkey, url=form.url)
-                crud.addVkey(db, newVkey)
-            else:
-                fetch = requests.get((str(form.url)+ "vkey"), timeout=2)
-                assert fetch.status_code == 200
-                if len(fetch.text) == 128: #signatures are 128 hex characters long
-                    newVkey = schemas.vkeyBase(vkey=fetch.text, url=form.url)
-                    crud.addVkey(db, newVkey)
-            db.close()
+            newVkey = schemas.vkeyBase(vkey = body["vkey"], url=body["url"])
+            crud.addVkey(db, newVkey)
             return RedirectResponse(url='/manageVkeys/', 
         status_code=status.HTTP_302_FOUND)
-        except Exception as e:
+        else:
+            return "FAIL"   
+            db.close()
+            
+    except Exception as e:
             print(e)
             return "Fail"
+
+@app.post("/refreshVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to refresh validation keys. Only an admin can do this."
+    body = json.loads(body)
+    try:
+        if len(body["vkey"]) == 128: #signatures are 128 hex characters long
+            db = SessionLocal()
+            vkey = crud.getVkeyById(db, body["id"])
+            vkey.vkey = str(body["vkey"])
+            crud.updateVkey(db, vkey)
+            return RedirectResponse(url='/manageVkeys/', 
+        status_code=status.HTTP_302_FOUND)
+        else:
+            return "FAIL"   
+            db.close()
+            
+    except Exception as e:
+            print(e)
+            return "Fail"
+
 
 # --------------------------------------------------------------------------
 # Login - GET

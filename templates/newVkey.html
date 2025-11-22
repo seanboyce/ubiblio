@@ -1,4 +1,3 @@
-{% set hideNav = True %}
 {% extends "base.html" %}
 
 {% block main %}
@@ -7,15 +6,15 @@
 <section id="two">
 	<div class="inner" style = "padding: 20px 0 1em 0;">
 		<header class="major">
-			<h2>Log In</h2>
+			<h2>Federation Key Management</h2>
 		</header>
 		{% for error in errors %}
 		    <p style="color: red">{{ error }}</p>
 		{% endfor %}
-		<form action="/addVkey" method="post">
+		<form onsubmit="getPubkey();return false;">
 			<p>
 			    <p><label for="">URL</label></p>
-			    <input type="text" name="url" value="" required>
+			    <input id="addFed" type="text" name="url" value="" required>
 			</p>
 			<p>
 			    <p><label for="">Verification Key (pubkey)</label></p>
@@ -25,4 +24,38 @@
 		</form>
 	</div>				
 </section>
+<script>
+async function getPubkey()
+{
+	vkeyURL = $("#addFed").val().replace(/\/?$/, '/') + "vkey";
+	console.log(vkeyURL);
+    var xhr = new XMLHttpRequest();
+    xhr.open( "GET", vkeyURL, true );
+	xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        submitVkey(xhr.responseText);
+		
+    }
+};	
+    xhr.send( null );
+}
+	
+function submitVkey(newvkey){	
+console.log(newvkey);
+var xhr = new XMLHttpRequest()
+var vkeyURL = $("#addFed").val();
+var data = JSON.stringify({"url": vkeyURL, "vkey": newvkey});	
+console.log(data);
+xhr.open("POST", "/addVkey", false);
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		window.location.href = "/manageVkeys";
+};		
+}
+xhr.send(data);
+}	
+
+
+</script>
+
 {% endblock %}

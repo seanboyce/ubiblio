@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+	<!-- Two -->
+<div class="inner" style = "padding: 20px 0 5em 5em;">
+<div style="display:block; clear:both; float:none;">
+<h3><strong><u>Book Details</strong></u></h3>
+<div style="display:block; clear:both; float:none;">
+<div id = "bookdetails" style="width:30%; min-width: 300px; float:left; margin-right:30px;">								
+
+
+                                </div>
+    <div id = "bookdetails2" style="width:30%; min-width: 280px; float:left;">
+
+
+		</div>
+	
+	<div style= "display:block; clear:both;float:none;">
+		
+<hr>
+
+</div>
+
+</div>
+<script>
+async function search(bookId) {
+var data = JSON.stringify({"bookId": bookId});	
+var xhr = new XMLHttpRequest();
+var url = "/signsearch";
+xhr.open("POST", url, true);
+xhr.setRequestHeader("Content-Type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        signedsearch(JSON.parse(xhr.responseText));
+		
+    }
+};	
+xhr.send(data);	
+}
+	
+function signedsearch(mysearch){
+var xhr = new XMLHttpRequest()
+var url = '{{ vkey.url }}' + "fedBookDetails";
+xhr.open("POST", url, true);
+//xhr.setRequestHeader("Content-Type", "application/json");
+//xhr.setRequestHeader("Access-Control-Allow-Origins", "*");
+//xhr.setRequestHeader("Access-Control-Request-Method", "POST");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		displayResults(xhr.responseText);
+};		
+};
+var data = JSON.stringify(mysearch);
+xhr.send(data);
+}
+
+function displayResults(results){
+
+    result = jQuery.parseJSON(results);
+    $("#bookdetails").empty();
+	$("#bookdetails2").empty();
+	$("#bookdetails").append('<p><strong>Title</strong>:'+result["title"]+'</p>');	
+	$("#bookdetails").append('<p><strong>Author</strong>:'+result["author"]+'</p>');
+	$("#bookdetails").append('<p><strong>Summary</strong>:'+result["summary"]+'</p>');
+	$("#bookdetails").append('<p><strong>Genre</strong>:'+result["genre"]+'</p>');
+	$("#bookdetails").append('<p><strong>Library</strong>:'+result["library"]+'</p>');
+	$("#bookdetails").append('<p><strong>Shelf</strong>:'+result["shelf"]+'</p>');
+	$("#bookdetails2").append('<p><strong>Collection</strong>:'+result["collection"]+'</p>');
+	$("#bookdetails2").append('<p><strong>ISBN</strong>:'+result["ISBN"]+'</p>');
+	$("#bookdetails2").append('<p><strong>Notes</strong>:'+result["notes"]+'</p>');
+	$("#bookdetails2").append('<p><strong>Owned</strong>:'+result["owned"]+'</p>');
+	$("#bookdetails2").append('<p><strong>Withdrawn</strong>:'+result["withdrawn"]+'</p>');
+}	
+window.onload = () => search('{{ bookId }}' );
+</script>
+{% endblock %}

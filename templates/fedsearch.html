@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+   <!-- Search Input-->
+
+<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
+  <input type="text" id = "searchboxInput" name="searchboxInput" value="" placeholder="Enter your search here"/>
+<span>Options:&nbsp;&nbsp;<br class="mobileshow"></span>
+	<input type="checkbox" id="ebookSearch" name="ebookSearch" value="ebook">
+  <label for="ebookSearch"> Only Ebooks</label>
+	<input type="checkbox" id="noEbookSearch" name="noEbookSearch" value="noebook">
+  <label for="noEbookSearch"> No Ebooks</label><br>
+  <select style="margin-bottom:10px;" name="URL" id="url-selector">
+{% if vkeys %}
+	  <option value="">Select a library</option>
+	  {% for vkey in vkeys %}
+  <option value='{"url": "{{ vkey.url }}","id": "{{ vkey.id }}"}'>{{ vkey.url }}</option>
+      {% endfor %}
+{% else %}
+	  <option value="">No federated libraries available</option>
+{% endif %}
+	  
+</select>
+  <input style ="float:left;" type="submit" value="Search">										
+</form>
+		{% if user.isAdmin %}
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/add_book"><button style="margin-bottom:25px;">Add</button></a>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/scan_isbn"><button style="margin-bottom:25px;">Scan</button></a>
+{% else %}
+<br><br>		
+		{% endif %}
+		
+<h2 id="result_count" style="margin-top:25px; margin-bottom:15px;">Search Results</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Location</th>
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+
+      <!-- more table rows here -->
+
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+</div>
+		
+</section>
+
+
+<script>
+//Default view is to show first 50 books until user enters something into search
+var pagination=0;
+var itemdata = [];
+//Core search function
+async function search(skip) {
+//reset pagination on new search
+if (skip<1){pagination=0;}
+searchTerm = $("#searchboxInput").val();
+var onlyEbooks = document.getElementById("ebookSearch").checked; 
+var noEbooks = document.getElementById("noEbookSearch").checked; 
+if(searchTerm === undefined){searchTerm=""}
+
+var data = JSON.stringify({"title": searchTerm, "author": searchTerm,"onlyEbooks": onlyEbooks, "noEbooks": noEbooks,"skip": 0});	
+var xhr = new XMLHttpRequest();
+var url = "/signsearch";
+xhr.open("POST", url, true);
+xhr.setRequestHeader("Content-Type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        signedsearch(JSON.parse(xhr.responseText));
+		
+    }
+};	
+xhr.send(data);	
+}
+	
+function signedsearch(mysearch){
+var xhr = new XMLHttpRequest();
+var url = JSON.parse(document.querySelector('#url-selector').value)["url"] + "fedsearch";
+xhr.open("POST", url, true);
+//xhr.setRequestHeader("Content-Type", "application/json");
+//xhr.setRequestHeader("Access-Control-Allow-Origins", "*");
+//xhr.setRequestHeader("Access-Control-Request-Method", "POST");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		displayResults(xhr.responseText);
+};		
+}
+var data = JSON.stringify(mysearch);
+xhr.send(data);
+}
+
+function displayResults(results){
+
+    result = jQuery.parseJSON(results);
+    $("#tablebody").empty();
+    $("#pagination").empty();
+	var count = result.count;
+	document.getElementById("result_count").textContent="Results (" + count + ")";
+	var itemdata = jQuery.parseJSON(result.result);
+	console.log(document.querySelector('#url-selector').value);
+	var desturl = JSON.parse(document.querySelector('#url-selector').value)["id"];
+    itemdata.forEach(function(item) {
+    $("#tablebody").append('<tr><td><a style = "border:none;text-decoration: underline;" href="/fedBookDetails/'+item.id+'/'+desturl+'">'+item.title+"</a></td><td>"+item.author+"</td><td>"+item.shelf+'</td></tr>');
+});	
+}	
+
+
+//handle pagination
+function next() {
+pagination=pagination+50;
+search(pagination)
+}
+
+function previous() {
+pagination=pagination-50;
+search(pagination)
+}
+
+</script>
+{% endblock %}
