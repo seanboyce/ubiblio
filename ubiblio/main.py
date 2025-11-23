@@ -1231,27 +1231,47 @@ async def newUserPost(request: Request, accessCode: str):
 @app.post("/auth/create/", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def createUserWithCode(request: Request):
     #Add new user from form data
-    form = newUserForm(request)
-    await form.load_data()
-    if await form.is_valid():
-        db = SessionLocal()
-        user = schemas.UserCreate(
-               username=form.username, password=form.password, isAdmin=False
+    try:
+        form = newUserForm(request)
+        await form.load_data()
+        if await form.is_valid():
+            db = SessionLocal()
+            assert crud.get_user_by_username(db, form.username) == None
+            user = schemas.UserCreate(
+                   username=form.username, password=form.password, isAdmin=False
                )
-        success = crud.createWithCode(db, user, form.accessCode)
-        if success == True:
-            #A bit wrong to use an error message for this, but I'm not going to create a separate notification style just for this.
-            errors = ["Account created successfully! Please log in with your new account."]
-            context = {
+            success = crud.createWithCode(db, user, form.accessCode)
+            if success == True:
+                #A bit wrong to use an error message for this, but I'm not going to create a separate notification style just for this.
+                errors = ["Account created successfully! Please log in with your new account."]
+                context = {
             "user": user,
             "request": request,
             "errors":errors
             }
-            return templates.TemplateResponse("login.html", context)
-        else: 
-            return "Error creating your account."
-    else:
-        return "The form you submitted is not valid. Try your access link again, or contact the library admin."
+                return templates.TemplateResponse("login.html", context)
+            else: 
+                raise Exception("Failed to create account.") 
+        else:
+            return "The form you submitted is not valid. Try your access link again, or contact the library admin."
+    except AssertionError:
+        errors = ["Username already exists, please choose another."]
+        context = {
+            "accessCode": form.accessCode,
+            "request": request,
+            "errors":errors
+            }    
+        return templates.TemplateResponse("createUser.html", context)
+    
+    except Exception as e:
+        errors = [e]
+        context = {
+            "accessCode": form.accessCode,
+            "request": request,
+            "errors":errors
+            }    
+        return templates.TemplateResponse("createUser.html", context)
+            
         
 # --------------------------------------------------------------------------
 # Federation
@@ -1400,45 +1420,6 @@ async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(g
     finally:
         db.close()
         
-#@app.get("/refreshVkey/{vkey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-#async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
-#        if user.isAdmin == True:
-#           db = SessionLocal()
-#           vkey = crud.getVkeyById(db, vkey)
-#           URL = vkey.url
-#           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
-#           assert fetch.status_code == 200
-#           if len(fetch.text) == 128: #signatures are 128 hex characters long
-#               vkey.vkey = str(fetch.text)
-#               crud.updateVkey(db, vkey)
-#           return RedirectResponse(url='/manageVkeys')
-#        else:
-#            return "Only an admin can refresh verification keys."  
-#    except Exception as e:
-#        print(e)
-#        return "Only an admin can refresh verification keys."  
-#    finally:
-#        db.close()
-        
-#@app.get("/grabVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-#async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
-#        if user.isAdmin == True:
-#           db = SessionLocal()
-#           vkey = crud.getVkeyById(db, vkey)
-#           URL = vkey.url
-#           fetch = requests.get(str(URL)+ "vkey") # Note that this will fail if uBiblio has only one worker! Launch with gunicorn with more than one worker set!
-#           assert fetch.status_code == 200
-#           if len(fetch.text) == 128: #signatures are 128 hex characters long
-#               crud.addVkey(db, str(fetch.text))
-#           return RedirectResponse(url='/manageVkeys')
-#        else:
-#            return "Only an admin can refresh verification keys."  
-#    except Exception as e:
-#        return "Only an admin can refresh verification keys."  
-#    finally:
-#        db.close()
 
 @app.get("/newVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def managekeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):

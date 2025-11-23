@@ -17,7 +17,6 @@
 </form>
 <a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/newUserCode"><button style="margin-bottom:25px;">Add New User</button></a>
 <h2 style="margin-top:25px; margin-bottom:15px;">User List</h2>
-
 <div class="container">  
   <table>
     <thead class="visible@l">
@@ -58,7 +57,7 @@ $.post(searchEndpoint,function(data, status){
     $("#tablebody").empty();
     $("#pagination").empty();
     itemdata.forEach(function(item) {
-    $("#tablebody").append('<tr><td>'+item.username+'</td><td>'+item.isAdmin+'</td><td><a href= /promote/'+item.id+'>Set to Admin</a>&nbsp;&nbsp;<a href=/demote/'+item.id+'>Set to User</a>&nbsp;&nbsp;<a href=/deleteUser/'+item.id+'>Delete</a></td></tr>');
+    $("#tablebody").append('<tr><td>'+item.username+'</td><td>'+item.isAdmin+'</td><td><a href= /promote/'+item.id+'>Set to Admin</a>&nbsp;&nbsp;<a href=/demote/'+item.id+'>Set to User</a>&nbsp;&nbsp;<a href="/deleteUser/'+item.id+'" onclick="return confirm(&#39;Are you sure?&#39;);">Delete</a></td></tr>');
 });
 
 if (itemdata.length === 0){

@@ -13,15 +13,18 @@
 		{% endfor %}
 		<form onsubmit="getPubkey();return false;">
 			<p>
-			    <p><label for="">URL</label></p>
+			    <p><label for="">URL -- Required</label></p>
 			    <input id="addFed" type="text" name="url" value="" required>
 			</p>
 			<p>
-			    <p><label for="">Verification Key (pubkey)</label></p>
+			    <p><label for="">Verification Key (Optional)</label></p>
 			    <input type="text" name="vkey" value="">
 			</p>
 			<input type="submit" value="Submit">
 		</form>
+<p>Instructions: You only need to enter the URL of their library. uBiblio will try and automatically fetch their verification key (it's just a public key). uBiblio will skip this step if you specify a key yourself.</p>
+
+<p>Note: Adding another library's key will let them search and view your books. They must add your key to <i>their</i> library for your users to be able to search their library. Before they complete that step, their library will show up in the Advanced Search options, but searches won't work.</p>
 	</div>				
 </section>
 <script>

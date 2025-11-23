@@ -30,7 +30,7 @@
 		<tr>
 			<td>{{ vkey.url }}</td>
 			<td>{{ vkey.vkey[0:12] }}...</td>
-			<td><a href="/deleteVkey/{{ vkey.id }}">Delete</a>&nbsp;&nbsp;&nbsp;<a href="#" onclick="getPubkey('{{ vkey.url }}','{{ vkey.id }}');">Refresh</a></td>
+			<td><a href="/deleteVkey/{{ vkey.id }}" onclick="if (!confirm('Are you sure?')) return false;">Delete</a>&nbsp;&nbsp;&nbsp;<a href="#" onclick="getPubkey('{{ vkey.url }}','{{ vkey.id }}');">Refresh</a></td>
 		</tr>
 {% endfor %}
 {% else %}
@@ -42,6 +42,7 @@
   </table>
   <div id="pagination">
   </div>
+	<p> This feature lets users of other uBiblio libraries search and view your books. They cannot withdraw, modify, or delete content on your library.</p>
 </div>
 
 </div>
