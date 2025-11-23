@@ -33,7 +33,6 @@ import uuid
 import shutil
 from ecdsa import SigningKey, VerifyingKey, SECP256k1, BadSignatureError
 from hashlib import sha256
-import requests
  
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
