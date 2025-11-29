@@ -281,6 +281,7 @@ def wipeAndRestore(filename):
     cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'links';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'vkeys';")
     cursor.close()
     conn.commit()
     f = open(filename,'r')
