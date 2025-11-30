@@ -1,14 +1,15 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.sql import func
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from . import models, schemas
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timedelta
 import sqlite3
 import csv
 from .vars import *
 from os import remove, path
-
+import uuid
 
 
 def get_user(db: Session, user_id: int):
@@ -88,43 +89,78 @@ def updateBook(db: Session, book: schemas.Book):
         return False
         
 def getBooks(db: Session, skip: int = 0, limit: int = 50):
-    return db.query(models.Book).offset(skip).limit(limit).all()
+    result = db.query(models.Book).offset(skip).limit(limit).all()
+    resultCount = db.query(models.Book).with_entities(func.count()).scalar()
+    return result, resultCount
+  
+  
+  
     
 def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).limit(limit).offset(skip).all()
+        return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
-         return db.query(models.Book).filter(
+         resultCount = db.query(models.Book).filter(
+    (or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).with_entities(func.count()).scalar()
+         result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).limit(limit).offset(skip).all()
+         return result, resultCount
     else:
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    or_(models.Book.title.icontains(title),
+    models.Book.author.icontains(author)) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     or_(models.Book.title.icontains(title),
     models.Book.author.icontains(author)) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+        return result, resultCount
 
 def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
+        result = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+        return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
-        return db.query(models.Book).filter(
+        result = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
+        return result, resultCount
     else:
-        return db.query(models.Book).filter(
-    models.Book.author.icontains(author) & (models.Book.owned==True)) .limit(limit).offset(skip).all()
+        result = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.author.icontains(author) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        return result, resultCount
 
 def searchBooksbyTitle(db: Session, title, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
+        return result, resultCount    
     elif (onlyEbooks==False) and (noEbooks==True):
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)) .limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
+        return result, resultCount
     else:
-        return db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True)) .limit(limit).offset(skip).all()    
+        result = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True)).limit(limit).offset(skip).all()    
+        resultCount = db.query(models.Book).filter(
+    models.Book.title.icontains(title) & (models.Book.owned==True)).with_entities(func.count()).scalar()
+        return result, resultCount
 
 def browseBooksByGenre(db: Session, genre):
     return db.query(models.Book).filter(models.Book.genre == genre)
@@ -244,6 +280,8 @@ def wipeAndRestore(filename):
     cursor = conn.execute("DROP TABLE IF EXISTS 'users';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'bookImages';")
     cursor = conn.execute("DROP TABLE IF EXISTS 'config';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'links';")
+    cursor = conn.execute("DROP TABLE IF EXISTS 'vkeys';")
     cursor.close()
     conn.commit()
     f = open(filename,'r')
@@ -431,4 +469,144 @@ def getEbookFiles(db: Session, bookId: int):
    except Exception as e:
         print(e)
         return        
+
+def newUserLink(db: Session):
+    try:
+        unique_id = str(uuid.uuid4())
+        newUserLink = models.link(accessCode=unique_id)
+        db.add(newUserLink)
+        db.commit()
+        db.refresh(newUserLink)
+        return unique_id
+    except: return False        
+    
+def codeValidate(db: Session, accessCode: str):
+    try:
+        exists = db.query(models.link).filter(models.link.accessCode == accessCode).first()
+        #timestamp depends on the DB, which ought to be UTC. It must be at most 3 days old.
+        lastValid = datetime.utcnow() - timedelta(days = 3)
+        if (exists is not None) and (exists.validity >= lastValid):
+            #Link exists and is valid
+            return True
+        elif (exists is not None) and (exists.validity < lastValid):
+            #Link exists, but is not valid
+            db.delete(exists)
+            db.commit()
+            return False
+        else:
+            return False           
+    except Exception as e: 
+        print(e)
+        return False 
         
+def createWithCode(db: Session, user: schemas.UserCreate, accessCode: str):
+    try:
+        exists = db.query(models.link).filter(models.link.accessCode == accessCode).first()
+        #timestamp depends on the DB, which ought to be UTC. It must be at most 3 days old.
+        lastValid = datetime.utcnow() - timedelta(days = 3)
+        if (exists is not None) and (exists.validity >= lastValid):
+            #Link exists and is valid, void the link and create the user
+            db.delete(exists)
+            db.commit()
+            passhash = crypto.hash(str(user.password))
+            db_user = models.User(username=user.username, passhash=passhash, isAdmin = user.isAdmin)
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
+            return True
+        elif (exists is not None) and (exists.validity < lastValid):
+            #Link exists, but is not valid, delete the 
+            db.delete(exists)
+            db.commit()
+            return False
+        else:
+            return False           
+    except Exception as e: 
+        return False 
+        
+def searchUsers(db: Session, name: str):
+    try:
+        return db.query(models.User).filter(models.User.username.icontains(name)).all()
+    except:
+        return False
+
+def promoteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        user.isAdmin = True
+        db.merge(user)
+        db.commit()
+        return True
+    except:
+        return False
+def demoteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        user.isAdmin = False
+        db.merge(user)
+        db.commit()
+        return True
+    except:
+        return False
+
+def deleteUser(db: Session, userId: int):
+    try:
+        user = db.query(models.User).filter(models.User.id == userId).first()
+        db.delete(user)
+        db.commit()
+        return True
+    except:
+        return False  
+        
+def haveKey(db: Session, key: str):
+    try:
+        result = db.query(models.vkey).filter(models.vkey.vkey==key)
+        assert db.query(result.exists()).scalar()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+def deleteVkey(db: Session, keyId: int):
+    try:
+        vkey = db.query(models.vkey).filter(models.vkey.id == keyId).first()
+        db.delete(vkey)
+        db.commit()
+        return True
+    except:
+        return False 
+        
+def addVkey(db: Session, newKey: schemas.vkeyBase):
+    try:
+        vkey = models.vkey(** newKey.dict())
+        db.add(vkey)
+        db.commit()
+        db.refresh(vkey)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+def getAllVkeys (db: Session):
+    try:
+        return db.query(models.vkey).all()
+    except Exception as e:
+        print(e)
+        return
+        
+def getVkeyById(db: Session, keyId: int):
+    try:
+        result = db.query(models.vkey).filter(models.vkey.id==keyId).first()
+        return result
+    except Exception as e:
+        print(e)
+        return False
+        
+def updateVkey(db: Session, newKey: schemas.vkey):
+    try:  
+        oldVkey = db.query(models.vkey).filter(models.vkey.id == newKey.id).first()
+        oldVkey.vkey = newKey.vkey
+        db.merge(oldVkey)  
+        db.commit()
+    except Exception as e:
+        print(e)
+        return False

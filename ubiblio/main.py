@@ -9,6 +9,7 @@ from fastapi.security import OAuth2, OAuth2PasswordRequestForm
 from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
 from pydantic import BaseModel
@@ -30,7 +31,9 @@ import aiofiles
 from PIL import Image
 import uuid
 import shutil
-
+from ecdsa import SigningKey, VerifyingKey, SECP256k1, BadSignatureError
+from hashlib import sha256
+ 
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
 
@@ -61,6 +64,16 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 favicon_path = 'favicon.ico'
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=['POST'],
+    allow_headers=['*']
+)
+
+
 # Connect to local Redis for rate-limiting function -- this is for some DDoS resistance so you don't have to use Cloudflare for every little thing.
 @app.on_event("startup")
 async def startup():
@@ -86,6 +99,9 @@ def get_user(username: str) -> schemas.User:
     if user:
         return user
     return None
+
+async def get_body(request: Request):
+    return await request.body()
 
 # --------------------------------------------------------------------------
 # Authentication logic
@@ -304,14 +320,9 @@ async def addBook_post(request: Request, user: schemas.User = Depends(get_curren
             db = SessionLocal()
             newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
-            books = crud.getBooks(db)
             db.close()
-            context = {
-        "books": books,
-        "user": user,
-        "request": request,
-    }
-            return templates.TemplateResponse("booksearch.html", context)
+            return RedirectResponse(url='/searchbooks/', 
+        status_code=status.HTTP_302_FOUND)
         except Exception as e:
             print(e)
             return "Fail"
@@ -322,14 +333,8 @@ async def delete_book(bookId, request: Request, user: schemas.User = Depends(get
     if user.isAdmin == True:
         db = SessionLocal()
         crud.deleteBook(db,bookId)
-        books = crud.getBooks(db)
         db.close()
-        context = {
-        "books": books,
-        "user": user,
-        "request": request
-        }
-        return templates.TemplateResponse("booksearch.html", context)
+        return RedirectResponse(url='/searchbooks/')
     if not user.isAdmin == True:
         return "You are not authorized to delete books. Only an admin can do this."
 
@@ -442,21 +447,27 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
 def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%",onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
-        books = jsonable_encoder(crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        books = crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
+        #This is really ugly -- did I really need to deal with it this way?
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
-        db.close()
-        return e
+        print(e)
 @app.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
         db.close()
         return "An error has occured."
@@ -466,9 +477,12 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
     try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyTitle(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks)))
-        books = json.dumps(books)
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
         db.close()
-        return books
+        return json.dumps(jsonable_encoder(data))
     except Exception as e:
         db.close()
         return "An error has occured."
@@ -538,7 +552,6 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
             db = SessionLocal()
             newBook = schemas.BookCreate(title=form.title, author=form.author, summary=form.summary, genre=form.genre, library=form.library, shelf=form.shelf, collection=form.collection, notes=form.notes, ISBN = form.ISBN, owned = form.owned, ebook = form.ebook, customField1=form.customField1, customField2=form.customField2, withdrawn=form.withdrawn)
             crud.createBook(db, newBook)
-            books = crud.getBooks(db)
             db.close()
             context = {
             "user": user,
@@ -699,7 +712,7 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
 #This is the function for DB updates except in the very first version of the uBiblio.
 @app.get("/updateDBVersion", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def update(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-#    try:
+    try:
         if user.isAdmin == True:
             dbVersion = crud.getVersion()
             conn = sqlite3.connect(DB_LOCATION)
@@ -713,8 +726,8 @@ async def update(request: Request, user: schemas.User = Depends(get_current_user
             crud.updateDBVersion(db, dbVersion)
             db.close()
         return RedirectResponse(url='/searchbooks')
-#    except:
-#           return "Only an admin can export the database." 
+    except:
+           return "Only an admin can export the database." 
 
 
 @app.get("/export", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
@@ -754,7 +767,7 @@ async def exportcsv(request: Request, user: schemas.User = Depends(get_current_u
            return "Only an admin can export the database." 
 
            
-@app.get("/backups", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.get("/backups", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def backups(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -881,7 +894,7 @@ async def restoreFiles(filename, request: Request, user: schemas.User = Depends(
 # Library Configuration
 # --------------------------------------------------------------------------            
 
-@app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.get("/config", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def config(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -897,7 +910,7 @@ async def config(request: Request, user: schemas.User = Depends(get_current_user
     except:
            return "Only an admin can edit the library configuration."    
    
-@app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+@app.post("/config", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def updateConfig(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
@@ -980,13 +993,13 @@ async def uploadfile(file: UploadFile, bookId: int, user: schemas.User = Depends
                     #finally, add to db only if all suceeds
                     newImage = schemas.bookImageBase(bookId = bookId, filename = dbpath)
                     crud.addImage(db,newImage)  
-                    db.close()
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
         if not (extension == ".jpg") or (extension =="jpeg"):
-            db.close()
             return "Not a valid jpg image"
     except Exception as e:
         return {"message": e.args}
+    finally:
+        db.close()
 
         
 @app.post("/getImages/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
@@ -1007,17 +1020,17 @@ def deleteImages(request: Request, imageId: int, user: schemas.User = Depends(ge
         if user.isAdmin == True:
             db = SessionLocal()
             bookId,dbpath = crud.deleteImage(db, imageId)
-            db.close()
             jpgPath = os.path.join('./static/bookImages/', str(dbpath) + ".jpg")
             thumbPath = os.path.join('./static/bookImages/', str(dbpath) + "_thumbnail.jpg")
             os.remove(thumbPath)
             os.remove(jpgPath)
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
-        db.close()
         print(e)
         #just return the page if it errors out. This can happen if the file link in the DB is broken. It will remove the DB entry, then fail to find and delete the file, which is not a disaster.
         return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND)
+    finally:
+        db.close()
 
 # --------------------------------------------------------------------------
 # E-book handling
@@ -1038,7 +1051,6 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
         if user.isAdmin == True:
             db = SessionLocal()
             bookId,dbpath = crud.deleteEbook(db, ebookId)
-            db.close()
             ebookPath = os.path.join('./static/eBooks/', str(dbpath))
             try:
                 os.remove(ebookPath)
@@ -1046,9 +1058,10 @@ def getImages(request: Request, ebookId: int, user: schemas.User = Depends(get_c
                 print("Tried to delete an ebook file that doesn't exist, removing DB entry")
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
-        db.close()
         print(e)
         return "An error has occured."
+    finally:
+        db.close()
 
 @app.post("/uploadEbook/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def uploadEbook(file: UploadFile, request: Request, bookId: int, user: schemas.User = Depends(get_current_user_from_token)):
@@ -1069,10 +1082,11 @@ async def uploadEbook(file: UploadFile, request: Request, bookId: int, user: sch
                 #finally, add to db only if all suceeds
                 newEbook = schemas.ebookBase(bookId = bookId, filename = dbpath)
                 crud.addEbook(db,newEbook)  
-            db.close()
             return RedirectResponse(url='/bookDetails/' + str(bookId), status_code=status.HTTP_302_FOUND) 
     except Exception as e:
         return {"message": e.args}
+    finally:
+        db.close()
 
 # --------------------------------------------------------------------------
 # Wishlist (of books)
@@ -1092,6 +1106,378 @@ async def wishlist(request: Request, user: schemas.User = Depends(get_current_us
         return templates.TemplateResponse("wishlist.html", context)
     if not user:
         return "You are not logged in. Login to view books."
+
+# --------------------------------------------------------------------------
+# New User Creation and Management
+# --------------------------------------------------------------------------
+
+@app.get("/userManagement", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userManagement(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            context = {
+            "user": user,
+        "request": request
+    }
+            return templates.TemplateResponse("userManagement.html", context)
+    except:
+           return "Only an admin can manage users."  
+
+@app.get("/promote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userPromote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.promoteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+    except:
+           return "Only an admin can manage users."
+@app.get("/demote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userDemote(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.demoteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+    except:
+           return "Only an admin can manage users."
+
+@app.get("/deleteUser/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userDelete(request: Request, userId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            crud.deleteUser(db, userId)
+            context = {
+            "user": user,
+        "request": request
+    }
+            return RedirectResponse(url='/userManagement')
+    except:
+           return "Only an admin can manage users."
+           
+@app.get("/userManagement", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def userManagement(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            context = {
+            "user": user,
+        "request": request
+    }
+            return templates.TemplateResponse("userManagement.html", context)
+    except:
+           return "Only an admin can manage users."
+
+           
+@app.post("/searchUsers", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
+def searchUsers(request: Request, user: schemas.User = Depends(get_current_user_from_token), username: str = "%"):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            users = jsonable_encoder(crud.searchUsers(db, str(username)))
+            users = json.dumps(users)
+            return users
+        else:
+            return "Only an admin can manage users."  
+    except Exception as e:
+        return "Only an admin can manage users."  
+    finally:
+        db.close()
+
+@app.get("/newUserCode", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def newUserGet(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+            db = SessionLocal()
+            valid_uuid = crud.newUserLink(db)
+            context = {
+        "valid_uuid": valid_uuid,
+        "request": request,
+        "user": user
+    }
+        return templates.TemplateResponse("userLink.html", context)
+    except:
+           return "Only an admin can add users."  
+    finally:
+        db.close()
+  
+#Note: Public endpoint below! Heavy rate limiting in place.   
+@app.get("/auth/create/{accessCode}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def newUserPost(request: Request, accessCode: str):
+    try:
+        db = SessionLocal()
+        if crud.codeValidate(db, accessCode) == True:
+            context = {
+        "accessCode": accessCode,
+        "request": request
+    }
+            return templates.TemplateResponse("createUser.html", context)
+        else:
+            return "Your access code is invalid or expired." 
+    except:
+           return "An error has occurred." 
+    finally:
+           db.close()
+
+@app.post("/auth/create/", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
+async def createUserWithCode(request: Request):
+    #Add new user from form data
+    try:
+        form = newUserForm(request)
+        await form.load_data()
+        if await form.is_valid():
+            db = SessionLocal()
+            assert crud.get_user_by_username(db, form.username) == None
+            user = schemas.UserCreate(
+                   username=form.username, password=form.password, isAdmin=False
+               )
+            success = crud.createWithCode(db, user, form.accessCode)
+            if success == True:
+                #A bit wrong to use an error message for this, but I'm not going to create a separate notification style just for this.
+                errors = ["Account created successfully! Please log in with your new account."]
+                context = {
+            "user": user,
+            "request": request,
+            "errors":errors
+            }
+                return templates.TemplateResponse("login.html", context)
+            else: 
+                raise Exception("Failed to create account.") 
+        else:
+            return "The form you submitted is not valid. Try your access link again, or contact the library admin."
+    except AssertionError:
+        errors = ["Username already exists, please choose another."]
+        context = {
+            "accessCode": form.accessCode,
+            "request": request,
+            "errors":errors
+            }    
+        return templates.TemplateResponse("createUser.html", context)
+    
+    except Exception as e:
+        errors = [e]
+        context = {
+            "accessCode": form.accessCode,
+            "request": request,
+            "errors":errors
+            }    
+        return templates.TemplateResponse("createUser.html", context)
+            
+        
+# --------------------------------------------------------------------------
+# Federation
+# --------------------------------------------------------------------------
+
+@app.get("/vkey", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def verifyKey(request: Request):
+    try:
+        return verify_key
+    except:
+           return #return empty if not defined for some reason.
+
+@app.post("/signsearch", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
+async def signsearch(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        data = {}
+        body = json.loads(body) # make sure it's JSON
+        body = json.dumps(body) # This will clean any formatting weirdness, looks a bit silly, but clears out any newline characters that could get stripped out and make the signature fail
+        bodyBytes = bytearray(body, "utf-8")
+        data['signature'] = SigningKey.from_string(bytearray.fromhex(SIGNING_KEY), curve=SECP256k1).sign(bodyBytes).hex()
+        data['message'] = json.loads(body)
+        data['vkey'] = VERIFY_KEY # We submit this to speed up processing on the other end. They can check if this is a key registered with them.
+        return json.dumps(jsonable_encoder(data)) #it's up to the FE to submit this
+    except Exception as e:
+        return e
+
+
+@app.get("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def signUserSearch(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        db = SessionLocal()
+        vkeys = crud.getAllVkeys(db)
+        context = {
+            "user": user,
+        "request": request,
+        "vkeys":vkeys
+    }
+        return templates.TemplateResponse("fedsearch.html", context)
+    except:
+           return "FAIL"
+
+# Heavy rate limiting, public endpoint for federated search    
+@app.post("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def fedsearchBooks(body: bytes = Depends(get_body)):
+    try:
+        signedRequest = json.loads(body)
+        db = SessionLocal()
+        assert crud.haveKey(db, signedRequest["vkey"]) # Check that we know this key.
+        sig = bytearray.fromhex(signedRequest["signature"])
+        message = json.dumps(signedRequest["message"])  
+        bytesMessage = bytearray(message, "utf-8")
+        assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage) #Verify that the signature is valid for the key, e.g. was created with the signing key (private key) associated with the verification key (public key).
+        title = signedRequest["message"]["title"]
+        author = signedRequest["message"]["author"]
+        onlyEbooks = signedRequest["message"]["onlyEbooks"]
+        noEbooks = signedRequest["message"]["noEbooks"]
+        skip = signedRequest["message"]["skip"]
+        db = SessionLocal()
+        # Todo: this is searching for author OR title, it should be searching author AND title, e.g. if one is blank it returns all results.
+        books = crud.searchBooks(db, str(title),str(author), int(skip), bool(onlyEbooks), bool(noEbooks)) #Federated searches work the same as local searches (title+author). I should consider moving all searches to this JSON format eventually if I can. It would be an easy way to eliminate the need for different search endpoints.
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
+        db.close()
+        return json.dumps(jsonable_encoder(data))
+    except BadSignatureError: 
+        return "Signature verification failed" # The signature does not match the key.
+    except AssertionError:
+        return "This key is not authorized yet"
+    finally:
+        db.close()
+
+@app.get("/fedBookDetails/{bookId}/{vkeyId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def getFedBookDetails(request: Request, bookId: int, vkeyId: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        db = SessionLocal()
+        vkey = crud.getVkeyById(db, vkeyId)
+        context = {
+            "user": user,
+        "request": request,
+        "vkey": vkey,
+        "bookId": bookId
+    }
+        return templates.TemplateResponse("fedBookDetails.html", context)
+    except:
+           return "FAIL"
+           
+# Heavy rate limiting, public endpoint for federated search    
+@app.post("/fedBookDetails/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def fedBooksDetails(body: bytes = Depends(get_body)):
+    try:
+        signedRequest = json.loads(body)
+        db = SessionLocal()
+        assert crud.haveKey(db, signedRequest["vkey"]) # Check that we know this key.
+        sig = bytearray.fromhex(signedRequest["signature"])
+        message = json.dumps(signedRequest["message"])  
+        bytesMessage = bytearray(message, "utf-8")
+        assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage) #Verify that the signature is valid for the key, e.g. was created with the signing key (private key) associated with the verification key (public key).
+        bookId = signedRequest["message"]["bookId"]
+        db = SessionLocal()
+        book = crud.getBookById(db, int(bookId)) #Federated getbook works the same as local
+        db.close()
+        return json.dumps(jsonable_encoder(book))
+    except BadSignatureError: 
+        return "Signature verification failed" # The signature does not match the key.
+    except AssertionError:
+        return "This key is not authorized yet"
+    finally:
+        db.close()
+
+        
+@app.get("/manageVkeys", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def managekeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+           db = SessionLocal()
+           vkeys = crud.getAllVkeys(db)
+           print(vkeys)
+           context = {
+           "vkeys": vkeys,
+            "user": user,
+        "request": request
+    }
+           return templates.TemplateResponse("vkeyManagement.html", context)
+        else:
+            return "Only an admin can manage verification keys."  
+    except Exception as e:
+        print(e)
+        return "Only an admin can manage verification keys."  
+        
+    finally:
+        db.close()
+        
+@app.get("/deleteVkey/{vkey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def managekeys(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+           db = SessionLocal()
+           vkeys = crud.deleteVkey(db, vkey)
+           return RedirectResponse(url='/manageVkeys')
+        else:
+            return "Only an admin can delete verification keys."  
+    except Exception as e:
+        return "Only an admin can delete verification keys."  
+    finally:
+        db.close()
+        
+
+@app.get("/newVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+async def managekeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    try:
+        if user.isAdmin == True:
+           context = {
+            "user": user,
+        "request": request
+    }
+           return templates.TemplateResponse("newVkey.html", context)
+        else:
+            return "Only an admin can add new verification keys."  
+    except Exception as e:
+        print(e)
+        return "Only an admin can add new verification keys."  
+
+
+@app.post("/addVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def addVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to add validation keys. Only an admin can do this."
+    body = json.loads(body)
+    try:
+        if body["url"][-1] != "/":
+               body["url"] = body["url"] + "/" # This is just in case the trailing slash is missing somehow
+        if len(body["vkey"]) == 128:
+            db = SessionLocal()
+            newVkey = schemas.vkeyBase(vkey = body["vkey"], url=body["url"])
+            crud.addVkey(db, newVkey)
+            return RedirectResponse(url='/manageVkeys/', 
+        status_code=status.HTTP_302_FOUND)
+        else:
+            return "FAIL"   
+            db.close()
+            
+    except Exception as e:
+            print(e)
+            return "Fail"
+
+@app.post("/refreshVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to refresh validation keys. Only an admin can do this."
+    body = json.loads(body)
+    try:
+        if len(body["vkey"]) == 128: #signatures are 128 hex characters long
+            db = SessionLocal()
+            vkey = crud.getVkeyById(db, body["id"])
+            vkey.vkey = str(body["vkey"])
+            crud.updateVkey(db, vkey)
+            return RedirectResponse(url='/manageVkeys/', 
+        status_code=status.HTTP_302_FOUND)
+        else:
+            return "FAIL"   
+            db.close()
+            
+    except Exception as e:
+            print(e)
+            return "Fail"
 
 
 # --------------------------------------------------------------------------
@@ -1128,6 +1514,51 @@ class LoginForm:
         if not self.errors:
             return True
         return False
+
+class newUserForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.errors: List = []
+        self.username: Optional[str] = None
+        self.password: Optional[str] = None
+        self.accessCode: Optional[str] = None
+
+    async def load_data(self):
+        form = await self.request.form()
+        self.username = form.get("username")
+        self.password = form.get("password")
+        self.accessCode = form.get("accessCode")
+
+    async def is_valid(self):
+        if not self.username:
+            self.errors.append("Please enter your username")
+        if not self.password or not len(self.password) >= 3:
+            self.errors.append("A valid password over 3 characters is required")
+        if not self.accessCode:
+            self.errors.append("Something went wrong with your access link. Reload this page, or contact your library admin.")
+        if not self.errors:
+            return True
+        return False
+
+class newVkeyForm:
+    def __init__(self, request: Request):
+        self.request: Request = request
+        self.errors: List = []
+        self.url: str
+        self.vkey: Optional[str] = None
+
+    async def load_data(self):
+        form = await self.request.form()
+        self.url = form.get("url")
+        self.vkey = form.get("vkey")
+
+    async def is_valid(self):
+        if not self.url:
+            self.errors.append("Validation keys require a URL to tie them to")
+        if not self.errors:
+            return True
+        return False
+
 
 class bookForm:
     def __init__(self, request: Request):

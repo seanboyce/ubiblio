@@ -51,7 +51,12 @@
 	<div style= "display:block; clear:both;float:none;">
 	<hr>
 			<h3><strong><u>Checkout</strong></u></h3>
-			<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
+						{% if book.withdrawn %}
+<a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Return</button></a>
+		{% else %}
+<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Withdraw</button></a>
+		{% endif %}
+			
      </div>  
 	<div style= "display:block; clear:both;float:none;">
 		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Reading List</strong></u></h3>

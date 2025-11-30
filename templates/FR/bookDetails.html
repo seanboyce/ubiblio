@@ -59,7 +59,12 @@
 	<div style= "display:block; clear:both;float:none;">
 	<hr>
 			<h3><strong><u>Emprunt</strong></u></h3>
-			<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Emprunter</button></a><a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Rendre</button></a>
+				{% if book.withdrawn %}
+<a style="border:none; margin-right:25px;" href="/return/{{book.id}}"><button>Rendre</button></a>
+		{% else %}
+<a style="border:none; margin-right:25px;" href="/withdraw/{{book.id}}"><button>Emprunter</button></a>
+		{% endif %}
+			
      </div>  
 	<div style= "display:block; clear:both;float:none;">
 		<h3 style="margin-top:25px; margin-bottom:0px;"><strong><u>Liste de lecture</strong></u></h3>

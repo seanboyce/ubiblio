@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+	<section id="two">
+		<div class="inner" style = "padding: 20px 0 1em 0;">
+
+<h1>Manage Library Users</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<form style = "margin-bottom:0px;" onsubmit="search(0);return false;">
+  <input type="text" id = "searchboxInput" name="searchboxInput" value="" />
+  <input style ="float:left;" type="submit" value="Search">										
+</form>
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/newUserCode"><button style="margin-bottom:25px;">Add New User</button></a>
+<h2 style="margin-top:25px; margin-bottom:15px;">User List</h2>
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>Username</th>
+        <th>IsAdmin</th>
+		<th>Actions</th>  
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+
+      <!-- more table rows here -->
+
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+</div>
+
+</div>
+		
+</section>
+
+
+<script>
+//Default view is to show first 50 users until the admin enters something into search
+var pagination=0;
+var itemdata = []
+//Core search function
+function search(skip) {
+//reset pagination on new search
+if (skip<1){pagination=0;}
+searchTerm = $("#searchboxInput").val();
+if(searchTerm === undefined){searchTerm=""}
+searchEndpoint = "/searchUsers?username="+searchTerm+"&skip="+skip
+$.post(searchEndpoint,function(data, status){
+    itemdata = jQuery.parseJSON(data);
+    $("#tablebody").empty();
+    $("#pagination").empty();
+    itemdata.forEach(function(item) {
+    $("#tablebody").append('<tr><td>'+item.username+'</td><td>'+item.isAdmin+'</td><td><a href= /promote/'+item.id+'>Set to Admin</a>&nbsp;&nbsp;<a href=/demote/'+item.id+'>Set to User</a>&nbsp;&nbsp;<a href="/deleteUser/'+item.id+'" onclick="return confirm(&#39;Are you sure?&#39;);">Delete</a></td></tr>');
+});
+
+if (itemdata.length === 0){
+        $("#tablebody").append('<tr><td>' + "No results found" + '</td><td></td></tr>');
+    }
+if (pagination > 0){
+$("#pagination").append("<button onclick='previous();'>Previous</button>");
+}
+
+if(itemdata.length > 49){
+$("#pagination").append("<button onclick='next();'>Next</button>");
+}
+
+});}
+
+
+//handle pagination
+function next() {
+pagination=pagination+50;
+search(pagination)
+}
+
+function previous() {
+pagination=pagination-50;
+search(pagination)
+}
+
+window.onload = () => search(0);
+</script>
+{% endblock %}

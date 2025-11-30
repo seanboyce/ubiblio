@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
 	Forty by HTML5 UP
 	html5up.net | @ajlkn
@@ -6,8 +6,7 @@
 -->
 <html>
 	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
+		<script src="{{ url_for('static', path='assets/js/jquery.min.js')}}"></script>
 		<title>uBiblio</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -40,12 +39,15 @@
 						<nav id="menu">
 							<ul class="links">
 							<li><a href="/">Recherche de livre</a></li>
+							<li><a href="/fedsearch">Recherche avancée</a></li>
 							<li><a href="/genre/">Parcourir par genres</a></li>
 								<li><a href="/wishlist/">Liste de souhaits</a></li>
 							<li><a href="/readingLists">Listes de lecture</a></li>
 								<li><a href="/withdrawn">Livres empruntés</a></li>
 								{% if user.isAdmin %}
-								<li><a href="/config">Admin</a></li>
+								<li><a href="/config">Configuration</a></li>
+								<li><a href="/userManagement">Gestion des Utilisateurs</a></li>
+								<li><a href="/manageVkeys">Fédération</a></li>
 								{% endif %}
 						</ul>
 						<ul class="actions stacked">

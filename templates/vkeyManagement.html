@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+	<section id="two">
+		<div class="inner" style = "padding: 20px 0 1em 0;">
+
+<h1>Manage Verification Keys for Federation</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+
+<a style ='text-decoration:none !important; border:none;margin-left:25px;' href="/newVkey"><button style="margin-bottom:25px;">Add New Key</button></a>
+<h2 style="margin-top:25px; margin-bottom:15px;">Verification Key List</h2>
+
+<div class="container">  
+  <table>
+    <thead class="visible@l">
+      <tr>
+        <th>URL</th>
+        <th>Verification key</th>
+		<th>Actions</th>  
+      </tr>
+    </thead>
+    <tbody id = "tablebody">
+{% if vkeys %}
+{% for vkey in vkeys %}
+		<tr>
+			<td>{{ vkey.url }}</td>
+			<td>{{ vkey.vkey[0:12] }}...</td>
+			<td><a href="/deleteVkey/{{ vkey.id }}" onclick="if (!confirm('Are you sure?')) return false;">Delete</a>&nbsp;&nbsp;&nbsp;<a href="#" onclick="getPubkey('{{ vkey.url }}','{{ vkey.id }}');">Refresh</a></td>
+		</tr>
+{% endfor %}
+{% else %}
+<td>No keys to display -- Federation disabled.</td>
+			<td></td>
+			<td></td>
+		{% endif %}
+    </tbody>
+  </table>
+  <div id="pagination">
+  </div>
+	<p> This feature lets users of other uBiblio libraries search and view your books. They cannot withdraw, modify, or delete content on your library.</p>
+</div>
+
+</div>
+		
+</section>
+
+<script>
+async function getPubkey(vkeyURL, vkeyId)
+{
+	vkeyURLget = vkeyURL + "vkey";
+    var xhr = new XMLHttpRequest();
+    xhr.open( "GET", vkeyURLget, true );
+	xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        submitVkey(xhr.responseText, vkeyId);
+		
+    }
+};	
+    xhr.send( null );
+}
+	
+function submitVkey(newVkey, vkeyId){	
+var xhr = new XMLHttpRequest()
+var data = JSON.stringify({"id": vkeyId, "vkey": newVkey});	
+xhr.open("POST", "/refreshVkey", false);
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		window.location.href = "/manageVkeys";
+};		
+}
+xhr.send(data);
+}	
+
+
+</script>
+
+
+
+{% endblock %}

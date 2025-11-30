@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+	<section id="two">
+		<div class="inner" style = "padding: 20px 0 1em 0;">
+
+<h1>New User Link</h1>
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+<div style="display:block; clear:both; float:none;">
+
+<p> Faites un clic droit et copiez ce lien. Envoyez-le ensuite à votre nouvel utilisateur. Ce lien est valable 3 jours et lui permettra de créer un compte utilisateur. Il ne fonctionnera qu'une seule fois.</p>
+	<a href="/auth/create/{{ valid_uuid }}">Lien de Création de Compte</a>
+	</div>
+			<br>
+			<br>
+<a style = "border:none;" href = "/userManagement"> <button>Retour</button></a>
+
+
+<hr>
+
+
+
+</div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% set hideNav = True %}
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>Create a new account</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+		<form action="/auth/create" method="post">
+			<p>
+			    <p><label for="">Username</label></p>
+			    <input type="text" name="username" value="" required>
+			</p>
+			<p>
+			    <p><label for="">Password</label></p>
+			    <input type="password" name="password" value="" required>
+				<input type="hidden" name="accessCode" value="{{ accessCode }}" required>
+			</p>
+			<input type="submit" value="Submit">
+		</form>
+	</div>				
+</section>
+{% endblock %}

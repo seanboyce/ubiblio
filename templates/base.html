@@ -6,8 +6,7 @@
 -->
 <html>
 	<head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
+		<script src="{{ url_for('static', path='assets/js/jquery.min.js') }}"></script>
 		<title>uBiblio</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
@@ -39,13 +38,16 @@
           {% else %}
 						<nav id="menu">
 							<ul class="links">
-							<li><a href="/">Book Search</a></li>
+							<li><a href="/">Search</a></li>
+							<li><a href="/fedsearch">Advanced Search</a></li>
 							<li><a href="/genre/">Browse by Genre</a></li>
 								<li><a href="/wishlist/">Wishlist</a></li>
 							<li><a href="/readingLists">Reading Lists</a></li>
 								<li><a href="/withdrawn">Withdrawn Books</a></li>
 								{% if user.isAdmin %}
-								<li><a href="/config">Admin</a></li>
+								<li><a href="/config">Config</a></li>
+								<li><a href="/userManagement">User Management</a></li>
+								<li><a href="/manageVkeys">Federation</a></li>
 								{% endif %}
 						</ul>
 						<ul class="actions stacked">
