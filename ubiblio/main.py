@@ -1478,6 +1478,61 @@ async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depe
     except Exception as e:
             print(e)
             return "Fail"
+# --------------------------------------------------------------------------
+# Library Statistics
+# --------------------------------------------------------------------------
+
+@app.post("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to refresh validation keys. Only an admin can do this."
+    body = json.loads(body)
+    try:
+        db = SessionLocal()
+        result = crud.stats(db, body["isSum"], body["group"], body["target"])
+        return json.dumps(result)
+    except Exception as e:
+            print(e)
+            return "Fail"
+    finally:
+        db.close()
+
+
+def vdir(obj):
+    return [x for x in dir(obj) if not x.startswith('_')]
+
+        
+@app.get("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to refresh validation keys. Only an admin can do this."
+    try:
+        db = SessionLocal()
+        fields = vdir(models.Book)
+        config = crud.getConfig(db)
+        fields.remove("metadata")
+        fields.remove("registry")
+        fields.remove("id") # Works, but not actually a useful thing to do
+        if len(config.customFieldName1) >0:
+            fields = [field.replace('customField1', config.customFieldName1) for field in fields]
+        else:
+            fields.remove("customField1")   
+        if len(config.customFieldName2) >0:
+            fields = [field.replace('customField2', config.customFieldName2) for field in fields]
+        else:
+            fields.remove("customField2")                   
+        context = {
+           "fields": fields,
+           "config": config,
+            "user": user,
+        "request": request
+    }
+        return templates.TemplateResponse("stats.html", context)
+    except Exception as e:
+            print(e)
+            return "Fail"
+    finally:
+        db.close()
 
 
 # --------------------------------------------------------------------------

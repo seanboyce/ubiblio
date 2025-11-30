@@ -610,3 +610,20 @@ def updateVkey(db: Session, newKey: schemas.vkey):
     except Exception as e:
         print(e)
         return False
+
+
+def stats(db: Session, isSum, group, target):
+    if (isSum == True) and (len(group)) == 0: 
+        results = db.query(getattr(models.Book, target), func.sum(getattr(models.Book, target))).all()
+        return dict(results)
+    elif (isSum == False) and (len(group)) == 0: 
+        results = db.query(getattr(models.Book, target), func.count()).all()
+        return dict(results)
+    elif (isSum == True) and (len(group)) != 0:
+        results = db.query(getattr(models.Book, group), func.sum(getattr(models.Book, target))).group_by(getattr(models.Book, group)).all()
+        return dict(results)
+    else:
+        results = db.query(getattr(models.Book, target), func.count()).group_by(getattr(models.Book, group)).all()          
+        return dict(results)
+
+
