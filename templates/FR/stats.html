@@ -22,7 +22,13 @@
 {% if fields %}
 	  <option value="">Sélectionnez un champ</option>
 	  {% for field in fields %}
-  <option value='{{ field }}'>{{ field }}</option>
+   {% if field == "customField1" %}
+  <option value='customField1'>{{ config.customFieldName1 }}</option>
+	  {% elif field == "customField2" %}
+	  <option value='customField2'>{{ config.customFieldName2 }}</option>
+	  {% else %}
+	  <option value='{{ field }}'>{{ field }}</option>
+	  {% endif %}  
       {% endfor %}
 {% else %}
 	  <option value="">Erreur lors de la récupération des champs de la base de données. Cela ne devrait jamais se produire.</option>
@@ -34,7 +40,13 @@
 {% if fields %}
 	  <option value="">Sélectionnez un champ</option>
 	  {% for field in fields %}
-  <option value='{{ field }}'>{{ field }}</option>
+  {% if field == "customField1" %}
+		  <option value='customField1'>{{ config.customFieldName1 }}</option>
+		  {% elif field == "customField2" %}
+		  <option value='customField2'>{{ config.customFieldName2 }}</option>
+		  {% else %}
+  		  <option value='{{ field }}'>{{ field }}</option>
+		  {% endif %}  
       {% endfor %}
 {% else %}
 	  <option value="">Erreur lors de la récupération des champs de la base de données. Cela ne devrait jamais se produire.</option>
