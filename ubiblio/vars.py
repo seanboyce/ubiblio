@@ -8,7 +8,7 @@ DB_LOCATION = os.environ.get("DB_LOCATION", "./sql_app.db")
 USE_REDIS = os.environ.get("USE_REDIS", "true").lower() == "true"
 REDIS_URL = os.environ.get("REDIS_URI", "redis://localhost")
 
-LANGUAGE = os.environ.get("LANGUAGE", "")
+LANGUAGE = os.environ.get("LANGUAGE", "FR")
 
 TOKEN_TTL = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
