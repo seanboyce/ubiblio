@@ -1509,18 +1509,15 @@ async def refreshVkey(request: Request, user: schemas.User = Depends(get_current
     try:
         db = SessionLocal()
         fields = vdir(models.Book)
-        config = crud.getConfig(db)
+        config = crud.getConfig(db) # Get custom field names so we can use them in the UI
         fields.remove("metadata")
         fields.remove("registry")
         fields.remove("id") # Works, but not actually a useful thing to do
-        if len(config.customFieldName1) >0:
-            fields = [field.replace('customField1', config.customFieldName1) for field in fields]
-        else:
-            fields.remove("customField1")   
-        if len(config.customFieldName2) >0:
-            fields = [field.replace('customField2', config.customFieldName2) for field in fields]
-        else:
-            fields.remove("customField2")                   
+        if len(config.customFieldName1) == 0: #No need to display custom fields if the user hasn't defined them.
+            fields.remove("customField1")
+        if len(config.customFieldName2)  == 0:
+            fields.remove("customField2")
+                  
         context = {
            "fields": fields,
            "config": config,
