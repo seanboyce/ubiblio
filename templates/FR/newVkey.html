@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>Gestion des clés de fédération</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+		<form onsubmit="getPubkey();return false;">
+			<p>
+			    <p><label for="">URL -- obligatoire</label></p>
+			    <input id="addFed" type="text" name="url" value="" required>
+			</p>
+			<p>
+			    <p><label for="">Verification Key (facultatif)</label></p>
+			    <input type="text" name="vkey" value="">
+			</p>
+			<input type="submit" value="Submit">
+		</form>
+<p>Instructions : Il vous suffit de saisir l’URL de leur bibliothèque. uBiblio tentera de récupérer automatiquement leur clé de vérification (une clé publique). uBiblio ignorera cette étape si vous spécifiez vous-même une clé.</p>
+
+<p>Remarque : L’ajout de la clé d’une autre bibliothèque leur permettra de rechercher et de consulter vos livres. Ils doivent ajouter votre clé à leur bibliothèque pour que vos utilisateurs puissent y effectuer des recherches. Avant cette étape, leur bibliothèque apparaîtra dans les options de recherche avancée, mais les recherches seront impossibles.</p>
+	</div>				
+</section>
+<script>
+async function getPubkey()
+{
+	vkeyURL = $("#addFed").val().replace(/\/?$/, '/') + "vkey";
+	console.log(vkeyURL);
+    var xhr = new XMLHttpRequest();
+    xhr.open( "GET", vkeyURL, true );
+	xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        submitVkey(xhr.responseText);
+		
+    }
+};	
+    xhr.send( null );
+}
+	
+function submitVkey(newvkey){	
+console.log(newvkey);
+var xhr = new XMLHttpRequest()
+var vkeyURL = $("#addFed").val();
+var data = JSON.stringify({"url": vkeyURL, "vkey": newvkey});	
+console.log(data);
+xhr.open("POST", "/addVkey", false);
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {     
+		window.location.href = "/manageVkeys";
+};		
+}
+xhr.send(data);
+}	
+
+
+</script>
+
+{% endblock %}

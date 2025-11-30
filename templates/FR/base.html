@@ -39,6 +39,7 @@
 						<nav id="menu">
 							<ul class="links">
 							<li><a href="/">Recherche de livre</a></li>
+							<li><a href="/fedsearch">Recherche avancée</a></li>
 							<li><a href="/genre/">Parcourir par genres</a></li>
 								<li><a href="/wishlist/">Liste de souhaits</a></li>
 							<li><a href="/readingLists">Listes de lecture</a></li>
@@ -46,6 +47,7 @@
 								{% if user.isAdmin %}
 								<li><a href="/config">Configuration</a></li>
 								<li><a href="/userManagement">Gestion des Utilisateurs</a></li>
+								<li><a href="/manageVkeys">Fédération</a></li>
 								{% endif %}
 						</ul>
 						<ul class="actions stacked">
