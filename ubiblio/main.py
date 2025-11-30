@@ -1485,7 +1485,7 @@ async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depe
 @app.post("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
-        return "You are not authorized to refresh validation keys. Only an admin can do this."
+        return "You are not authorized to access the library stats page, only Admins can do this."
     body = json.loads(body)
     try:
         db = SessionLocal()
@@ -1505,7 +1505,7 @@ def vdir(obj):
 @app.get("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
 async def refreshVkey(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
-        return "You are not authorized to refresh validation keys. Only an admin can do this."
+        return "You are not authorized to access the library stats page, only Admins can do this."
     try:
         db = SessionLocal()
         fields = vdir(models.Book)
