@@ -459,7 +459,7 @@ def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_
         print(e)
 @app.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
-    try:
+#    try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
         result = json.dumps(jsonable_encoder(books[0]))
@@ -468,9 +468,9 @@ def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_
         data['count'] = books[1]
         db.close()
         return json.dumps(jsonable_encoder(data))
-    except Exception as e:
-        db.close()
-        return "An error has occured."
+#    except Exception as e:
+#        db.close()
+#        return "An error has occured."
 
 @app.post("/searchBooksByTitle", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
@@ -494,8 +494,28 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 def new_isbn(isbn, method, response: Response, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
-            if book is None:
+            book = {}
+            try:
+                book = meta(isbn,service='goob')
+                print(book)
+            except Exception as e:
+                print("Google Books API failed with response: " )
+                print(e)
+            try:
+                if len(book)==0:
+                    book = meta(isbn,service="openl")
+                else: pass
+            except Exception as e:
+                print("Open Library API failed with response: " )
+                print(e)
+            try:
+                if len(book)==0:
+                    book = meta(isbn,service='wiki')
+                else: pass
+            except Exception as e:
+                print("Wikipedia API failed with response: " )
+                print(e)
+            if len(book)==0:
                 raise LookupError(f"Book with isbn {isbn} not found!")
             title = book["Title"]
             author = book["Authors"][0]

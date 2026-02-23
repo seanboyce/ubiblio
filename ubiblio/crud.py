@@ -103,7 +103,7 @@ def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbook
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).with_entities(func.count()).scalar()
         result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
-    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==True))).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()
         return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
          resultCount = db.query(models.Book).filter(
@@ -111,7 +111,7 @@ def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbook
     models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).with_entities(func.count()).scalar()
          result = db.query(models.Book).filter(
     (or_(models.Book.title.icontains(title),
-    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author)) & (models.Book.owned==True) & (models.Book.ebook==False))).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()
          return result, resultCount
     else:
         resultCount = db.query(models.Book).filter(
@@ -119,7 +119,7 @@ def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbook
     models.Book.author.icontains(author)) & (models.Book.owned==True)).with_entities(func.count()).scalar()
         result = db.query(models.Book).filter(
     or_(models.Book.title.icontains(title),
-    models.Book.author.icontains(author)) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author)) & (models.Book.owned==True)).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()
         return result, resultCount
 
 def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
@@ -127,17 +127,17 @@ def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEboo
         resultCount = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
         result = db.query(models.Book).filter(
-    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==True)).order_by(models.Book.author.asc()).limit(limit).offset(skip).all()
         return result, resultCount
     elif (onlyEbooks==False) and (noEbooks==True):
         result = db.query(models.Book).filter(
-    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).order_by(models.Book.author.asc()).limit(limit).offset(skip).all()
         resultCount = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
         return result, resultCount
     else:
         result = db.query(models.Book).filter(
-    models.Book.author.icontains(author) & (models.Book.owned==True)).limit(limit).offset(skip).all()
+    models.Book.author.icontains(author) & (models.Book.owned==True)).order_by(models.Book.author.asc()).limit(limit).offset(skip).all()
         resultCount = db.query(models.Book).filter(
     models.Book.author.icontains(author) & (models.Book.owned==True)).with_entities(func.count()).scalar()
         return result, resultCount
@@ -145,19 +145,19 @@ def searchBooksbyAuthor(db: Session, author, skip: int, onlyEbooks: bool, noEboo
 def searchBooksbyTitle(db: Session, title, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
         result = db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).limit(limit).offset(skip).all()
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()
         resultCount = db.query(models.Book).filter(
     models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==True)).with_entities(func.count()).scalar()
         return result, resultCount    
     elif (onlyEbooks==False) and (noEbooks==True):
         result = db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).limit(limit).offset(skip).all()
+    models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()
         resultCount = db.query(models.Book).filter(
     models.Book.title.icontains(title) & (models.Book.owned==True) & (models.Book.ebook==False)).with_entities(func.count()).scalar()
         return result, resultCount
     else:
         result = db.query(models.Book).filter(
-    models.Book.title.icontains(title) & (models.Book.owned==True)).limit(limit).offset(skip).all()    
+    models.Book.title.icontains(title) & (models.Book.owned==True)).order_by(models.Book.title.asc()).limit(limit).offset(skip).all()    
         resultCount = db.query(models.Book).filter(
     models.Book.title.icontains(title) & (models.Book.owned==True)).with_entities(func.count()).scalar()
         return result, resultCount
@@ -625,5 +625,10 @@ def stats(db: Session, isSum, group, target):
     else:
         results = db.query(getattr(models.Book, target), func.count()).group_by(getattr(models.Book, group)).all()          
         return dict(results)
-
-
+        
+#def advancedSearch(db: Session, isSum, group, target):
+#author,title,location, genre
+#ebook / not ebook
+#ISBN
+#library, shelf
+#2 custom fields
