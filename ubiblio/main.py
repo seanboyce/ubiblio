@@ -459,7 +459,7 @@ def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_
         print(e)
 @app.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_user_from_token), author: str= "%",skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
-#    try:
+    try:
         db = SessionLocal()
         books = jsonable_encoder(crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks)))
         result = json.dumps(jsonable_encoder(books[0]))
@@ -468,9 +468,9 @@ def searchbookAuthor(request: Request, user: schemas.User = Depends(get_current_
         data['count'] = books[1]
         db.close()
         return json.dumps(jsonable_encoder(data))
-#    except Exception as e:
-#        db.close()
-#        return "An error has occured."
+    except Exception as e:
+        db.close()
+        return "An error has occured."
 
 @app.post("/searchBooksByTitle", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", skip: int = 0, onlyEbooks: bool = "%", noEbooks:  bool = "%"):
