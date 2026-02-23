@@ -494,8 +494,28 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
 def new_isbn(isbn, method, response: Response, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     try:
         if user.isAdmin == True:
-            book = meta(isbn,service='goob') or meta(isbn,service="openl") or meta(isbn,service='wiki')
-            if book is None:
+            book = {}
+            try:
+                book = meta(isbn,service='goob')
+                print(book)
+            except Exception as e:
+                print("Google Books API failed with response: " )
+                print(e)
+            try:
+                if len(book)==0:
+                    book = meta(isbn,service="openl")
+                else: pass
+            except Exception as e:
+                print("Open Library API failed with response: " )
+                print(e)
+            try:
+                if len(book)==0:
+                    book = meta(isbn,service='wiki')
+                else: pass
+            except Exception as e:
+                print("Wikipedia API failed with response: " )
+                print(e)
+            if len(book)==0:
                 raise LookupError(f"Book with isbn {isbn} not found!")
             title = book["Title"]
             author = book["Authors"][0]
@@ -1478,6 +1498,58 @@ async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depe
     except Exception as e:
             print(e)
             return "Fail"
+# --------------------------------------------------------------------------
+# Library Statistics
+# --------------------------------------------------------------------------
+
+@app.post("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to access the library stats page, only Admins can do this."
+    body = json.loads(body)
+    try:
+        db = SessionLocal()
+        result = crud.stats(db, body["isSum"], body["group"], body["target"])
+        return json.dumps(result)
+    except Exception as e:
+            print(e)
+            return "Fail"
+    finally:
+        db.close()
+
+
+def vdir(obj):
+    return [x for x in dir(obj) if not x.startswith('_')]
+
+        
+@app.get("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def refreshVkey(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+    if not user.isAdmin == True:
+        return "You are not authorized to access the library stats page, only Admins can do this."
+    try:
+        db = SessionLocal()
+        fields = vdir(models.Book)
+        config = crud.getConfig(db) # Get custom field names so we can use them in the UI
+        fields.remove("metadata")
+        fields.remove("registry")
+        fields.remove("id") # Works, but not actually a useful thing to do
+        if len(config.customFieldName1) == 0: #No need to display custom fields if the user hasn't defined them.
+            fields.remove("customField1")
+        if len(config.customFieldName2)  == 0:
+            fields.remove("customField2")
+                  
+        context = {
+           "fields": fields,
+           "config": config,
+            "user": user,
+        "request": request
+    }
+        return templates.TemplateResponse("stats.html", context)
+    except Exception as e:
+            print(e)
+            return "Fail"
+    finally:
+        db.close()
 
 
 # --------------------------------------------------------------------------

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+
+{% for error in errors %}
+    <p style="color: red">{{ error }}</p>
+{% endfor %}
+   <!-- Search Input-->
+
+<form style = "margin-bottom:0px;" onsubmit="stats();return false;">
+<span>Options:&nbsp;&nbsp;<br class="mobileshow"></span><br>
+<input type="radio" id="is_count" name="countSum" onclick="countContent();" value="False" checked>
+<label for="is_count">Comptez</label><br>
+<input type="radio" id="is_sum" name="countSum" onclick="sumContent();" value="True">
+<label for="is_sum">Additionez</label><br>
+	<label for="groupBy">Grouper par :</label>
+  <select style="margin-bottom:10px;" name="groupBy" id="groupBy">
+{% if fields %}
+	  <option value="">Sélectionnez un champ</option>
+	  {% for field in fields %}
+   {% if field == "customField1" %}
+  <option value='customField1'>{{ config.customFieldName1 }}</option>
+	  {% elif field == "customField2" %}
+	  <option value='customField2'>{{ config.customFieldName2 }}</option>
+	  {% else %}
+	  <option value='{{ field }}'>{{ field }}</option>
+	  {% endif %}  
+      {% endfor %}
+{% else %}
+	  <option value="">Erreur lors de la récupération des champs de la base de données. Cela ne devrait jamais se produire.</option>
+{% endif %}  
+</select>
+	<span id="hide_if_count" style="display:none">
+	<label for="target">Champ à additionner (les valeurs non numériques sont ignorées)</label>
+	  <select style="margin-bottom:10px;" name="target" id="target">
+{% if fields %}
+	  <option value="">Sélectionnez un champ</option>
+	  {% for field in fields %}
+  {% if field == "customField1" %}
+		  <option value='customField1'>{{ config.customFieldName1 }}</option>
+		  {% elif field == "customField2" %}
+		  <option value='customField2'>{{ config.customFieldName2 }}</option>
+		  {% else %}
+  		  <option value='{{ field }}'>{{ field }}</option>
+		  {% endif %}  
+      {% endfor %}
+{% else %}
+	  <option value="">Erreur lors de la récupération des champs de la base de données. Cela ne devrait jamais se produire.</option>
+{% endif %}  
+</select>
+	</span>
+  <input style ="float:left;" type="submit" value="Summarize!">										
+</form>
+<br><br>		
+		
+<h2 id="result_count" style="margin-top:25px; margin-bottom:15px;">Résultats</h2>
+
+<div class="container">  
+	<p id="results">Aucun résultat</p>
+</div>
+
+</div>
+		
+</section>
+
+<script>
+//Default view is to show first 50 books until user enters something into search
+
+var itemdata = [];
+//Core search function
+async function stats() {
+//reset pagination on new search
+var isSum = document.getElementById("is_sum").checked; 
+if (isSum === true) {
+var target = document.getElementById("target").value;
+} else {
+var target = document.getElementById("groupBy").value;
+}
+var groupBy = document.getElementById("groupBy").value;
+var data = JSON.stringify({"isSum": isSum, "group": groupBy,"target": target});	
+	console.log(data);
+var xhr = new XMLHttpRequest();
+var url = "/stats";
+xhr.open("POST", url, true);
+xhr.setRequestHeader("Content-Type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+		tableIt((JSON.parse(xhr.responseText)));
+		
+    }
+};	
+xhr.send(data);	
+}
+	
+function tableIt(resData){
+var table_str = '<table><thead><tr><th>Article</th><th>Valeur</th></tr></thead>';
+    table_str += '<tbody>';
+$.each(resData, function(key, value){
+    table_str +='<tr><td>'+key+'</td><td>'+value+'</td></tr>';
+});
+$("#results").html(table_str);
+}
+
+function countContent(){
+document.getElementById("hide_if_count").style.display = "none";
+}
+
+function sumContent(){
+document.getElementById("hide_if_count").style.display = "block";
+
+}
+</script>
+{% endblock %}
