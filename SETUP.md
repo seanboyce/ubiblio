@@ -78,11 +78,14 @@ To set the language to French, launch with LANGUAGE=FR
 Google Books used to work without API keys. Presently, it does not (reach out if this changes!). To get a free API key for this service, follow the instructions here:
 https://developers.google.com/books/docs/v1/getting_started
 
-It's reasonable (but not required) that you restrict the API key to Google Books only. Note that you should keep the API key secret even though the docs at Google say you don't have to -- looks tome like they've had some issues with this recently.
+It's reasonable (but not required) that you restrict the API key to Google Books only. Note that you should keep the API key secret even though the docs at Google say you don't have to -- looks to me like they've had some issues with this recently.
 
 If you don't specify a Google Books API key, ubiblio will simply skip using this service (it's a good data source though!).
 
+Example (note the API key below is not valid):
+```bash
 env GB_API=AIzaSyAElqyY5RB1EedRnk01vEwkpfhU6aZdrjU uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload 
+```
 ## Launching
 
 There are two supported ways to launch ubiblio -- uvicorn and gunicorn. Both are ridiculously overpowered for such a simple application, but asking why we need such power is a question for philosophers and cowards.
