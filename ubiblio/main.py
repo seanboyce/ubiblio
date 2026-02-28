@@ -23,7 +23,6 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import json
 from datetime import datetime
-from isbnlib import *
 from .vars import *
 import sqlite3
 import csv
