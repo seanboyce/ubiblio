@@ -23,7 +23,6 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 import json
 from datetime import datetime
-from isbnlib import *
 from .vars import *
 import sqlite3
 import csv
@@ -33,7 +32,9 @@ import uuid
 import shutil
 from ecdsa import SigningKey, VerifyingKey, SECP256k1, BadSignatureError
 from hashlib import sha256
- 
+import requests
+import time
+
 console = Console()
 CHUNK_SIZE = 1024 * 1024 #for uploads
 
@@ -486,6 +487,76 @@ def searchbookTitle(request: Request, user: schemas.User = Depends(get_current_u
     except Exception as e:
         db.close()
         return "An error has occured."
+
+# --------------------------------------------------------------------------
+# Book fetch functions, as an alternative to isbnlib
+# --------------------------------------------------------------------------
+def goobMeta(isbn,key):
+    url ="https://www.googleapis.com/books/v1/volumes?q=+isbn:"+str(isbn)+"&key="+str(key)
+    response = requests.get(url)
+    if response.ok:
+        rawBook = json.loads(response.text)["items"][0]["volumeInfo"]
+        book={}
+        book["Title"]=rawBook["title"]
+        book["Author"]=rawBook["authors"][0]
+        try:
+            book["Summary"] = rawBook["description"]
+        except:
+            book["Summary"] = ""
+        return book, 200
+    else:
+        return {},response.status_code
+def openLibMeta(isbn):
+    url = "https://openlibrary.org/isbn/" + str(isbn) + ".json"
+    headers = {
+    "User-Agent": 'ubiblio_bot/1.0 (https://github.com/seanboyce/ubiblio;)',
+    "Accept-Encoding": 'gzip'
+} # In case we somehow cause an issue for them, they can contact me
+    response = requests.get(url,headers=headers)
+    if response.ok:
+        rawBook = json.loads(response.text)
+        book={}
+        book["Title"]=rawBook["title"]
+        authorURL = str(rawBook["authors"][0]["key"])
+        url = "https://openlibrary.org" + authorURL + ".json"
+        time.sleep(1) #Obey openlibrary ratelimit
+        response = requests.get(url)
+        if response.ok:
+            book["Author"] = json.loads(response.text)["personal_name"]
+        else:
+            print(response.status_code)
+        try:
+            book["Summary"] = rawBook["description"]["value"]
+        except:
+            book["Summary"] = ""
+        return book, 200
+    else:
+        return {},response.status_code
+        
+def openWikiMeta(isbn):
+    url = "https://en.wikipedia.org/api/rest_v1/data/citation/mediawiki/" + str(isbn)
+    headers = {
+    "User-Agent": 'ubiblio_bot/1.0 (https://github.com/seanboyce/ubiblio;)',
+    "Accept-Encoding": 'gzip'
+    } # In case we somehow cause an issue for them, they can contact me
+    response = requests.get(url,headers=headers)
+    if response.ok:
+        rawBook = json.loads(response.text)[0]
+        book={}
+        book["Title"]=rawBook["title"]
+        rawAuthor = rawBook["author"][0]
+        author = ""
+        for i in rawAuthor:
+            author = author + i + " "
+        author = author.strip()
+        book["Author"] = author
+        book["Summary"] = "" # Summary is always empty on wikipedia
+        return book, 200
+    else:
+        return {}, response.status_code
+
+
+
 # --------------------------------------------------------------------------
 # ISBN autoadd
 # --------------------------------------------------------------------------
@@ -495,36 +566,42 @@ def new_isbn(isbn, method, response: Response, request: Request, user: schemas.U
     try:
         if user.isAdmin == True:
             book = {}
-            try:
-                book = meta(isbn,service='goob')
-                print(book)
-            except Exception as e:
-                print("Google Books API failed with response: " )
-                print(e)
+            isbn = isbn.strip()
+            if len(GOOGLE_BOOKS_API_KEY)>0:
+                try:
+                    book,response = goobMeta(isbn, GOOGLE_BOOKS_API_KEY)
+                    if response != 200:
+                        print("Google Books API failed with response: " )
+                        print(response)
+                except Exception as e:
+                    print("Google Books API failed with response: " )
+                    print(response)
+            else:
+                pass #No google API key defined, so skip google books. Otherwise it's just going to return HTTP 429 error
             try:
                 if len(book)==0:
-                    book = meta(isbn,service="openl")
+                    book,response = openLibMeta(isbn)
+                    if response != 200:
+                        print("Open Library API failed with response: " )
+                        print(response)
                 else: pass
             except Exception as e:
                 print("Open Library API failed with response: " )
                 print(e)
             try:
                 if len(book)==0:
-                    book = meta(isbn,service='wiki')
+                    book,response = openWikiMeta(isbn)
+                    if response != 200:
+                        print("Wikipedia API failed with response: " )
+                        print(response)
                 else: pass
             except Exception as e:
                 print("Wikipedia API failed with response: " )
                 print(e)
             if len(book)==0:
                 raise LookupError(f"Book with isbn {isbn} not found!")
-            title = book["Title"]
-            author = book["Authors"][0]
-            try:
-                summary = desc(isbn)
-                summary = summary.replace('\n', ' ')
-            except: summary=""
             addISBN = [0]
-            book = schemas.BookCreate(title=title, author=author, summary=summary, ISBN=isbn)
+            book = schemas.BookCreate(title=book["Title"], author=book["Author"], summary=book["Summary"], ISBN=isbn)
             db = SessionLocal()
             config = crud.getConfig(db)
             db.close()
@@ -1503,7 +1580,7 @@ async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depe
 # --------------------------------------------------------------------------
 
 @app.post("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def refreshVkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+async def statsp(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
         return "You are not authorized to access the library stats page, only Admins can do this."
     body = json.loads(body)
@@ -1523,7 +1600,7 @@ def vdir(obj):
 
         
 @app.get("/stats", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def refreshVkey(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def statsg(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
     if not user.isAdmin == True:
         return "You are not authorized to access the library stats page, only Admins can do this."
     try:

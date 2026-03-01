@@ -9,7 +9,7 @@ USE_REDIS = os.environ.get("USE_REDIS", "true").lower() == "true"
 REDIS_URL = os.environ.get("REDIS_URI", "redis://localhost")
 
 LANGUAGE = os.environ.get("LANGUAGE", "")
-
+GOOGLE_BOOKS_API_KEY = os.environ.get("GB_API", "")
 TOKEN_TTL = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
 CREATE_ADMIN_USER = os.environ.get("CREATE_ADMIN_USER", "false").lower() == "true"
