@@ -555,7 +555,15 @@ def openWikiMeta(isbn):
     else:
         return {}, response.status_code
 
-
+# I could probably allow auto-add by title now. Would have to let the user select from a list of candidates. Something like the below:
+def goobTitle(title,key):
+    url ="https://www.googleapis.com/books/v1/volumes?q=+intitle:"+str(title)+"&key="+str(key)
+    response = requests.get(url)
+    if response.ok:
+        rawBooks = json.loads(response.text)
+        return {}, 200
+    else:
+        return {},response.status_code
 
 # --------------------------------------------------------------------------
 # ISBN autoadd
@@ -1587,6 +1595,8 @@ async def statsp(body: bytes = Depends(get_body), user: schemas.User = Depends(g
     try:
         db = SessionLocal()
         result = crud.stats(db, body["isSum"], body["group"], body["target"])
+        for key in result:
+           result[key] = round(result[key],2) # someone reported some floating point errors, hopefully this handles it.
         return json.dumps(result)
     except Exception as e:
             print(e)

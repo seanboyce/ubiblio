@@ -111,6 +111,9 @@ NEW: uBiblio can also use more than one worker. An example is below.
 ```bash
 python -m gunicorn ubiblio.main:app -b 127.0.0.1:8000 -k uvicorn.workers.UvicornWorker -t 2 -w 4 --certfile= --keyfile=
 ```
+### File Backup Timeouts
+
+If you experience timeouts when backing up ubiblio, this is most probably because ubiblio is taking longer to compress your files (ebooks, cover images, etc.) than the default timeout permits. You can launch gunicorn with e.g. --timeout 120 to specify a longer timeout. This should let your backups continue. This should only affect file backups, the DB backs up quite quickly. 
 
 # Password Recovery
 
@@ -209,7 +212,7 @@ For setting up a reverse proxy: https://www.digitalocean.com/community/tutorials
 
 A good tutorial on production deployment with venv+fastapi+gunicorn: https://docs.vultr.com/how-to-deploy-fastapi-applications-with-gunicorn-and-nginx-on-ubuntu-20-04
 
-If yo uare getting 'permission denied' errors from Docker after installing docker from the snap store: https://askubuntu.com/questions/941816/permission-denied-when-running-docker-after-installing-it-as-a-snap
+If you are getting 'permission denied' errors from Docker after installing docker from the snap store: https://askubuntu.com/questions/941816/permission-denied-when-running-docker-after-installing-it-as-a-snap
 
 # Notes on DDoS Resistance
 
