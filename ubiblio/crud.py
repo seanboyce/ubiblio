@@ -45,7 +45,7 @@ def isAdmin(db: Session, username: str):
 
 def createBook(db: Session, book: schemas.Book):
     try:
-        book = models.Book(** book.dict())
+        book = models.Book(** book.model_dump())
         db.add(book)
         db.commit()
         db.refresh(book)
@@ -78,7 +78,7 @@ def updateBook(db: Session, book: schemas.Book):
     try:
         item = db.get(models.Book, book.id) 
         if item:
-            book = models.Book(** book.dict())
+            book = models.Book(** book.model_dump())
             db.merge(book)
             db.commit()   
         if not item:
@@ -179,7 +179,7 @@ def getGenres(db: Session):
     
 def readBook(db: Session, readingListItem: schemas.readingListItemCreate):
     try:
-        readingListItem = models.readingListItems(** readingListItem.dict())
+        readingListItem = models.readingListItems(** readingListItem.model_dump())
         db.add(readingListItem)
         db.commit()
         db.refresh(readingListItem)
@@ -247,7 +247,7 @@ def bookReturn(db: Session, book: schemas.Book):
     try:  
         item = db.get(models.Book, book.id)  
         if item:
-            book = models.Book(** book.dict())
+            book = models.Book(** book.model_dump())
             db.merge(book)
             db.commit()   
         if not item:
@@ -261,7 +261,7 @@ def bookWithdraw(db: Session, book: schemas.Book):
     try:
         item = db.get(models.Book, book.id)  
         if item:
-            book = models.Book(** book.dict())
+            book = models.Book(** book.model_dump())
             db.merge(book)
             db.commit()   
         if not item:
@@ -366,7 +366,7 @@ def getVersion():
 def updateConfig(db: Session, config: schemas.config):
     try:
         config_exists = db.query(models.config).first()
-        config = models.config(** config.dict())
+        config = models.config(** config.model_dump())
         if config_exists:
             db.merge(config)
             db.commit()
@@ -416,7 +416,7 @@ def getImagesByFilename(db: Session, filename: str):
 
 def addImage(db: Session, image: schemas.bookImageBase):
     try:
-        image = models.bookImage(** image.dict())
+        image = models.bookImage(** image.model_dump())
         db.add(image)
         db.commit()
         db.refresh(image)
@@ -440,7 +440,7 @@ def deleteImage(db: Session, imageId: int):
 
 def addEbook(db: Session, ebook: schemas.ebookBase):
     try:
-        ebook = models.ebook(** ebook.dict())
+        ebook = models.ebook(** ebook.model_dump())
         db.add(ebook)
         db.commit()
         db.refresh(ebook)
@@ -578,7 +578,7 @@ def deleteVkey(db: Session, keyId: int):
         
 def addVkey(db: Session, newKey: schemas.vkeyBase):
     try:
-        vkey = models.vkey(** newKey.dict())
+        vkey = models.vkey(** newKey.model_dump())
         db.add(vkey)
         db.commit()
         db.refresh(vkey)
