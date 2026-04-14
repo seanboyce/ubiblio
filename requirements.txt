@@ -1,7 +1,7 @@
-fastapi==0.115.4
+fastapi==0.135.3
 fastapi_limiter==0.1.6
 passlib==1.7.4
-pydantic==1.10.2
+pydantic==2.12.5
 PyMySQL==1.1.1
 python_jose==3.3.0
 redis==4.5.5
@@ -12,6 +12,6 @@ gunicorn==23.0.0
 jinja2==3.1.2
 python-multipart==0.0.5
 aiofiles==24.1.0
-pillow==9.0.1
+pillow==12.2.0
 uuid==1.30
 requests==2.32.2

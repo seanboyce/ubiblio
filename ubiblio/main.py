@@ -65,7 +65,6 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 favicon_path = 'favicon.ico'
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
@@ -247,8 +246,8 @@ async def login_post(request: Request):
         except HTTPException:
             form.__dict__.update(msg="")
             form.__dict__.get("errors").append("Incorrect Email or Password")
-            return templates.TemplateResponse("login.html", form.__dict__)
-    return templates.TemplateResponse("login.html", form.__dict__)
+            return templates.TemplateResponse(request, "login.html", form.__dict__)
+    return templates.TemplateResponse(request, "login.html", form.__dict__)
 
 
 @app.get("/auth/logout", response_class=HTMLResponse)
@@ -271,7 +270,7 @@ def index(request: Request):
         context = {
         "request": request
     }
-        return templates.TemplateResponse("login.html", context)
+        return templates.TemplateResponse(request, "login.html", context)
     if user:
         databaseNotFirstVersion = crud.checkDB()
         if databaseNotFirstVersion == True:
@@ -302,7 +301,7 @@ def add_book_form(request: Request, user: schemas.User = Depends(get_current_use
             "user": user,
             "request": request,
             }
-            return templates.TemplateResponse("newBook.html", context)
+            return templates.TemplateResponse(request, "newBook.html", context)
         if not user.isAdmin == True:
             return "You are not authorized to add books. Only an admin can do this."
     except Exception as e:
@@ -358,10 +357,10 @@ async def bookDetails(bookId, request: Request, user: schemas.User = Depends(get
             ebookFiles = crud.getEbookFiles(db, bookId)
             context["ebookFiles"] = ebookFiles  
             db.close()
-            return templates.TemplateResponse("ebookDetails.html", context)
+            return templates.TemplateResponse(request, "ebookDetails.html", context)
         else:
             db.close()
-            return templates.TemplateResponse("bookDetails.html", context)
+            return templates.TemplateResponse(request, "bookDetails.html", context)
     if not user:
         return "You are not logged in. Login to view books."
 
@@ -405,7 +404,7 @@ def update_cust_form(bookId, request: Request, user: schemas.User = Depends(get_
             "book": book,
             "request": request
             }
-            return templates.TemplateResponse("updateBook.html", context)
+            return templates.TemplateResponse(request, "updateBook.html", context)
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
@@ -424,7 +423,7 @@ def scan_book_form(request: Request, user: schemas.User = Depends(get_current_us
             "user": user,
             "request": request,
             }
-            return templates.TemplateResponse("scanIsbn.html", context)
+            return templates.TemplateResponse(request, "scanIsbn.html", context)
         if not user.isAdmin:
             return "You are not authorized to add books. Only an admin can do this."
     except Exception as e:
@@ -442,7 +441,7 @@ def searchbookget(request: Request, user: schemas.User = Depends(get_current_use
         "user": user,
         "data": data
     }
-    return templates.TemplateResponse("booksearch.html", context)
+    return templates.TemplateResponse(request, "booksearch.html", context)
 
 @app.post("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def searchBooks(request: Request, user: schemas.User = Depends(get_current_user_from_token), title: str = "%", author: str= "%",skip: int = "%",onlyEbooks: bool = "%", noEbooks:  bool = "%"):
@@ -505,7 +504,8 @@ def goobMeta(isbn,key):
             book["Summary"] = ""
         return book, 200
     else:
-        return {},response.status_code
+        return {}, response.status_code
+
 def openLibMeta(isbn):
     url = "https://openlibrary.org/isbn/" + str(isbn) + ".json"
     headers = {
@@ -620,7 +620,7 @@ def new_isbn(isbn, method, response: Response, request: Request, user: schemas.U
         "book": book,
         "request": request
     }
-            return templates.TemplateResponse("newBook.html", context)
+            return templates.TemplateResponse(request, "newBook.html", context)
         if not user.isAdmin == True:
             return "You are not authorized to update books. Only an admin can do this."
     except Exception as e:
@@ -632,9 +632,9 @@ def new_isbn(isbn, method, response: Response, request: Request, user: schemas.U
     }
     #Return user to the page they were already on if no book found with this ISBN -- they can try again if they wish, or move to the next book.
         if method == "scan":
-            return templates.TemplateResponse("scanIsbn.html", context)
+            return templates.TemplateResponse(request, "scanIsbn.html", context)
         else:
-            return templates.TemplateResponse("addisbn.html", context)
+            return templates.TemplateResponse(request, "addisbn.html", context)
 
 @app.get("/addisbn", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def addIsbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -643,7 +643,7 @@ async def addIsbn(request: Request, user: schemas.User = Depends(get_current_use
         "user": user,
         "request": request
     }
-        return templates.TemplateResponse("addisbn.html", context)
+        return templates.TemplateResponse(request, "addisbn.html", context)
     if not user.isAdmin == True:
         return "You are not authorized to add books. Only an admin can do this."
 
@@ -662,7 +662,7 @@ async def addAnotherIsbn(request: Request, user: schemas.User = Depends(get_curr
             "user": user,
         "request": request
     }
-        return templates.TemplateResponse("addisbn.html", context)
+        return templates.TemplateResponse(request, "addisbn.html", context)
     if not user.isAdmin == True:
         return "You are not authorized to add books. Only an admin can do this."
     
@@ -681,7 +681,7 @@ async def scanAnotherIsbn(request: Request, user: schemas.User = Depends(get_cur
             "user": user,
         "request": request
     }
-        return templates.TemplateResponse("scanIsbn.html", context)
+        return templates.TemplateResponse(request, "scanIsbn.html", context)
     if not user.isAdmin:
         return "You are not authorized to add books. Only an admin can do this."
 # --------------------------------------------------------------------------
@@ -723,7 +723,7 @@ async def readList(request: Request, user: schemas.User = Depends(get_current_us
         "user": user,
         "request": request
     }
-        return templates.TemplateResponse("readinglist.html", context)
+        return templates.TemplateResponse(request, "readinglist.html", context)
     if not user:
         return "You are not logged in. Login to see your reading list."
 # --------------------------------------------------------------------------
@@ -769,7 +769,7 @@ async def wdList(request: Request, user: schemas.User = Depends(get_current_user
         "books": books,
         "request": request
     }
-        return templates.TemplateResponse("withdrawn.html", context)
+        return templates.TemplateResponse(request, "withdrawn.html", context)
     if not user:
         return "You are not logged in. Login to see withdrawn books."
 
@@ -787,7 +787,7 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
         "user": user,
         "request": request,
     }
-   return templates.TemplateResponse("updateAdvisory.html", context)
+   return templates.TemplateResponse(request, "updateAdvisory.html", context)
 
 @app.get("/dbUpdateVersion", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
 async def updatePage(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
@@ -795,7 +795,7 @@ async def updatePage(request: Request, user: schemas.User = Depends(get_current_
         "user": user,
         "request": request,
     }
-   return templates.TemplateResponse("updateVersion.html", context)
+   return templates.TemplateResponse(request, "updateVersion.html", context)
 
 #This is the function for updating the oldest version of the app only. DB versioning is implemented after. 
 @app.get("/updateDB", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
@@ -894,7 +894,7 @@ async def backups(request: Request, user: schemas.User = Depends(get_current_use
         "bookExports":bookExports,
         "fileExports":fileExports,
     }
-        return templates.TemplateResponse("backups.html", context)
+        return templates.TemplateResponse(request, "backups.html", context)
     except:
            return "Only an admin can view database backups." 
 
@@ -1011,7 +1011,7 @@ async def config(request: Request, user: schemas.User = Depends(get_current_user
         "request": request,
         "config":config,
     }
-        return templates.TemplateResponse("config.html", context)
+        return templates.TemplateResponse(request, "config.html", context)
     except:
            return "Only an admin can edit the library configuration."    
    
@@ -1032,7 +1032,7 @@ async def updateConfig(request: Request, user: schemas.User = Depends(get_curren
                     "config": config,
                     "request": request,
                      }
-                    return templates.TemplateResponse("config.html", context)
+                    return templates.TemplateResponse(request, "config.html", context)
     except Exception as e:
         return "Only an admin can edit the library configuration."
                       
@@ -1051,7 +1051,7 @@ async def bookDetails(genre, request: Request, user: schemas.User = Depends(get_
         "books": books,
         "request": request
     }
-        return templates.TemplateResponse("booksByGenre.html", context)
+        return templates.TemplateResponse(request, "booksByGenre.html", context)
     if not user:
         return "You are not logged in. Login to view books."
 
@@ -1066,7 +1066,7 @@ async def bookGenres(request: Request, user: schemas.User = Depends(get_current_
         "genres": genres,
         "request": request
     }
-        return templates.TemplateResponse("genres.html", context)
+        return templates.TemplateResponse(request, "genres.html", context)
     if not user:
         return "You are not logged in. Login to view books."
 
@@ -1208,7 +1208,7 @@ async def wishlist(request: Request, user: schemas.User = Depends(get_current_us
         "books": books,
         "request": request
     }
-        return templates.TemplateResponse("wishlist.html", context)
+        return templates.TemplateResponse(request, "wishlist.html", context)
     if not user:
         return "You are not logged in. Login to view books."
 
@@ -1224,7 +1224,7 @@ async def userManagement(request: Request, user: schemas.User = Depends(get_curr
             "user": user,
         "request": request
     }
-            return templates.TemplateResponse("userManagement.html", context)
+            return templates.TemplateResponse(request, "userManagement.html", context)
     except:
            return "Only an admin can manage users."  
 
@@ -1277,7 +1277,7 @@ async def userManagement(request: Request, user: schemas.User = Depends(get_curr
             "user": user,
         "request": request
     }
-            return templates.TemplateResponse("userManagement.html", context)
+            return templates.TemplateResponse(request, "userManagement.html", context)
     except:
            return "Only an admin can manage users."
 
@@ -1308,7 +1308,7 @@ async def newUserGet(request: Request, user: schemas.User = Depends(get_current_
         "request": request,
         "user": user
     }
-        return templates.TemplateResponse("userLink.html", context)
+        return templates.TemplateResponse(request, "userLink.html", context)
     except:
            return "Only an admin can add users."  
     finally:
@@ -1324,7 +1324,7 @@ async def newUserPost(request: Request, accessCode: str):
         "accessCode": accessCode,
         "request": request
     }
-            return templates.TemplateResponse("createUser.html", context)
+            return templates.TemplateResponse(request, "createUser.html", context)
         else:
             return "Your access code is invalid or expired." 
     except:
@@ -1353,7 +1353,7 @@ async def createUserWithCode(request: Request):
             "request": request,
             "errors":errors
             }
-                return templates.TemplateResponse("login.html", context)
+                return templates.TemplateResponse(request, "login.html", context)
             else: 
                 raise Exception("Failed to create account.") 
         else:
@@ -1365,7 +1365,7 @@ async def createUserWithCode(request: Request):
             "request": request,
             "errors":errors
             }    
-        return templates.TemplateResponse("createUser.html", context)
+        return templates.TemplateResponse(request, "createUser.html", context)
     
     except Exception as e:
         errors = [e]
@@ -1374,7 +1374,7 @@ async def createUserWithCode(request: Request):
             "request": request,
             "errors":errors
             }    
-        return templates.TemplateResponse("createUser.html", context)
+        return templates.TemplateResponse(request, "createUser.html", context)
             
         
 # --------------------------------------------------------------------------
@@ -1413,7 +1413,7 @@ async def signUserSearch(request: Request, user: schemas.User = Depends(get_curr
         "request": request,
         "vkeys":vkeys
     }
-        return templates.TemplateResponse("fedsearch.html", context)
+        return templates.TemplateResponse(request, "fedsearch.html", context)
     except:
            return "FAIL"
 
@@ -1460,7 +1460,7 @@ async def getFedBookDetails(request: Request, bookId: int, vkeyId: int, user: sc
         "vkey": vkey,
         "bookId": bookId
     }
-        return templates.TemplateResponse("fedBookDetails.html", context)
+        return templates.TemplateResponse(request, "fedBookDetails.html", context)
     except:
            return "FAIL"
            
@@ -1500,7 +1500,7 @@ async def managekeys(request: Request, user: schemas.User = Depends(get_current_
             "user": user,
         "request": request
     }
-           return templates.TemplateResponse("vkeyManagement.html", context)
+           return templates.TemplateResponse(request, "vkeyManagement.html", context)
         else:
             return "Only an admin can manage verification keys."  
     except Exception as e:
@@ -1533,7 +1533,7 @@ async def managekeys(request: Request, user: schemas.User = Depends(get_current_
             "user": user,
         "request": request
     }
-           return templates.TemplateResponse("newVkey.html", context)
+           return templates.TemplateResponse(request, "newVkey.html", context)
         else:
             return "Only an admin can add new verification keys."  
     except Exception as e:
@@ -1631,7 +1631,7 @@ async def statsg(request: Request, user: schemas.User = Depends(get_current_user
             "user": user,
         "request": request
     }
-        return templates.TemplateResponse("stats.html", context)
+        return templates.TemplateResponse(request, "stats.html", context)
     except Exception as e:
             print(e)
             return "Fail"
@@ -1647,7 +1647,7 @@ def login_get(request: Request):
     context = {
         "request": request,
     }
-    return templates.TemplateResponse("login.html", context)
+    return templates.TemplateResponse(request, "login.html", context)
 
 
 # --------------------------------------------------------------------------
