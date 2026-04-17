@@ -15,7 +15,7 @@ from ..database import SessionLocal
 from ..dependencies import (
     get_rate_limiter, templates, CHUNK_SIZE,
     get_current_user_from_token, get_body,
-    configForm,
+    configForm, get_current_user_from_cookie
 )
 from ..vars import DB_LOCATION
 
@@ -27,7 +27,6 @@ router = APIRouter()
 # --------------------------------------------------------------------------
 @router.get("/", dependencies=[get_rate_limiter(times=3, seconds=1)], response_class=HTMLResponse)
 def index(request: Request):
-    from ..dependencies import get_current_user_from_cookie
     try:
         user = get_current_user_from_cookie(request)
     except:
@@ -239,7 +238,8 @@ async def upload_backup(file: UploadFile, user: schemas.User = Depends(get_curre
                     while chunk := await file.read(CHUNK_SIZE):
                         await f.write(chunk)
                 db.close()
-                response = RedirectResponse("/backups", status.HTTP_303_SEE_OTHER)
+                response = RedirectResponse(
+                    "/backups", status.HTTP_303_SEE_OTHER)
                 return response
             if not (extension == ".sql") or (extension == ".csv"):
                 return "Not a valid backup"
@@ -299,7 +299,8 @@ async def update_config(request: Request, user: schemas.User = Depends(get_curre
             await form.load_data()
             if await form.is_valid():
                 db = SessionLocal()
-                config = schemas.config(id=1, version=form.version, coverImages=form.coverImages, customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres)
+                config = schemas.config(id=1, version=form.version, coverImages=form.coverImages,
+                                        customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres)
                 crud.updateConfig(db, config)
                 config = crud.getConfig(db)
                 db.close()

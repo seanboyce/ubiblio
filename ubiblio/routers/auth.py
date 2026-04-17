@@ -6,9 +6,7 @@ from .. import crud, schemas, database
 from ..database import SessionLocal
 from ..dependencies import (
     get_rate_limiter, templates, settings, console,
-    get_current_user_from_token, get_current_user_from_cookie,
-    create_access_token, authenticate_user, login_for_access_token,
-    LoginForm, newUserForm,
+    login_for_access_token, LoginForm, newUserForm,
 )
 from ..vars import ADMIN_USERNAME, ADMIN_PASSWORD, CREATE_ADMIN_USER, CREATE_USER, USER_USERNAME, USER_PASSWORD
 
