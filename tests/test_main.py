@@ -26,6 +26,10 @@ class TestHeadRequestsNoMethodNotAllowed:
 
     @pytest.mark.parametrize("path", [
         "/searchbooks",
+        "/add_book",
+        "/scan_isbn",
+        "/addisbn",
+        "/genre/",
     ])
     def test_head_on_authenticated_endpoints(self, path):
         with create_test_user() as user:
