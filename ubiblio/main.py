@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import redis.asyncio as redis
@@ -24,10 +24,24 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def head_as_get(request: Request, call_next):
+    if request.method != "HEAD":
+        return await call_next(request)
+    request.scope["method"] = "GET"
+    response = await call_next(request)
+    return Response(
+        status_code=response.status_code,
+        headers=dict[str, str](response.headers),
+        content=b"",
+    )
+
+
 @app.on_event("startup")
 async def startup():
     if USE_REDIS:
-        redis_connection = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        redis_connection = redis.from_url(
+            REDIS_URL, encoding="utf-8", decode_responses=True)
         await FastAPILimiter.init(redis_connection)
 
 

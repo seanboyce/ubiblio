@@ -99,7 +99,9 @@ def get_user(username: str) -> schemas.User:
 
 def create_access_token(data: Dict) -> str:
     to_encode = data.copy()
-    expire = dt.datetime.utcnow() + dt.timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = dt.datetime.now(dt.timezone.utc) + dt.timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode,
