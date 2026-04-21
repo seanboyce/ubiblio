@@ -1,0 +1,11 @@
+[tool.coverage.run]
+source = ["ubiblio"]
+branch = true
+omit = [
+    "*/tests/*",
+]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_empty = true

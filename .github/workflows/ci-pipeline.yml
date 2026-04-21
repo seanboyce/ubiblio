@@ -1,7 +1,10 @@
-name: Tests (PR to dev)
+name: CI pipeline
 
 on:
   pull_request:
+    branches:
+      - dev
+  push:
     branches:
       - dev
 
@@ -26,7 +29,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-test.txt
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         env:
           USE_REDIS: "false"
-        run: python -m pytest tests/ -v
+        run: |
+          python -m pytest tests/ -v \
+            --cov=ubiblio \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            htmlcov/
+            coverage.xml
+          if-no-files-found: error
