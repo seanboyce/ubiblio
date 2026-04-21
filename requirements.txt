@@ -15,3 +15,4 @@ aiofiles==24.1.0
 pillow==12.2.0
 uuid==1.30
 requests==2.32.2
+responses==0.25.8
