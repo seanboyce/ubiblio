@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 from pytest import MonkeyPatch
 import responses
 
-from ubiblio.routers.books.service import BookMetadataClient
+from ubiblio.routers.books.book_metadata_client import BookMetadataClient
 
 
 class TestBookMetadataClientGoogleBooksByIsbn:
@@ -13,8 +13,9 @@ class TestBookMetadataClientGoogleBooksByIsbn:
         isbn = "9780123456789"
         api_key = "test-api-key"
         monkeypatch.setattr(
-            "ubiblio.routers.books.service.GOOGLE_BOOKS_API_KEY", api_key)
-        query = urlencode({"q": f"isbn:{isbn}", "key": api_key})
+            "ubiblio.routers.books.book_metadata_client.GOOGLE_BOOKS_API_KEY", api_key
+        )
+        query = urlencode({"q": f"+isbn:{isbn}", "key": api_key})
         url = f"{BookMetadataClient.GOOGLE_BOOKS_API}?{query}"
         responses.add(
             responses.GET,
@@ -53,7 +54,8 @@ class TestBookMetadataClientGoogleBooksByIsbn:
         # Arrange
         isbn = "9780123456789"
         monkeypatch.setattr(
-            "ubiblio.routers.books.service.GOOGLE_BOOKS_API_KEY", None)
+            "ubiblio.routers.books.book_metadata_client.GOOGLE_BOOKS_API_KEY", None
+        )
         client = BookMetadataClient()
 
         # Act
@@ -69,8 +71,9 @@ class TestBookMetadataClientGoogleBooksByIsbn:
         isbn = "9780123456789"
         api_key = "test-api-key"
         monkeypatch.setattr(
-            "ubiblio.routers.books.service.GOOGLE_BOOKS_API_KEY", api_key)
-        query = urlencode({"q": f"isbn:{isbn}", "key": api_key})
+            "ubiblio.routers.books.book_metadata_client.GOOGLE_BOOKS_API_KEY", api_key
+        )
+        query = urlencode({"q": f"+isbn:{isbn}", "key": api_key})
         url = f"{BookMetadataClient.GOOGLE_BOOKS_API}?{query}"
         responses.add(
             responses.GET,
@@ -188,3 +191,58 @@ class TestBookMetadataClientOpenLibraryByIsbn:
         # Assert
         assert status == 200
         assert book == {"Summary": "A fine book.", "Title": "Test Title"}
+
+
+class TestBookMetadataClientOpenWikiByIsbn:
+    @responses.activate
+    def test_open_wiki_by_isbn_should_return_book_metadata(self, monkeypatch: MonkeyPatch) -> None:
+        # Arrange
+        isbn = "9780123456789"
+        responses.add(
+            responses.GET,
+            f"{BookMetadataClient.OPEN_WIKI_API}isbn/{isbn}.json",
+            json=[
+                {
+                    "key": "F5GJ7RVZ",
+                    "title": "Effective Book",
+                    "author": [
+                        [
+                            "First",
+                            "Last"
+                        ]
+                    ]
+                }
+            ]
+
+        )
+        client = BookMetadataClient()
+
+        # Act
+        book, status = client.open_wiki_by_isbn(isbn)
+
+        # Assert
+        assert status == 200
+        assert book == {
+            "Title": "Effective Book",
+            "Author": "First Last",
+            "Summary": "",
+        }
+        assert len(responses.calls) == 1
+    
+    @responses.activate
+    def test_open_wiki_by_isbn_should_return_error_when_response_is_not_ok(self, monkeypatch: MonkeyPatch) -> None:
+        # Arrange
+        isbn = "9780123456789"
+        responses.add(
+            responses.GET,
+            f"{BookMetadataClient.OPEN_WIKI_API}isbn/{isbn}.json",
+            json={},
+            status=404,
+        )
+        client = BookMetadataClient()
+
+        # Act
+        book, status = client.open_wiki_by_isbn(isbn)
+        # Assert
+        assert status == 404
+        assert book == {}

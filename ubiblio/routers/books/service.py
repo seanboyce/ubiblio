@@ -1,103 +1,15 @@
 import json
-import time
 from typing import Any
 
-import requests
 from sqlalchemy.orm import Session
 
 from ... import crud, schemas
-from ...vars import GOOGLE_BOOKS_API_KEY
+from .book_metadata_client import BookMetadataClient
 
 
 # --------------------------------------------------------------------------
 # External metadata (ISBN / title lookup)
 # --------------------------------------------------------------------------
-
-class BookMetadataClient:
-    GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
-    OPEN_LIBRARY_API = "https://openlibrary.org/"
-
-    def google_books_by_isbn(self, isbn: str) -> tuple[dict[str, str], int | None]:
-        if not GOOGLE_BOOKS_API_KEY:
-            return {}, None
-        response = requests.get(self.GOOGLE_BOOKS_API, params={
-                                "q": f"isbn:{isbn}", "key": GOOGLE_BOOKS_API_KEY})
-        if response.ok:
-            raw_book = json.loads(response.text)["items"][0]["volumeInfo"]
-            book = {}
-            book["Title"] = raw_book["title"]
-            book["Author"] = raw_book["authors"][0]
-            try:
-                book["Summary"] = raw_book["description"]
-            except Exception:
-                book["Summary"] = ""
-            return book, 200
-        else:
-            return {}, response.status_code
-
-    def open_library_by_isbn(self, isbn: str) -> tuple[dict[str, str], int | None]:
-        url = self.OPEN_LIBRARY_API + "isbn/" + str(isbn) + ".json"
-        headers = {
-            "User-Agent": "ubiblio_bot/1.0 (https://github.com/seanboyce/ubiblio;)",
-            "Accept-Encoding": "gzip",
-        }
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            raw_book = json.loads(response.text)
-            book = {}
-            book["Title"] = raw_book["title"]
-            author_url = str(raw_book["authors"][0]["key"])
-            url = self.OPEN_LIBRARY_API + author_url + ".json"
-            time.sleep(1)
-            response = requests.get(url)
-            if response.ok:
-                book["Author"] = json.loads(response.text)["personal_name"]
-            else:
-                print(response.status_code)
-            try:
-                book["Summary"] = raw_book["description"]["value"]
-            except Exception:
-                book["Summary"] = ""
-            return book, 200
-        else:
-            return {}, response.status_code
-
-
-def open_wiki_meta(isbn):
-    url = "https://en.wikipedia.org/api/rest_v1/data/citation/mediawiki/" + \
-        str(isbn)
-    headers = {
-        "User-Agent": "ubiblio_bot/1.0 (https://github.com/seanboyce/ubiblio;)",
-        "Accept-Encoding": "gzip",
-    }
-    response = requests.get(url, headers=headers)
-    if response.ok:
-        raw_book = json.loads(response.text)[0]
-        book = {}
-        book["Title"] = raw_book["title"]
-        raw_author = raw_book["author"][0]
-        author = ""
-        for i in raw_author:
-            author = author + i + " "
-        author = author.strip()
-        book["Author"] = author
-        book["Summary"] = ""
-        return book, 200
-    else:
-        return {}, response.status_code
-
-
-def goob_title(title, key):
-    url = "https://www.googleapis.com/books/v1/volumes?q=+intitle:" + \
-        str(title) + "&key=" + str(key)
-    response = requests.get(url)
-    if response.ok:
-        json.loads(response.text)
-        return {}, 200
-    else:
-        return {}, response.status_code
-
-
 def lookup_book_metadata_by_isbn(isbn: str) -> dict[str, Any]:
     """
     Resolve ISBN to Title/Author/Summary via Google Books, then Open Library, then Wikipedia.
@@ -129,7 +41,7 @@ def lookup_book_metadata_by_isbn(isbn: str) -> dict[str, Any]:
 
     try:
         if len(book) == 0:
-            book, response = open_wiki_meta(isbn)
+            book, response = client.open_wiki_by_isbn(isbn)
             if response != 200:
                 print("Wikipedia API failed with response: ")
                 print(response)
