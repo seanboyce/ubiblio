@@ -30,7 +30,7 @@ def add_book_form(request: Request, user: schemas.User = Depends(get_current_use
                 "request": request,
             }
             return templates.TemplateResponse(request, "newBook.html", context)
-        if not user.isAdmin != True:
+        if user.isAdmin != True:
             return "You are not authorized to add books. Only an admin can do this."
     except Exception as e:
         print(e)
