@@ -1,0 +1,154 @@
+import json
+from typing import Any
+
+from sqlalchemy.orm import Session
+
+from ... import crud, schemas
+from .book_metadata_client import BookMetadataClient
+
+
+# --------------------------------------------------------------------------
+# External metadata (ISBN / title lookup)
+# --------------------------------------------------------------------------
+def lookup_book_metadata_by_isbn(isbn: str) -> dict[str, Any]:
+    """
+    Resolve ISBN to Title/Author/Summary via Google Books, then Open Library, then Wikipedia.
+    Raises LookupError if no source returns data.
+    """
+    book: dict[str, Any] = {}
+    isbn = isbn.strip()
+    response = 0
+    client = BookMetadataClient()
+
+    try:
+        book, response = client.google_books_by_isbn(isbn)
+        if response is not None and response != 200:
+            print("Google Books API failed with response: ")
+            print(response)
+    except Exception:
+        print("Google Books API failed with response: ")
+        print(response)
+
+    try:
+        if len(book) == 0:
+            book, response = client.open_library_by_isbn(isbn)
+            if response is not None and response != 200:
+                print("Open Library API failed with response: ")
+                print(response)
+    except Exception as e:
+        print("Open Library API failed with response: ")
+        print(e)
+
+    try:
+        if len(book) == 0:
+            book, response = client.open_wiki_by_isbn(isbn)
+            if response != 200:
+                print("Wikipedia API failed with response: ")
+                print(response)
+    except Exception as e:
+        print("Wikipedia API failed with response: ")
+        print(e)
+
+    if len(book) == 0:
+        raise LookupError(f"Book with isbn {isbn} not found!")
+    return book
+
+
+# --------------------------------------------------------------------------
+# Form → schema (book fields)
+# --------------------------------------------------------------------------
+def book_create_from_form(form) -> schemas.BookCreate:
+    return schemas.BookCreate(
+        title=form.title,
+        author=form.author,
+        summary=form.summary,
+        genre=form.genre,
+        library=form.library,
+        shelf=form.shelf,
+        collection=form.collection,
+        notes=form.notes,
+        ISBN=form.ISBN,
+        owned=form.owned,
+        ebook=form.ebook,
+        customField1=form.customField1,
+        customField2=form.customField2,
+        withdrawn=form.withdrawn,
+    )
+
+
+def book_update_from_form(book_id, form) -> schemas.Book:
+    return schemas.Book(
+        id=book_id,
+        title=form.title,
+        author=form.author,
+        summary=form.summary,
+        genre=form.genre,
+        library=form.library,
+        shelf=form.shelf,
+        collection=form.collection,
+        notes=form.notes,
+        ISBN=form.ISBN,
+        owned=form.owned,
+        ebook=form.ebook,
+        customField1=form.customField1,
+        customField2=form.customField2,
+        withdrawn=form.withdrawn,
+    )
+
+
+# --------------------------------------------------------------------------
+# Search serialization
+# --------------------------------------------------------------------------
+def search_books_json(db: Session, title: str, author: str, skip: int, only_ebooks: bool, no_ebooks: bool) -> str | None:
+    from fastapi.encoders import jsonable_encoder
+
+    try:
+        books = crud.searchBooks(db, str(title), str(author), int(
+            skip), bool(only_ebooks), bool(no_ebooks))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data: dict[str, Any] = {"result": result, "count": books[1]}
+        return json.dumps(jsonable_encoder(data))
+    except Exception as e:
+        print(e)
+        return None
+
+
+def search_books_by_author_json(
+    db: Session, author: str, skip: int, only_ebooks: bool, no_ebooks: bool
+) -> str | None:
+    from fastapi.encoders import jsonable_encoder
+
+    try:
+        books = jsonable_encoder(crud.searchBooksbyAuthor(
+            db, str(author), int(skip), bool(only_ebooks), bool(no_ebooks)))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data: dict[str, Any] = {"result": result, "count": books[1]}
+        return json.dumps(jsonable_encoder(data))
+    except Exception as e:
+        print(e)
+        return None
+
+
+def search_books_by_title_json(
+    db: Session, title: str, skip: int, only_ebooks: bool, no_ebooks: bool
+) -> str | None:
+    from fastapi.encoders import jsonable_encoder
+
+    try:
+        books = jsonable_encoder(crud.searchBooksbyTitle(
+            db, str(title), int(skip), bool(only_ebooks), bool(no_ebooks)))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data: dict[str, Any] = {"result": result, "count": books[1]}
+        return json.dumps(jsonable_encoder(data))
+    except Exception as e:
+        print(e)
+        return None
+
+
+def book_create_from_isbn_metadata(book: dict[str, Any], isbn: str) -> schemas.BookCreate:
+    return schemas.BookCreate(
+        title=book["Title"],
+        author=book["Author"],
+        summary=book["Summary"],
+        ISBN=isbn,
+    )
