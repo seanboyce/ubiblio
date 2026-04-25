@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+from ubiblio.dependencies.auth import admin_user
+
 from ... import crud, schemas
 from ...database import SessionLocal
 from ...dependencies import (
@@ -18,20 +20,17 @@ router = APIRouter()
 # Book CRUD endpoints
 # --------------------------------------------------------------------------
 @router.get("/add_book", dependencies=[get_rate_limiter(times=3, seconds=2)], response_class=HTMLResponse)
-def add_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def add_book_form(request: Request, user: admin_user):
     try:
-        if user.isAdmin == True:
-            db = SessionLocal()
-            config = crud.getConfig(db)
-            db.close()
-            context = {
-                "config": config,
-                "user": user,
-                "request": request,
-            }
-            return templates.TemplateResponse(request, "newBook.html", context)
-        if user.isAdmin != True:
-            return "You are not authorized to add books. Only an admin can do this."
+        db = SessionLocal()
+        config = crud.getConfig(db)
+        db.close()
+        context = {
+            "config": config,
+            "user": user,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "newBook.html", context)
     except Exception as e:
         print(e)
         return "An error has occured."

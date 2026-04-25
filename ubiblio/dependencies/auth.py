@@ -148,7 +148,10 @@ def login_for_access_token(response, form_data):
     return {settings.COOKIE_NAME: access_token, "token_type": "bearer"}
 
 
-def get_admin_user(user: authenticate_user):
+current_user = Annotated[schemas.User, Depends(get_current_user_from_token)]
+
+
+def get_admin_user(user: current_user):
     if not user.isAdmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -157,6 +160,4 @@ def get_admin_user(user: authenticate_user):
     return user
 
 
-authenticate_user = Annotated[schemas.User,
-                              Depends(get_current_user_from_token)]
 admin_user = Annotated[schemas.User, Depends(get_admin_user)]
