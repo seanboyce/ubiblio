@@ -1,17 +1,10 @@
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from ubiblio.dependencies.auth import admin_user
-
+from . import service
 from ... import crud, schemas
 from ...database import SessionLocal
-from ...dependencies import (
-    get_rate_limiter,
-    templates,
-    get_current_user_from_token,
-    bookForm,
-)
-from . import service
+from ...dependencies import admin_user, bookForm, current_user, get_rate_limiter, templates
 
 router = APIRouter()
 
@@ -37,9 +30,7 @@ def add_book_form(request: Request, user: admin_user):
 
 
 @router.post("/add_book", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def add_book_post(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if not user.isAdmin == True:
-        return "You are not authorized to add books. Only an admin can do this."
+async def add_book_post(request: Request, user: admin_user):
     form = bookForm(request)
     await form.load_data()
     if await form.is_valid():
@@ -55,18 +46,15 @@ async def add_book_post(request: Request, user: schemas.User = Depends(get_curre
 
 
 @router.get("/delete_book/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
-async def delete_book(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if user.isAdmin == True:
-        db = SessionLocal()
-        crud.deleteBook(db, bookId)
-        db.close()
-        return RedirectResponse(url="/searchbooks/")
-    if not user.isAdmin == True:
-        return "You are not authorized to delete books. Only an admin can do this."
+async def delete_book(bookId, request: Request, user: admin_user):
+    db = SessionLocal()
+    crud.deleteBook(db, bookId)
+    db.close()
+    return RedirectResponse(url="/searchbooks/")
 
 
 @router.get("/bookDetails/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
-async def book_details(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def book_details(bookId, request: Request, user: current_user):
     if user:
         db = SessionLocal()
         config = crud.getConfig(db)
@@ -93,9 +81,7 @@ async def book_details(bookId, request: Request, user: schemas.User = Depends(ge
 
 
 @router.post("/update_book/{bookId}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
-async def update_book(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if not user.isAdmin == True:
-        return "You are not authorized to update books. Only an admin can do this."
+async def update_book(bookId, request: Request, user: admin_user):
     form = bookForm(request)
     await form.load_data()
     if await form.is_valid():
@@ -112,42 +98,36 @@ async def update_book(bookId, request: Request, user: schemas.User = Depends(get
 
 
 @router.get("/update_book/{bookId}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-def update_book_form(bookId, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def update_book_form(bookId, request: Request, user: admin_user):
     try:
-        if user.isAdmin == True:
-            db = SessionLocal()
-            config = crud.getConfig(db)
-            book = crud.getBookById(db, bookId)
-            db.close()
-            context = {
-                "config": config,
-                "user": user,
-                "book": book,
-                "request": request,
-            }
-            return templates.TemplateResponse(request, "updateBook.html", context)
-        if not user.isAdmin == True:
-            return "You are not authorized to update books. Only an admin can do this."
+        db = SessionLocal()
+        config = crud.getConfig(db)
+        book = crud.getBookById(db, bookId)
+        db.close()
+        context = {
+            "config": config,
+            "user": user,
+            "book": book,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "updateBook.html", context)
     except Exception as e:
         print(e)
         return "An error has occured."
 
 
 @router.get("/scan_isbn", dependencies=[get_rate_limiter(times=3, seconds=2)], response_class=HTMLResponse)
-def scan_book_form(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def scan_book_form(request: Request, user: schemas.User = admin_user):
     try:
-        if user.isAdmin:
-            db = SessionLocal()
-            config = crud.getConfig(db)
-            db.close()
-            context = {
-                "config": config,
-                "user": user,
-                "request": request,
-            }
-            return templates.TemplateResponse(request, "scanIsbn.html", context)
-        if not user.isAdmin:
-            return "You are not authorized to add books. Only an admin can do this."
+        db = SessionLocal()
+        config = crud.getConfig(db)
+        db.close()
+        context = {
+            "config": config,
+            "user": user,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "scanIsbn.html", context)
     except Exception as e:
         print(e)
         return "An error has occured."
@@ -157,7 +137,7 @@ def scan_book_form(request: Request, user: schemas.User = Depends(get_current_us
 # Search
 # --------------------------------------------------------------------------
 @router.get("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=2)], response_class=HTMLResponse)
-def search_book_get(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def search_book_get(request: Request, user: current_user):
     data = []
     context = {
         "request": request,
@@ -169,14 +149,13 @@ def search_book_get(request: Request, user: schemas.User = Depends(get_current_u
 
 @router.post("/searchbooks", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def search_books(
-    request: Request,
-    user: schemas.User = Depends(get_current_user_from_token),
-    title: str = "%",
-    author: str = "%",
-    skip: int = "%",
-    onlyEbooks: bool = "%",
-    noEbooks: bool = "%",
-):
+        request: Request,
+        user: schemas.User = current_user,
+        title: str = "%",
+        author: str = "%",
+        skip: int = "%",
+        onlyEbooks: bool = "%",
+        noEbooks: bool = "%"):
     db = SessionLocal()
     try:
         return service.search_books_json(db, str(title), str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
@@ -187,7 +166,7 @@ def search_books(
 @router.post("/searchBooksByAuthor", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def search_book_author(
     request: Request,
-    user: schemas.User = Depends(get_current_user_from_token),
+    user: current_user,
     author: str = "%",
     skip: int = 0,
     onlyEbooks: bool = "%",
@@ -195,7 +174,8 @@ def search_book_author(
 ):
     db = SessionLocal()
     try:
-        out = service.search_books_by_author_json(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
+        out = service.search_books_by_author_json(
+            db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
         if out is None:
             return "An error has occured."
         return out
@@ -206,7 +186,7 @@ def search_book_author(
 @router.post("/searchBooksByTitle", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 def search_book_title(
     request: Request,
-    user: schemas.User = Depends(get_current_user_from_token),
+    user: current_user,
     title: str = "%",
     skip: int = 0,
     onlyEbooks: bool = "%",
@@ -214,7 +194,8 @@ def search_book_title(
 ):
     db = SessionLocal()
     try:
-        out = service.search_books_by_title_json(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks))
+        out = service.search_books_by_title_json(
+            db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks))
         if out is None:
             return "An error has occured."
         return out
@@ -226,25 +207,23 @@ def search_book_title(
 # ISBN autoadd
 # --------------------------------------------------------------------------
 @router.get("/isbn/{isbn}/{method}", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-def new_isbn(isbn, method, response: Response, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+def new_isbn(isbn, method, response: Response, request: Request, user: admin_user):
     try:
-        if user.isAdmin == True:
-            book = service.lookup_book_metadata_by_isbn(isbn)
-            add_isbn = [0]
-            book_schema = service.book_create_from_isbn_metadata(book, isbn.strip())
-            db = SessionLocal()
-            config = crud.getConfig(db)
-            db.close()
-            context = {
-                "config": config,
-                "user": user,
-                "addISBN": add_isbn,
-                "book": book_schema,
-                "request": request,
-            }
-            return templates.TemplateResponse(request, "newBook.html", context)
-        if not user.isAdmin == True:
-            return "You are not authorized to update books. Only an admin can do this."
+        book = service.lookup_book_metadata_by_isbn(isbn)
+        add_isbn = [0]
+        book_schema = service.book_create_from_isbn_metadata(
+            book, isbn.strip())
+        db = SessionLocal()
+        config = crud.getConfig(db)
+        db.close()
+        context = {
+            "config": config,
+            "user": user,
+            "addISBN": add_isbn,
+            "book": book_schema,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "newBook.html", context)
     except Exception:
         errors = ["ISBN " + str(isbn) + " not found -- try another."]
         context = {
@@ -259,60 +238,51 @@ def new_isbn(isbn, method, response: Response, request: Request, user: schemas.U
 
 
 @router.get("/addisbn", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-async def add_isbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if user.isAdmin == True:
+async def add_isbn(request: Request, user: admin_user):
+    context = {
+        "user": user,
+        "request": request,
+    }
+    return templates.TemplateResponse(request, "addisbn.html", context)
+
+
+@router.post("/addanotherisbn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
+async def add_another_isbn(request: Request, user: admin_user):
+    form = bookForm(request)
+    await form.load_data()
+    if await form.is_valid():
+        db = SessionLocal()
+        new_book = service.book_create_from_form(form)
+        crud.createBook(db, new_book)
+        db.close()
         context = {
             "user": user,
             "request": request,
         }
-        return templates.TemplateResponse(request, "addisbn.html", context)
-    if not user.isAdmin == True:
-        return "You are not authorized to add books. Only an admin can do this."
-
-
-@router.post("/addanotherisbn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def add_another_isbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if user.isAdmin == True:
-        form = bookForm(request)
-        await form.load_data()
-        if await form.is_valid():
-            db = SessionLocal()
-            new_book = service.book_create_from_form(form)
-            crud.createBook(db, new_book)
-            db.close()
-            context = {
-                "user": user,
-                "request": request,
-            }
-        return templates.TemplateResponse(request, "addisbn.html", context)
-    if not user.isAdmin == True:
-        return "You are not authorized to add books. Only an admin can do this."
+    return templates.TemplateResponse(request, "addisbn.html", context)
 
 
 @router.post("/scananotherisbn", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def scan_another_isbn(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    if user.isAdmin:
-        form = bookForm(request)
-        await form.load_data()
-        if await form.is_valid():
-            db = SessionLocal()
-            new_book = service.book_create_from_form(form)
-            crud.createBook(db, new_book)
-            db.close()
-            context = {
-                "user": user,
-                "request": request,
-            }
-        return templates.TemplateResponse(request, "scanIsbn.html", context)
-    if not user.isAdmin:
-        return "You are not authorized to add books. Only an admin can do this."
+async def scan_another_isbn(request: Request, user: admin_user):
+    form = bookForm(request)
+    await form.load_data()
+    if await form.is_valid():
+        db = SessionLocal()
+        new_book = service.book_create_from_form(form)
+        crud.createBook(db, new_book)
+        db.close()
+        context = {
+            "user": user,
+            "request": request,
+        }
+    return templates.TemplateResponse(request, "scanIsbn.html", context)
 
 
 # --------------------------------------------------------------------------
 # Browse by Genre
 # --------------------------------------------------------------------------
 @router.get("/booksByGenre/{genre}", dependencies=[get_rate_limiter(times=12, seconds=2)], response_class=HTMLResponse)
-async def books_by_genre(genre, request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def books_by_genre(genre, request: Request, user: current_user):
     if user:
         db = SessionLocal()
         books = crud.browseBooksByGenre(db, genre)
@@ -328,7 +298,7 @@ async def books_by_genre(genre, request: Request, user: schemas.User = Depends(g
 
 
 @router.get("/genre/", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def book_genres(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def book_genres(request: Request, user: current_user):
     if user:
         db = SessionLocal()
         genres = crud.getGenres(db)
