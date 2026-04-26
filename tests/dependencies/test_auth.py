@@ -18,4 +18,4 @@ class TestGetAdminUser:
             with pytest.raises(HTTPException) as exc_info:
                 get_admin_user(user)
         assert exc_info.value.status_code == 403
-        assert exc_info.value.detail == "You are not authorized to add books. Only an admin can do this."
+        assert exc_info.value.detail == "Only an admin can perform this action."

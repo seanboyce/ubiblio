@@ -155,7 +155,7 @@ def get_admin_user(user: current_user):
     if not user.isAdmin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not authorized to add books. Only an admin can do this."
+            detail="Only an admin can perform this action."
         )
     return user
 
