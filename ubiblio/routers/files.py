@@ -88,13 +88,15 @@ def delete_image(request: Request, imageId: int, user: admin_user):
 # E-book handling
 # --------------------------------------------------------------------------
 @router.get("/downloadEbook/{filename}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-def download_ebook(request: Request, filename: str, user: admin_user):
+def download_ebook(request: Request, filename: str, user: current_user):
     try:
         if user:
             path = ('static/eBooks/' + filename)
+            if not os.path.isfile(path):
+                raise FileNotFoundError(path)
             return FileResponse(path, media_type='application/octet-stream', filename=filename)
-    except:
-        return "Only admins can download backups."
+    except Exception:
+        return "Failed to download ebook."
 
 
 @router.get("/deleteEbook/{ebookId}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
