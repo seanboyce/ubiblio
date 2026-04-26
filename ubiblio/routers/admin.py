@@ -211,8 +211,11 @@ async def add_csv(filename, request: Request, user: admin_user):
 
 @router.get("/downloadBackup/{filename}", dependencies=[get_rate_limiter(times=1, seconds=10)], response_class=HTMLResponse)
 async def download_backup(filename, request: Request, user: admin_user):
-    path = 'export/' + filename
-    return FileResponse(path, media_type='application/octet-stream', filename=filename)
+    try:
+        path = 'export/' + filename
+        return FileResponse(path, media_type='application/octet-stream', filename=filename)
+    except Exception as e:
+        return "File download failed (Exception: " + str(e) + ")"
 
 
 @router.post("/uploadBackup/")
