@@ -1,16 +1,21 @@
-from fastapi import APIRouter, Depends, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.encoders import jsonable_encoder
 import json
-from ecdsa import SigningKey, VerifyingKey, SECP256k1, BadSignatureError
+from typing import final
+
+from ecdsa import BadSignatureError, SECP256k1, SigningKey, VerifyingKey
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from .. import crud, schemas
 from ..database import SessionLocal
 from ..dependencies import (
-    get_rate_limiter, templates,
-    get_current_user_from_token, get_body,
+    admin_user,
+    current_user,
+    get_body,
+    get_rate_limiter,
+    templates,
 )
-from ..vars import VERIFY_KEY, SIGNING_KEY
+from ..vars import SIGNING_KEY, VERIFY_KEY
 
 router = APIRouter()
 
@@ -24,7 +29,7 @@ async def verify_key_endpoint(request: Request):
 
 
 @router.post("/signsearch", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
-async def signsearch(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
+async def signsearch(user: current_user, body: bytes = Depends(get_body)):
     try:
         data = {}
         body = json.loads(body)
@@ -39,9 +44,9 @@ async def signsearch(body: bytes = Depends(get_body), user: schemas.User = Depen
 
 
 @router.get("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
-async def fed_search_page(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def fed_search_page(request: Request, user: current_user):
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         vkeys = crud.getAllVkeys(db)
         context = {
             "user": user,
@@ -51,13 +56,15 @@ async def fed_search_page(request: Request, user: schemas.User = Depends(get_cur
         return templates.TemplateResponse(request, "fedsearch.html", context)
     except:
         return "FAIL"
+    finally:
+        db.close()
 
 
 @router.post("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def fed_search_books(body: bytes = Depends(get_body)):
+    db = SessionLocal()
     try:
         signedRequest = json.loads(body)
-        db = SessionLocal()
         assert crud.haveKey(db, signedRequest["vkey"])
         sig = bytearray.fromhex(signedRequest["signature"])
         message = json.dumps(signedRequest["message"])
@@ -68,13 +75,11 @@ async def fed_search_books(body: bytes = Depends(get_body)):
         onlyEbooks = signedRequest["message"]["onlyEbooks"]
         noEbooks = signedRequest["message"]["noEbooks"]
         skip = signedRequest["message"]["skip"]
-        db = SessionLocal()
         books = crud.searchBooks(db, str(title), str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
         data['result'] = result
         data['count'] = books[1]
-        db.close()
         return json.dumps(jsonable_encoder(data))
     except BadSignatureError:
         return "Signature verification failed"
@@ -85,9 +90,9 @@ async def fed_search_books(body: bytes = Depends(get_body)):
 
 
 @router.get("/fedBookDetails/{bookId}/{vkeyId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
-async def get_fed_book_details(request: Request, bookId: int, vkeyId: int, user: schemas.User = Depends(get_current_user_from_token)):
+async def get_fed_book_details(request: Request, bookId: int, vkeyId: int, user: current_user):
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         vkey = crud.getVkeyById(db, vkeyId)
         context = {
             "user": user,
@@ -98,22 +103,22 @@ async def get_fed_book_details(request: Request, bookId: int, vkeyId: int, user:
         return templates.TemplateResponse(request, "fedBookDetails.html", context)
     except:
         return "FAIL"
+    finally:
+        db.close()
 
 
 @router.post("/fedBookDetails/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def fed_book_details(body: bytes = Depends(get_body)):
+    db = SessionLocal()
     try:
         signedRequest = json.loads(body)
-        db = SessionLocal()
         assert crud.haveKey(db, signedRequest["vkey"])
         sig = bytearray.fromhex(signedRequest["signature"])
         message = json.dumps(signedRequest["message"])
         bytesMessage = bytearray(message, "utf-8")
         assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage)
         bookId = signedRequest["message"]["bookId"]
-        db = SessionLocal()
         book = crud.getBookById(db, int(bookId))
-        db.close()
         return json.dumps(jsonable_encoder(book))
     except BadSignatureError:
         return "Signature verification failed"
@@ -124,94 +129,77 @@ async def fed_book_details(body: bytes = Depends(get_body)):
 
 
 @router.get("/manageVkeys", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-async def manage_vkeys(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
+async def manage_vkeys(request: Request, user: admin_user):
+    db = SessionLocal()
     try:
-        if user.isAdmin == True:
-            db = SessionLocal()
-            vkeys = crud.getAllVkeys(db)
-            print(vkeys)
-            context = {
-                "vkeys": vkeys,
-                "user": user,
-                "request": request
-            }
-            return templates.TemplateResponse(request, "vkeyManagement.html", context)
-        else:
-            return "Only an admin can manage verification keys."
+        vkeys = crud.getAllVkeys(db)
+        context = {
+            "vkeys": vkeys,
+            "user": user,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "vkeyManagement.html", context)
     except Exception as e:
         print(e)
-        return "Only an admin can manage verification keys."
+        return "Could not load verification keys."
     finally:
         db.close()
 
 
 @router.get("/deleteVkey/{vkey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-async def delete_vkey(request: Request, vkey: int, user: schemas.User = Depends(get_current_user_from_token)):
+async def delete_vkey(request: Request, vkey: int, user: admin_user):
+    db = SessionLocal()
     try:
-        if user.isAdmin == True:
-            db = SessionLocal()
-            vkeys = crud.deleteVkey(db, vkey)
-            return RedirectResponse(url='/manageVkeys')
-        else:
-            return "Only an admin can delete verification keys."
+        crud.deleteVkey(db, vkey)
+        return RedirectResponse(url='/manageVkeys')
     except Exception as e:
-        return "Only an admin can delete verification keys."
+        print(e)
+        return "Could not delete verification key."
     finally:
         db.close()
 
 
 @router.get("/newVkey/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
-async def new_vkey_page(request: Request, user: schemas.User = Depends(get_current_user_from_token)):
-    try:
-        if user.isAdmin == True:
-            context = {
-                "user": user,
-                "request": request
-            }
-            return templates.TemplateResponse(request, "newVkey.html", context)
-        else:
-            return "Only an admin can add new verification keys."
-    except Exception as e:
-        print(e)
-        return "Only an admin can add new verification keys."
+async def new_vkey_page(request: Request, user: admin_user):
+    context = {
+        "user": user,
+        "request": request,
+    }
+    return templates.TemplateResponse(request, "newVkey.html", context)
 
 
 @router.post("/addVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def add_vkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
-    if not user.isAdmin == True:
-        return "You are not authorized to add validation keys. Only an admin can do this."
+async def add_vkey(user: admin_user, body: bytes = Depends(get_body)):
     body = json.loads(body)
+    db = SessionLocal()
     try:
-        if body["url"][-1] != "/":
+        if not body["url"].endswith("/"):
             body["url"] = body["url"] + "/"
-        if len(body["vkey"]) == 128:
-            db = SessionLocal()
-            newVkey = schemas.vkeyBase(vkey=body["vkey"], url=body["url"])
-            crud.addVkey(db, newVkey)
-            return RedirectResponse(url='/manageVkeys/', status_code=status.HTTP_303_SEE_OTHER)
-        else:
+        if len(body["vkey"]) != 128:
             return "FAIL"
-            db.close()
+        newVkey = schemas.vkeyBase(vkey=body["vkey"], url=body["url"])
+        crud.addVkey(db, newVkey)
+        return RedirectResponse(url='/manageVkeys/', status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
         print(e)
         return "Fail"
+    finally:
+        db.close()
 
 
 @router.post("/refreshVkey", dependencies=[get_rate_limiter(times=2, seconds=2)], response_class=HTMLResponse)
-async def refresh_vkey(body: bytes = Depends(get_body), user: schemas.User = Depends(get_current_user_from_token)):
-    if not user.isAdmin == True:
-        return "You are not authorized to refresh validation keys. Only an admin can do this."
+async def refresh_vkey(user: admin_user, body: bytes = Depends(get_body)):
     body = json.loads(body)
+    db = SessionLocal()
     try:
-        if len(body["vkey"]) == 128:
-            db = SessionLocal()
-            vkey = crud.getVkeyById(db, body["id"])
-            vkey.vkey = str(body["vkey"])
-            crud.updateVkey(db, vkey)
-            return RedirectResponse(url='/manageVkeys/', status_code=status.HTTP_303_SEE_OTHER)
-        else:
+        if len(body["vkey"]) != 128:
             return "FAIL"
-            db.close()
+        vkey = crud.getVkeyById(db, body["id"])
+        vkey.vkey = str(body["vkey"])
+        crud.updateVkey(db, vkey)
+        return RedirectResponse(url='/manageVkeys/', status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
         print(e)
         return "Fail"
+    finally:
+        db.close()

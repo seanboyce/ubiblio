@@ -55,6 +55,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
+
 # Translations
 *.mo
 *.pot
@@ -64,6 +65,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+sql_app.db
 
 # Flask stuff:
 instance/
@@ -196,3 +198,5 @@ pyrightconfig.json
 
 config/
 secret_key.txt
+sign_key.txt
+verify_key.txt
