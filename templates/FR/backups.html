@@ -6,7 +6,7 @@
 <div style="display:block; clear:both; float:none;">
 <h3><strong><u>Gestion des Backups</strong></u></h3>
 
-	<a style="border:none; margin-right:25px;margin-right:25px;" href="/export"><button>Backup Now</button></a>
+	<a style="border:none; margin-right:25px;margin-right:25px;" href="/export"><button>Backup Maintenant</button></a>
 <hr>
 	<h3><strong><u>Restaurer depuis un backup</strong></u></h3>
 	
@@ -53,11 +53,11 @@
 		</div>
 <hr>
 
-	<h3><strong><u>Book List Exports</u></strong></h3>
-	<p>These are lists of books only -- for example if you want to move a bunch of books from one uBiblio library to another. Or if you just want a CSV file of your books that you can open with other appliations.</p>
-	<a style="border:none; margin-right:25px;margin-right:25px;" href="/exportcsv"><button>Create CSV</button></a>
+	<h3><strong><u>Exportation de la Liste de Livres</u></strong></h3>
+	<p>Il s'agit de listes de livres uniquement ; par exemple, si vous souhaitez transférer plusieurs livres d'une bibliothèque uBiblio à une autre. Ou si vous souhaitez simplement un fichier CSV de vos livres que vous pourrez ouvrir avec d'autres applications.</p>
+	<a style="border:none; margin-right:25px;margin-right:25px;" href="/exportcsv"><button>Créer CSV</button></a>
 	
-	<p><br>Restoring from one of these files will <strong>NOT</strong> wipe the current database first. It will add all the books from the file to the current database. Generally it is a good idea to backup the database before attempting this.</p>
+	<p><br>La restauration à partir de l'un de ces fichiers <strong>n'effacera pas</strong> la base de données actuelle. Elle ajoutera tous les livres du fichier à la base de données actuelle. Il est généralement conseillé de sauvegarder la base de données avant de procéder à cette opération.</p>
 <table>
     <thead class="visible@l">
       <tr>
@@ -67,24 +67,24 @@
     </thead>
     <tbody id = "tablebody">	
 		{% for bookexport in bookExports %}
-		<tr><td>{{ bookexport }}</td><td><a class="confirm" style="border:none;" href="/addByCSV/{{ bookexport }}" onclick="if (!confirm('This will add the books in this file to the database. Are you sure?')) return false;">Add to DB</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ bookexport }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ bookexport }}" >Download</a></td>
+		<tr><td>{{ bookexport }}</td><td><a class="confirm" style="border:none;" href="/addByCSV/{{ bookexport }}" onclick="if (!confirm('This will add the books in this file to the database. Are you sure?')) return false;">Add to DB</a> | <a class="confirm" style="border:none;" href="/deleteBackup/{{ bookexport }}" onclick="if (!confirm('This will delete this book export. Are you sure?')) return false;">Delete</a> | <a class="confirm" style="border:none;" href="/downloadBackup/{{ bookexport }}" >Télécharger</a></td>
 	
 {% endfor %}	
 			 </tbody>
   </table>
 <hr>
-		<h3><strong><u>Upload a Backup</u></strong></h3>
-		<p>This will accept database backups, file backups, and book list exports, so you can use this to merge libraries, move to a new server, or move to a newer version of the application.</p>
+		<h3><strong><u>Téléverser une Backup</u></strong></h3>
+		<p>Cette fonction accepte les backups de bases de données, les backups de fichiers et les exportations de listes de livres. Vous pouvez donc l'utiliser pour fusionner des bibliothèques, migrer vers un nouveau serveur ou passer à une version plus récente de l'application.</p>
 <div style="display:block; clear:both; float:none;">
 	<form action="/uploadBackup/" method="post" enctype="multipart/form-data">
         <!-- File input field -->
-        <label for="file">Upload a backup: </label>
+        <label for="file">Téléverser une backup: </label>
         <input type="file" id="file" name="file" required>
  
         <br><br>
          
         <!-- Submit button -->
-        <input type="submit" value="Upload">
+        <input type="submit" value="Téléverser">
     </form>
 </div>
 
