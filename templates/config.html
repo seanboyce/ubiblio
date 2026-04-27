@@ -6,7 +6,7 @@
 	<section id="two">
 		<div class="inner" style = "padding: 20px 0 1em 0;">
 
-<h1>Update Library Configuration</h1>
+<h1>Update Main Library Configuration</h1>
 
 {% for error in errors %}
     <p style="color: red">{{ error }}</p>
@@ -44,9 +44,17 @@
     <input  type="submit" value="Submit">
     
 </form>
-<a style = "border:none;" href = "/backups"> <button>Backup Management</button></a>
-<a style = "border:none;" href = "/stats"> <button>Library Stats</button></a>
 <a style = "border:none;" href = "/"> <button>Back</button></a>
+<div style="margin-top:50px;">
+	<h4><u>Other Settings and Features</u></h4>
+<a style = "border:none;" href = "/userManagement"> <button>User Management</button></a>
+<a style = "border:none;" href = "/backups"> <button>Backup Management</button></a>
+</div>
+<div style="margin-top:50px;">
+<a style = "border:none;" href = "/stats"> <button>Library Stats</button></a>
+<a style = "border:none;" href = "/manageVkeys"> <button>Federation</button></a>
+
+	</div>
     </div>
 
 <hr>
