@@ -404,8 +404,8 @@ async def api_search_books(
 @router.get("/api/searchByTitleOrAuthor", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def api_search_books(
     key: str,                 # Required (api key)
-    title: str,
-    author: str,
+    title: str, # Required
+    author: str, # Required
     onlyEbooks: bool = False,
     noEbooks: bool = False,
     skip: int = 0        
