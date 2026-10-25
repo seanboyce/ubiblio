@@ -1,6 +1,6 @@
 import json
 from typing import Any
-
+from datetime import datetime
 from sqlalchemy.orm import Session
 
 from ... import crud, schemas
@@ -73,6 +73,7 @@ def book_create_from_form(form) -> schemas.BookCreate:
         customField1=form.customField1,
         customField2=form.customField2,
         withdrawn=form.withdrawn,
+        addedTime= datetime.now(),
     )
 
 

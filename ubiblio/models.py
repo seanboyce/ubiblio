@@ -3,13 +3,17 @@ from sqlalchemy.orm import relationship
 from .database import Base
 from sqlalchemy.sql import func
 
+class apiKeys(Base):
+    __tablename__ = "apiKeys"
+    id = Column(String, primary_key=True, nullable=False)
+    userID = Column(Integer, ForeignKey("users.id"), nullable=False)
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     username = Column(String, unique=True, index=True)
     passhash = Column(String)
     isAdmin = Column(Boolean, default=False)
-
 class Book(Base):
     __tablename__ = "books"
     id = Column(Integer, primary_key=True)
@@ -28,6 +32,7 @@ class Book(Base):
     customField1 = Column(String, nullable=True)
     customField2 = Column(String, nullable=True)
     ebook = Column(Boolean,nullable=True, default=False)
+    addedTime = Column(DateTime(timezone=True), server_default=func.now())
 
 class readingListItems(Base):
     __tablename__ = "readinglistitems"
@@ -49,6 +54,7 @@ class config(Base):
     customFieldName1 = Column(String, nullable=True)
     customFieldName2 = Column(String, nullable=True)
     genres = Column(String)
+    enableAPI = Column(Boolean)
 
 class ebook(Base):
     __tablename__ = "ebooks"

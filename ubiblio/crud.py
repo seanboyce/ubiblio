@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.sql import func
 from passlib.handlers.sha2_crypt import sha512_crypt as crypto
+from passlib.hash import pbkdf2_sha256
 from . import models, schemas
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -10,7 +11,6 @@ import csv
 from .vars import *
 from os import remove, path
 import uuid
-
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
@@ -296,7 +296,6 @@ def addCSV(filename):
     with open(filename,'r') as booksCSV: 
         books = csv.DictReader(booksCSV, fieldnames=['id','title','author','summary','genre','library','shelf','collection','ISBN','notes','owned','withdrawn']) 
         addBooks = [(i['title'], i['author'], i['summary'], i['genre'], i['library'], i['shelf'], i['collection'], i['ISBN'], i['notes'], i['owned'], i['withdrawn']) for i in books]
-        print(type(addBooks))
     conn = sqlite3.connect(DB_LOCATION)
     cur = conn.cursor()
     cur.executemany("INSERT INTO books (title, author, summary, genre, library, shelf, collection, ISBN, notes, owned, withdrawn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", addBooks)
@@ -337,6 +336,18 @@ def updateDBVersion(db: Session, version):
         cursor = conn.execute('ALTER TABLE config ADD COLUMN genres VARCHAR;')
         cursor = conn.execute('UPDATE config SET genres = ? where id = 1;',(",".join(schemas.DEFAULT_GENRES),))
         cursor = conn.execute('UPDATE config SET version = ? where id = 1;',("1.0.1",))
+        conn.commit()
+        conn.close()
+    elif version =="1.0.1":
+        conn = sqlite3.connect(DB_LOCATION)
+        #Version 1.0.1->1.0.2: We add an api_enabled flag to config, and a "date added" field to books. Will only work for books added after the update. We also add the table for API keys if it doesn't exist.
+        cursor = conn.execute('ALTER TABLE config ADD COLUMN enableAPI BOOL;')
+        cursor = conn.execute('ALTER TABLE books ADD COLUMN addedTime DATETIME;')
+        cursor = conn.execute('UPDATE books SET addedTime = CURRENT_TIMESTAMP;')
+        cursor = conn.execute('create table if not exists apiKeys (id STRING PRIMARY KEY, FOREIGN KEY (userID) REFERENCES users(id));')
+        cursor = conn.execute('UPDATE config SET enableAPI = False WHERE id = 1;')
+        cursor = conn.execute('UPDATE books SET ebook = False WHERE ebook IS NULL;') # When I added ebook support, all previous books had ebook set to NULL which was incorrect, this will fix that.
+        cursor = conn.execute('UPDATE config SET version = "1.0.2" WHERE id = 1;')
         conn.commit()
         conn.close()
     return
@@ -550,13 +561,17 @@ def demoteUser(db: Session, userId: int):
         return False
 
 def deleteUser(db: Session, userId: int):
-    try:
-        user = db.query(models.User).filter(models.User.id == userId).first()
-        db.delete(user)
+   # try:
+    apikey_result = db.query(models.apiKeys).filter(models.apiKeys.userID==userId).first()
+    if apikey_result is not None:
+        db.delete(apikey_result)
         db.commit()
-        return True
-    except:
-        return False  
+    user = db.query(models.User).filter(models.User.id == userId).first()
+    db.delete(user)
+    db.commit()
+    return True
+    #except:
+    #    return False  
         
 def haveKey(db: Session, key: str):
     try:
@@ -625,6 +640,39 @@ def stats(db: Session, isSum, group, target):
     else:
         results = db.query(getattr(models.Book, target), func.count()).group_by(getattr(models.Book, group)).all()          
         return dict(results)
+        
+        
+def resetMyAPIKey(db: Session, userId: int):
+    myAPIKey = db.query(models.apiKeys).filter(models.apiKeys.userID == userId).first()
+    if myAPIKey is not None:
+        db.delete(myAPIKey)
+        db.commit()
+    myAPIKey = str(uuid.uuid4())
+    apiHash = pbkdf2_sha256.hash(myAPIKey.encode(),rounds=7000, salt=b'28f36ff7-9434-4c4f-a193-f94561074f9d')
+    db_apiKey = models.apiKeys(id=apiHash, userID = userId)
+    db.add(db_apiKey)
+    db.commit()
+    db.refresh(db_apiKey)
+    return myAPIKey    
+
+def checkAPIKey(db: Session, key: str):
+    try:
+        apiHash = pbkdf2_sha256.hash(key.encode(),rounds=7000, salt=b'28f36ff7-9434-4c4f-a193-f94561074f9d')
+        result = db.query(models.apiKeys).filter(models.apiKeys.id==apiHash)
+        assert db.query(result.exists()).scalar()
+        return True
+    except Exception as e:
+        return False  
+
+def getRandomBook(db: Session):
+    try:
+        random = select(models.Book).order_by(func.random()).limit(1)
+        random_row = db.scalars(random).first()
+        return random_row
+    except Exception as e:
+        print(e)
+        return False
+
         
 #def advancedSearch(db: Session, isSum, group, target):
 #author,title,location, genre

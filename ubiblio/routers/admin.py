@@ -40,7 +40,7 @@ def index(request: Request):
         databaseNotFirstVersion = crud.checkDB()
         if databaseNotFirstVersion == True:
             dbVersion = crud.getVersion()
-            if dbVersion == "1.0.1":
+            if dbVersion == "1.0.2":
                 response = RedirectResponse(url='/searchbooks')
             else:
                 response = RedirectResponse(url='/dbUpdateVersion')
@@ -285,7 +285,7 @@ async def update_config(request: Request, user: admin_user):
         if await form.is_valid():
             db = SessionLocal()
             config = schemas.config(id=1, version=form.version, coverImages=form.coverImages,
-                                    customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres)
+                                    customFieldName1=form.customFieldName1, customFieldName2=form.customFieldName2, genres=form.genres, enableAPI=form.enableAPI)
             crud.updateConfig(db, config)
             config = crud.getConfig(db)
             db.close()
@@ -324,6 +324,18 @@ async def user_promote(request: Request, userId: int, user: admin_user):
     finally:
         db.close()
 
+@router.get("/resetAPI/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
+async def user_promote(request: Request, userId: int, user: admin_user):
+    db = SessionLocal()
+    try:
+        crud.resetMyAPIKey(db, userId)
+        return RedirectResponse(url='/userManagement')
+    except Exception as e:
+        print(e)
+        return "Could not reset this user's API key."
+    finally:
+        db.close()
+
 
 @router.get("/demote/{userId}", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
 async def user_demote(request: Request, userId: int, user: admin_user):
@@ -342,7 +354,7 @@ async def user_demote(request: Request, userId: int, user: admin_user):
 async def user_delete(request: Request, userId: int, user: admin_user):
     db = SessionLocal()
     try:
-        crud.deleteUser(db, userId)
+        crud.deleteUser(db, userId) # This will also delete their API key if it exists
         return RedirectResponse(url='/userManagement')
     except Exception as e:
         print(e)

@@ -6,12 +6,15 @@ DEFAULT_GENRES=[
     "Sci-Fi", "Fantasy", "Classic", "Reference", "Young Adult", "Historical Fiction", "Mystery", "Anthology", "Horror", "Romance", "Animal Fiction"
 ]
 
+class APIBase(BaseModel):
+    id: str
+    userID: int
+
 class UserBase(BaseModel):
     username: str
     isAdmin: bool = Field(default=False)
     model_config = ConfigDict(from_attributes=True)
     
-
 class User(UserBase):
     id: int
     passhash: str
@@ -58,6 +61,7 @@ class BookCreate(BookBase):
     customField1: Optional[str] = Field(default=None)
     customField2: Optional[str] = Field(default=None)
     ebook: Optional[bool] = Field(default=False)
+    addedTime: datetime
 
 class readingListItems(BaseModel):
     id: int
@@ -86,6 +90,7 @@ class config(BaseModel):
     customFieldName2: Optional[str] = Field(default=None)
     genres: str = Field(default=",".join(DEFAULT_GENRES))
     model_config = ConfigDict(from_attributes=True)
+    enableAPI: bool = Field(default=False)
 
 class userEmail(BaseModel):
     id: int

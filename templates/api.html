@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>API Key Management</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+<p>Your API key is: {{ apiKey }}</p>
+
+<p>Copy it and store it somewhere secure, we will not display it to you again (it is not stored in the database).<p>
+<p>If you lose it, you will need to generate a new key. Accessing this page (or reloading it) while logged in will automatically expire your current key and regenerate a new one.<p>		
+
+	</div>				
+</section>
+
+{% endblock %}

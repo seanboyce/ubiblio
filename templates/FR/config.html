@@ -15,7 +15,7 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/config" method="post">
         <p>Version de la Base de Données: {{ config.version }}</p>
-	  <input type="hidden" id="version" name="version" value="1.0.1"> 
+	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
     <p>
         <p><label for="">Activer les images de couverture: </label></p>
 	<select name="coverImages" id="coverImages">
