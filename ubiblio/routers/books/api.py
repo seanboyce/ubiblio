@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from . import service
 from ... import crud, schemas
 from ...database import SessionLocal
-from ...dependencies import admin_user, bookForm, current_user, get_rate_limiter, templates, get_body
+from ...dependencies import admin_user, bookForm, current_user, get_rate_limiter, templates
 import json
 router = APIRouter()
 from fastapi.encoders import jsonable_encoder
