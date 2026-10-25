@@ -105,7 +105,7 @@ class bookForm:
         self.owned = form.get("owned")
         self.withdrawn = form.get("withdrawn")
         self.ebook = form.get("ebook")
-        self.customField2 = form.get("customField2")
+        self.customField1 = form.get("customField1")
         self.customField2 = form.get("customField2")
 
     async def is_valid(self):
