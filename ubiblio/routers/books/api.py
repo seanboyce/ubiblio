@@ -316,7 +316,19 @@ async def book_genres(request: Request, user: current_user):
 # Manage User API Keys
 # --------------------------------------------------------------------------    
 
-# This sets or resets the API key and displays it once. We store only the hash and do constant-time comparison.
+@router.get("/api/", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse) 
+async def resetMyAPI(request: Request, user: current_user):
+    if user:
+        context = {
+            "user": user,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "api_intro.html", context)
+    if not user:
+        return "You are not logged in. Login to reset your API key."
+
+
+# This sets or resets the API key and displays it once. We store only the hash.
 @router.get("/resetMyAPI/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse) 
 async def resetMyAPI(request: Request, user: current_user):
     if user:
@@ -337,20 +349,24 @@ async def api_book_details(bookId, apiKey, request: Request):
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
         book = crud.getBookById(db, int(bookId))
         return json.dumps(jsonable_encoder(book))
     except:
-        return "Invalid API key"
+        return "Invalid API key or API disabled"
         
 @router.get("/api/randomBook/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def api_book_details(apiKey, request: Request):
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
         book = crud.getRandomBook(db)
         return json.dumps(jsonable_encoder(book))
     except:
-        return "Invalid API key"
+        return "Invalid API key or API disabled"
         
 @router.get("/api/searchByAuthor", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def api_search_books(
@@ -363,6 +379,8 @@ async def api_search_books(
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
         books = crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
@@ -370,7 +388,7 @@ async def api_search_books(
         data['count'] = books[1]
         return json.dumps(jsonable_encoder(data))
     except AssertionError:
-        return "Invalid API key"
+        return "Invalid API key or API disabled"
     except:
         return "Invalid request"
     finally:
@@ -387,6 +405,8 @@ async def api_search_books(
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
         books = crud.searchBooksbyTitle(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks))
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
@@ -394,7 +414,7 @@ async def api_search_books(
         data['count'] = books[1]
         return json.dumps(jsonable_encoder(data))
     except AssertionError:
-        return "Invalid API key"
+        return "Invalid API key or API disabled"
     except:
         return "Invalid request"
     finally:
@@ -413,6 +433,8 @@ async def api_search_books(
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
         books = crud.searchBooks(db, str(title), str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
@@ -420,7 +442,7 @@ async def api_search_books(
         data['count'] = books[1]
         return json.dumps(jsonable_encoder(data))
     except AssertionError:
-        return "Invalid API key"
+        return "Invalid API key or API disabled"
     except:
         return "Invalid request"
     finally:

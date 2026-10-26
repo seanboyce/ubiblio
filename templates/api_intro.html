@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>API Key Management</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+<p>The ubiblio API allows you to request books and make searches, with JSON results instead of HTML. To use it, you will need to create an API key. Your API key will be shown to you only once, it is not stored in the database, so be prepared to copy it comewhere secure. The API endpoints are as follows:</p>
+<ul>
+	<li>Fetch a book by ID: GET /api/bookDetails/{bookId}/{apiKey}</li>
+	<li>Fetch a random book: GET /api/randomBook/{apiKey}</li>
+	<li>Search by author: GET /api/searchByAuthor</li>
+	<li>Search by Title: GET /api/searchByTitle</li>
+	<li>Search by Title or Author (both need to be specified): GET /api/searchByTitleOrAuthor</li>
+		</ul>
+		
+		<p> The search endpoints expect you to URL-encode your search terms. The search terms are:</p>
+		<ul>
+			<li>key: your API key</li>
+			<li>title: a string to search for in titles. Disabled if searching only by author). String.</li>
+			<li>author: a string to search for in titles. Disabled if searching only for titles. String.</li>
+			<li>onlyEbooks: Only include ebooks in the search results, not physical books. Boolean.</li>
+			<li>noEbooks: Only include physical books in your search results, not ebooks. Boolean.</li>
+			<li>skip: Results are limited to 10 results. This lets you paginate. Unsigned integer.</li>
+		</ul>
+<p>Example: GET https://your-ubiblio.com/api/searchByTitleOrAuthor?key=f4816607-8d3a-4e73-83d5-225ef4e16db9&title=Alice&author=Lewis&onlyEbooks=False&noEbooks=False&skip=0</p>
+<p>If you lose your API key, you will need to reset it. To create or reset your API key, click the button below.<p>		
+<a style = "border:none;" href = "/resetMyAPI"> <button>Create or Reset my API Key</button></a>
+	</div>				
+</section>
+
+{% endblock %}
