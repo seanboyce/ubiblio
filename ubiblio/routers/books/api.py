@@ -344,7 +344,7 @@ async def resetMyAPI(request: Request, user: current_user):
     if not user:
         return "You are not logged in. Login to reset your API key."        
         
-@router.get("/api/bookDetails/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+@router.get("/api/bookDetails/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def api_book_details(bookId, apiKey, request: Request):
     db = SessionLocal()
     try:
@@ -356,7 +356,7 @@ async def api_book_details(bookId, apiKey, request: Request):
     except:
         return "Invalid API key or API disabled"
         
-@router.get("/api/randomBook/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+@router.get("/api/randomBook/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
 async def api_book_details(apiKey, request: Request):
     db = SessionLocal()
     try:
@@ -368,7 +368,7 @@ async def api_book_details(apiKey, request: Request):
     except:
         return "Invalid API key or API disabled"
         
-@router.get("/api/searchByAuthor", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+@router.get("/api/searchByAuthor", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def api_search_books(
     key: str,                 # Required (api key)
     author: str = "",
@@ -394,7 +394,7 @@ async def api_search_books(
     finally:
         db.close()
 
-@router.get("/api/searchByTitle", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+@router.get("/api/searchByTitle", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def api_search_books(
     key: str,                 # Required (api key)
     title: str = "",
@@ -421,7 +421,7 @@ async def api_search_books(
         db.close()
 
 
-@router.get("/api/searchByTitleOrAuthor", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
+@router.get("/api/searchByTitleOrAuthor", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def api_search_books(
     key: str,                 # Required (api key)
     title: str, # Required

@@ -30,19 +30,23 @@
     </p>
 	<p><label for="">Activer l’API: </label></p>
 	<select name="enableAPI" id="enableAPI">
-					<option value="{{ config.enableAPI }}" selected>{{ config.enableAPI }}</option>
+		{% if config.enableAPI %}
+					<option value="{{ config.enableAPI }}" selected>Oui</option>
+		{% else %}
+					<option value="{{ config.enableAPI }}" selected>Non</option>
+		{% endif %}
   <option value="True">Oui</option>
   <option value="False">Non</option>
 </select>
     </p>
     <p>
         <p><label for="">Champ Personnalisé 1
-			(empty to disable): </label></p>
+			(laisser vide pour désactiver): </label></p>
         <input type="text" name="customFieldName1" value="{{ config.customFieldName1 }}">
     </p>
     <p>
         <p><label for="">Champ Personnalisé 2
-			(empty to disable): </label></p>
+			(laisser vide pour désactiver): </label></p>
         <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
     </p>
 
