@@ -39,6 +39,8 @@
 			<li>target: What field will you sum within groups? Only applicable if isSum=True. For example, you can set the target to ISBN, and group by genre. This will add together all the ISBNs and give you the result by genre (yes, this is useless, but the feature is mainly for custom fields.)</li>
 			
 <p>Example: GET https://your-ubiblio.com/api/searchByTitleOrAuthor?key=f4816607-8d3a-4e73-83d5-225ef4e16db9&title=Alice&author=Lewis&onlyEbooks=False&noEbooks=False&skip=0</p>
+			
+<p> When fetching cover images, ubiblio returns the filename only. You'll need to fetch separately via HTTP GET, e.g. to [ubiblioURL]/static/bookImages/[filename]</p>	
 <p>If you lose your API key, you will need to reset it. To create or reset your API key, click the button below.<p>		
 <a style = "border:none;" href = "/resetMyAPI"> <button>Create or Reset my API Key</button></a>
 	</div>				
