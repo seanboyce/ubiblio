@@ -15,6 +15,8 @@
 <ul>
 	<li>Récupérer un livre par son ID: GET /api/bookDetails/{bookId}/{apiKey}</li>
 	<li>Récupérer un livre au hasard: GET /api/randomBook/{apiKey}</li>
+	<li>Récupérer les images de couverture d'un livre : GET /api/bookCoverImages/{bookId}/{apiKey}</li>
+	<li>Statistiques de la bibliothèque : GET /api/stats/{apiKey}</li>
 	<li>Rechercher par auteur: GET /api/searchByAuthor</li>
 	<li>Rechercher par titre: GET /api/searchByTitle</li>
 	<li>Rechercher par titre ou par auteur (les deux doivent être indiqués): GET /api/searchByTitleOrAuthor</li>
@@ -29,6 +31,15 @@
 <li>noEbooks : inclut uniquement les livres physiques dans les résultats de recherche, à l'exclusion des livres numériques. Booléen.</li>
 <li>skip : les résultats sont limités à 10 éléments. Ce paramètre permet la pagination. Entier non signé.</li>
 		</ul>
+		
+		<p>L'API Stats attend que vous encodiez les termes suivants en URL, le cas échéant. Seul votre clé API est obligatoire :</p>
+
+<ul>
+<li>key : votre clé API</li>
+<li>isSum : définissez 'True' si vous additionnez les valeurs de tous les éléments d'un groupe. Définissez 'False' si vous souhaitez uniquement les compter.</li>
+<li>group : champ selon lequel regrouper les résultats. Par défaut : genre.</li>
+<li>target : champ à additionner au sein des groupes. Applicable uniquement si isSum = True. Par exemple, vous pouvez définir la target=ISBN et regrouper par genre. Cela additionnera tous les ISBN et vous donnera le résultat par genre (oui, c'est inutile, mais cette fonctionnalité est principalement destinée aux champs personnalisés).</li>
+	<br>
 <p>Exemple: GET https://your-ubiblio.com/api/searchByTitleOrAuthor?key=f4816607-8d3a-4e73-83d5-225ef4e16db9&title=Alice&author=Lewis&onlyEbooks=False&noEbooks=False&skip=0</p>
 <p>Si vous perdez votre clé API, vous devrez la réinitialiser. Pour créer ou réinitialiser votre clé API, cliquez sur le bouton ci-dessous.<p>		
 <a style = "border:none;" href = "/resetMyAPI"> <button>Créer ou réinitialiser ma clé API</button></a>

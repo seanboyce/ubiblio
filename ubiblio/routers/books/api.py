@@ -447,4 +447,40 @@ async def api_search_books(
         return "Invalid request"
     finally:
         db.close()
-        
+
+
+@router.get("/api/bookCoverImages/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+async def api_book_details(bookId, apiKey, request: Request):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        images = crud.getImages(db, int(bookId)) # Filename only. You'll need another HTTP GET to [ubiblioURL]/static/bookImages/[filename]
+        return json.dumps(jsonable_encoder(images))
+    except:
+        return "Invalid API key or API disabled"
+ 
+ 
+@router.get("/api/stats", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
+async def stats_get(
+    key: str, 
+    isSum: bool = False,
+    group: str = "genre",
+    target: str = "genre"
+):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        result = crud.stats(db, isSum, group, target)
+        for key in result:
+            result[key] = round(result[key], 2)
+        return json.dumps(result)
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except:
+        return "Invalid request"
+    finally:
+        db.close()       
