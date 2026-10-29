@@ -345,7 +345,7 @@ async def resetMyAPI(request: Request, user: current_user):
         return "You are not logged in. Login to reset your API key."        
         
 @router.get("/api/bookDetails/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-async def api_book_details(bookId, apiKey, request: Request):
+async def api_book_details(bookId, apiKey):
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(apiKey))
@@ -357,7 +357,7 @@ async def api_book_details(bookId, apiKey, request: Request):
         return "Invalid API key or API disabled"
         
 @router.get("/api/randomBook/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-async def api_book_details(apiKey, request: Request):
+async def api_book_details(apiKey):
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(apiKey))
@@ -450,7 +450,7 @@ async def api_search_books(
 
 
 @router.get("/api/bookCoverImages/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
-async def api_book_details(bookId, apiKey, request: Request):
+async def api_book_details(bookId, apiKey):
     db = SessionLocal()
     try:
         assert crud.checkAPIKey(db, str(apiKey))
@@ -484,3 +484,20 @@ async def stats_get(
         return "Invalid request"
     finally:
         db.close()       
+
+@router.get("/api/getRecentBooks/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+async def api_recent_books(apiKey):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        result = crud.getRecentBooks(db) # 10 most recently added books
+        return json.dumps(jsonable_encoder(result))
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except Exception as e:
+        return e
+    finally:
+        db.close()        
+        

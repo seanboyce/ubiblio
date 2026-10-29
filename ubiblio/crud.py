@@ -88,14 +88,14 @@ def updateBook(db: Session, book: schemas.Book):
         print(e)
         return False
         
-def getBooks(db: Session, skip: int = 0, limit: int = 50):
-    result = db.query(models.Book).offset(skip).limit(limit).all()
-    resultCount = db.query(models.Book).with_entities(func.count()).scalar()
-    return result, resultCount
+### Nothing uses this, so commenting it out        
+#def getBooks(db: Session, skip: int = 0, limit: int = 50):
+#    result = db.query(models.Book).offset(skip).limit(limit).all()
+#    resultCount = db.query(models.Book).with_entities(func.count()).scalar()
+#    return result, resultCount
   
   
-  
-    
+   
 def searchBooks(db: Session, title, author, skip: int, onlyEbooks: bool, noEbooks:bool, limit: int = 50):
     if (onlyEbooks==True) and (noEbooks==False):
         resultCount = db.query(models.Book).filter(
@@ -672,7 +672,11 @@ def getRandomBook(db: Session):
     except Exception as e:
         print(e)
         return False
-
+        
+def getRecentBooks(db: Session):
+    query = select(models.Book).order_by(models.Book.addedTime.desc()).limit(10)
+    result = db.scalars(query).all()
+    return result
         
 #def advancedSearch(db: Session, isSum, group, target):
 #author,title,location, genre
