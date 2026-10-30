@@ -674,7 +674,7 @@ def getRandomBook(db: Session):
         return False
         
 def getRecentBooks(db: Session):
-    query = select(models.Book).order_by(models.Book.addedTime.desc()).limit(10)
+    query = select(models.Book).where(models.Book.owned == True).order_by(models.Book.addedTime.desc()).limit(10)
     result = db.scalars(query).all()
     return result
         

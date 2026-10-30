@@ -485,7 +485,7 @@ async def stats_get(
     finally:
         db.close()       
 
-@router.get("/api/getRecentBooks/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+@router.get("/api/recentBooks/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
 async def api_recent_books(apiKey):
     db = SessionLocal()
     try:
