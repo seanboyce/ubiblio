@@ -1,7 +1,9 @@
 import json
 from typing import final
-
-from ecdsa import BadSignatureError, SECP256k1, SigningKey, VerifyingKey
+from nacl.encoding import HexEncoder
+from nacl.exceptions import BadSignatureError
+import nacl.signing
+#from ecdsa import BadSignatureError, SECP256k1, SigningKey, VerifyingKey
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -23,7 +25,7 @@ router = APIRouter()
 @router.get("/vkey", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse)
 async def verify_key_endpoint(request: Request):
     try:
-        return VERIFY_KEY
+        return VERIFY_KEY.encode(encoder=HexEncoder)
     except:
         return
 
@@ -35,9 +37,9 @@ async def signsearch(user: current_user, body: bytes = Depends(get_body)):
         body = json.loads(body)
         body = json.dumps(body)
         bodyBytes = bytearray(body, "utf-8")
-        data['signature'] = SigningKey.from_string(bytearray.fromhex(SIGNING_KEY), curve=SECP256k1).sign(bodyBytes).hex()
-        data['message'] = json.loads(body)
-        data['vkey'] = VERIFY_KEY
+        data['signature'] = SIGNING_KEY.sign(bodyBytes, encoder=HexEncoder)
+        #data['message'] = json.loads(body) #No longer needed, signature is serialized
+        data['vkey'] = VERIFY_KEY.encode(encoder=HexEncoder)
         return json.dumps(jsonable_encoder(data))
     except Exception as e:
         return e
@@ -66,15 +68,15 @@ async def fed_search_books(body: bytes = Depends(get_body)):
     try:
         signedRequest = json.loads(body)
         assert crud.haveKey(db, signedRequest["vkey"])
-        sig = bytearray.fromhex(signedRequest["signature"])
-        message = json.dumps(signedRequest["message"])
-        bytesMessage = bytearray(message, "utf-8")
-        assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage)
-        title = signedRequest["message"]["title"]
-        author = signedRequest["message"]["author"]
-        onlyEbooks = signedRequest["message"]["onlyEbooks"]
-        noEbooks = signedRequest["message"]["noEbooks"]
-        skip = signedRequest["message"]["skip"]
+        REMOTE_VERIFY_KEY = VerifyKey(signedRequest["vkey"], encoder=HexEncoder)
+        message = REMOTE_VERIFY_KEY.verify(signedRequest["signature"], encoder=HexEncoder)
+        #message = json.dumps(signedRequest["message"]) # No longer needed, message is serialized
+        searchRequest = json.dumps(message)
+        title = searchRequest["title"]
+        author = searchRequest["author"]
+        onlyEbooks = searchRequest["onlyEbooks"]
+        noEbooks = searchRequest["noEbooks"]
+        skip = searchRequest["skip"]
         books = crud.searchBooks(db, str(title), str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
         result = json.dumps(jsonable_encoder(books[0]))
         data = {}
@@ -113,11 +115,10 @@ async def fed_book_details(body: bytes = Depends(get_body)):
     try:
         signedRequest = json.loads(body)
         assert crud.haveKey(db, signedRequest["vkey"])
-        sig = bytearray.fromhex(signedRequest["signature"])
-        message = json.dumps(signedRequest["message"])
-        bytesMessage = bytearray(message, "utf-8")
-        assert VerifyingKey.from_string(bytearray.fromhex(signedRequest["vkey"]), curve=SECP256k1).verify(sig, bytesMessage)
-        bookId = signedRequest["message"]["bookId"]
+        REMOTE_VERIFY_KEY = VerifyKey(signedRequest["vkey"], encoder=HexEncoder)
+        message = REMOTE_VERIFY_KEY.verify(signedRequest["signature"], encoder=HexEncoder)
+        bookRequest= json.dumps(message)
+        bookId = bookRequest["bookId"]
         book = crud.getBookById(db, int(bookId))
         return json.dumps(jsonable_encoder(book))
     except BadSignatureError:
@@ -175,7 +176,7 @@ async def add_vkey(user: admin_user, body: bytes = Depends(get_body)):
     try:
         if not body["url"].endswith("/"):
             body["url"] = body["url"] + "/"
-        if len(body["vkey"]) != 128:
+        if len(body["vkey"]) != 64:
             return "FAIL"
         newVkey = schemas.vkeyBase(vkey=body["vkey"], url=body["url"])
         crud.addVkey(db, newVkey)
@@ -192,7 +193,7 @@ async def refresh_vkey(user: admin_user, body: bytes = Depends(get_body)):
     body = json.loads(body)
     db = SessionLocal()
     try:
-        if len(body["vkey"]) != 128:
+        if len(body["vkey"]) != 64:
             return "FAIL"
         vkey = crud.getVkeyById(db, body["id"])
         vkey.vkey = str(body["vkey"])
