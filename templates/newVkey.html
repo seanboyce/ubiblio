@@ -18,7 +18,7 @@
 			</p>
 			<p>
 			    <p><label for="">Verification Key (Optional)</label></p>
-			    <input type="text" name="vkey" value="">
+			    <input id="mvkey" type="text" name="vkey" value="">
 			</p>
 			<input type="submit" value="Submit">
 		</form>
@@ -30,6 +30,10 @@
 <script>
 async function getPubkey()
 {
+	manual_vkey = $("#mvkey").val()
+	if (manual_vkey.length>0) {
+		submitVkey(manual_vkey);
+	}
 	vkeyURL = $("#addFed").val().replace(/\/?$/, '/') + "vkey";
 	console.log(vkeyURL);
     var xhr = new XMLHttpRequest();
