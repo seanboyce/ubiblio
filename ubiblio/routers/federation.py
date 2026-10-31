@@ -2,7 +2,8 @@ import json
 from typing import final
 from nacl.encoding import HexEncoder
 from nacl.exceptions import BadSignatureError
-import nacl.signing
+from nacl.signing import *
+
 #from ecdsa import BadSignatureError, SECP256k1, SigningKey, VerifyingKey
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.encoders import jsonable_encoder
@@ -32,17 +33,14 @@ async def verify_key_endpoint(request: Request):
 
 @router.post("/signsearch", dependencies=[get_rate_limiter(times=4, seconds=1)], response_class=HTMLResponse)
 async def signsearch(user: current_user, body: bytes = Depends(get_body)):
-    try:
-        data = {}
-        body = json.loads(body)
-        body = json.dumps(body)
-        bodyBytes = bytearray(body, "utf-8")
-        data['signature'] = SIGNING_KEY.sign(bodyBytes, encoder=HexEncoder)
-        #data['message'] = json.loads(body) #No longer needed, signature is serialized
-        data['vkey'] = VERIFY_KEY.encode(encoder=HexEncoder)
-        return json.dumps(jsonable_encoder(data))
-    except Exception as e:
-        return e
+#    try:
+    data = {}
+    data['signature'] = SIGNING_KEY.sign(body, encoder=HexEncoder)
+    data['message'] = json.loads(body) #No longer needed, signature is serialized
+    data['vkey'] = VERIFY_KEY.encode(encoder=HexEncoder)
+    return json.dumps(jsonable_encoder(data))
+    #except Exception as e:
+    #    return e
 
 
 @router.get("/fedsearch", dependencies=[get_rate_limiter(times=1, seconds=3)], response_class=HTMLResponse)
