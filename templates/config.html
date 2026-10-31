@@ -15,11 +15,18 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/config" method="post">
         <p>Database Version: {{ config.version }}</p>
-	  <input type="hidden" id="version" name="version" value="1.0.1"> 
+	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
     <p>
         <p><label for="">Enable Cover Images: </label></p>
 	<select name="coverImages" id="coverImages">
 					<option value="{{ config.coverImages }}" selected>{{ config.coverImages }}</option>
+  <option value="True">True</option>
+  <option value="False">False</option>
+</select>
+    </p>
+	<p><label for="">Enable API: </label></p>
+	<select name="enableAPI" id="enableAPI">
+					<option value="{{ config.enableAPI }}" selected>{{ config.enableAPI }}</option>
   <option value="True">True</option>
   <option value="False">False</option>
 </select>

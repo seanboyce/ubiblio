@@ -1,5 +1,4 @@
 from typing import List, Optional
-
 from fastapi import Request
 
 from .. import schemas
@@ -125,12 +124,14 @@ class configForm:
         self.coverImages: Optional[bool] = None
         self.customFieldName1: Optional[str] = None
         self.customFieldName2: Optional[str] = None
+        self.enableAPI: Optional[bool] = None
         self.genres: str = ""
 
     async def load_data(self):
         form = await self.request.form()
         self.version = form.get("version")
         self.coverImages = form.get("coverImages")
+        self.enableAPI = form.get("enableAPI")
         self.customFieldName1 = form.get("customFieldName1")
         self.customFieldName2 = form.get("customFieldName2")
         self.genres = form.get("genres") or ",".join(schemas.DEFAULT_GENRES)

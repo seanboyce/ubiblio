@@ -59,7 +59,7 @@ $.post(searchEndpoint,function(data, status){
     $("#tablebody").empty();
     $("#pagination").empty();
     itemdata.forEach(function(item) {
-    $("#tablebody").append('<tr><td>'+item.username+'</td><td>'+item.isAdmin+'</td><td><a href= /promote/'+item.id+'>Changer en Admin</a>&nbsp;&nbsp;<a href=/demote/'+item.id+'>Retirer Droits Admin</a>&nbsp;&nbsp;<a href="/deleteUser/'+item.id+'" onclick="return confirm(&#39;Êtes-vous sûr?&#39;);">Supprimer</a></td></tr>');
+    $("#tablebody").append('<tr><td>'+item.username+'</td><td>'+item.isAdmin+'</td><td><a href= /promote/'+item.id+'>Changer en Admin</a>&nbsp;&nbsp;<a href=/demote/'+item.id+'>Retirer Droits Admin</a>&nbsp;&nbsp;<a href= /resetAPI/'+item.id+'>Réinitialiser la clé API</a>&nbsp;&nbsp;<a href="/deleteUser/'+item.id+'" onclick="return confirm(&#39;Êtes-vous sûr?&#39;);">Supprimer</a></td></tr>');
 });
 
 if (itemdata.length === 0){

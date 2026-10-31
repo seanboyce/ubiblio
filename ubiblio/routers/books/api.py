@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Request, Response, status, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from . import service
 from ... import crud, schemas
 from ...database import SessionLocal
 from ...dependencies import admin_user, bookForm, current_user, get_rate_limiter, templates
-
+import json
 router = APIRouter()
-
+from fastapi.encoders import jsonable_encoder
 
 # --------------------------------------------------------------------------
 # Book CRUD endpoints
@@ -311,3 +311,193 @@ async def book_genres(request: Request, user: current_user):
         return templates.TemplateResponse(request, "genres.html", context)
     if not user:
         return "You are not logged in. Login to view books."
+        
+# --------------------------------------------------------------------------
+# Manage User API Keys
+# --------------------------------------------------------------------------    
+
+@router.get("/api/", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse) 
+async def resetMyAPI(request: Request, user: current_user):
+    if user:
+        context = {
+            "user": user,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "api_intro.html", context)
+    if not user:
+        return "You are not logged in. Login to reset your API key."
+
+
+# This sets or resets the API key and displays it once. We store only the hash.
+@router.get("/resetMyAPI/", dependencies=[get_rate_limiter(times=1, seconds=5)], response_class=HTMLResponse) 
+async def resetMyAPI(request: Request, user: current_user):
+    if user:
+        db = SessionLocal()
+        APIKey = crud.resetMyAPIKey(db, user.id)
+        db.close()
+        context = {
+            "user": user,
+            "apiKey": APIKey,
+            "request": request,
+        }
+        return templates.TemplateResponse(request, "api.html", context)
+    if not user:
+        return "You are not logged in. Login to reset your API key."        
+        
+@router.get("/api/bookDetails/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+async def api_book_details(bookId, apiKey):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        book = crud.getBookById(db, int(bookId))
+        return json.dumps(jsonable_encoder(book))
+    except:
+        return "Invalid API key or API disabled"
+        
+@router.get("/api/randomBook/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+async def api_book_details(apiKey):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        book = crud.getRandomBook(db)
+        return json.dumps(jsonable_encoder(book))
+    except:
+        return "Invalid API key or API disabled"
+        
+@router.get("/api/searchByAuthor", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+async def api_search_books(
+    key: str,                 # Required (api key)
+    author: str = "",
+    onlyEbooks: bool = False,
+    noEbooks: bool = False,
+    skip: int = 0        
+):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        books = crud.searchBooksbyAuthor(db, str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
+        return json.dumps(jsonable_encoder(data))
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except:
+        return "Invalid request"
+    finally:
+        db.close()
+
+@router.get("/api/searchByTitle", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+async def api_search_books(
+    key: str,                 # Required (api key)
+    title: str = "",
+    onlyEbooks: bool = False,
+    noEbooks: bool = False,
+    skip: int = 0        
+):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        books = crud.searchBooksbyTitle(db, str(title), int(skip), bool(onlyEbooks), bool(noEbooks))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
+        return json.dumps(jsonable_encoder(data))
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except:
+        return "Invalid request"
+    finally:
+        db.close()
+
+
+@router.get("/api/searchByTitleOrAuthor", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+async def api_search_books(
+    key: str,                 # Required (api key)
+    title: str, # Required
+    author: str, # Required
+    onlyEbooks: bool = False,
+    noEbooks: bool = False,
+    skip: int = 0        
+):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        books = crud.searchBooks(db, str(title), str(author), int(skip), bool(onlyEbooks), bool(noEbooks))
+        result = json.dumps(jsonable_encoder(books[0]))
+        data = {}
+        data['result'] = result
+        data['count'] = books[1]
+        return json.dumps(jsonable_encoder(data))
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except:
+        return "Invalid request"
+    finally:
+        db.close()
+
+
+@router.get("/api/bookCoverImages/{bookId}/{apiKey}", dependencies=[get_rate_limiter(times=2, seconds=1)], response_class=HTMLResponse)
+async def api_book_details(bookId, apiKey):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        images = crud.getImages(db, int(bookId)) # Filename only. You'll need another HTTP GET to [ubiblioURL]/static/bookImages/[filename]
+        return json.dumps(jsonable_encoder(images))
+    except:
+        return "Invalid API key or API disabled"
+ 
+ 
+@router.get("/api/stats", dependencies=[get_rate_limiter(times=1, seconds=2)], response_class=HTMLResponse)
+async def stats_get(
+    key: str, 
+    isSum: bool = False,
+    group: str = "genre",
+    target: str = "genre"
+):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(key))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        result = crud.stats(db, isSum, group, target)
+        for key in result:
+            result[key] = round(result[key], 2)
+        return json.dumps(result)
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except:
+        return "Invalid request"
+    finally:
+        db.close()       
+
+@router.get("/api/recentBooks/{apiKey}", dependencies=[get_rate_limiter(times=1, seconds=1)], response_class=HTMLResponse)
+async def api_recent_books(apiKey):
+    db = SessionLocal()
+    try:
+        assert crud.checkAPIKey(db, str(apiKey))
+        config = crud.getConfig(db)
+        assert config.enableAPI
+        result = crud.getRecentBooks(db) # 10 most recently added books
+        return json.dumps(jsonable_encoder(result))
+    except AssertionError:
+        return "Invalid API key or API disabled"
+    except Exception as e:
+        return e
+    finally:
+        db.close()        
+        

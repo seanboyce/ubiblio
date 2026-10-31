@@ -15,7 +15,7 @@
 <div style="width:30%; min-width: 300px; float:left; margin-right:30px;">
 <form action="/config" method="post">
         <p>Version de la Base de Données: {{ config.version }}</p>
-	  <input type="hidden" id="version" name="version" value="1.0.1"> 
+	  <input type="hidden" id="version" name="version" value="{{ config.version }}"> 
     <p>
         <p><label for="">Activer les images de couverture: </label></p>
 	<select name="coverImages" id="coverImages">
@@ -28,14 +28,25 @@
   <option value="False">Non</option>
 </select>
     </p>
+	<p><label for="">Activer l’API: </label></p>
+	<select name="enableAPI" id="enableAPI">
+		{% if config.enableAPI %}
+					<option value="{{ config.enableAPI }}" selected>Oui</option>
+		{% else %}
+					<option value="{{ config.enableAPI }}" selected>Non</option>
+		{% endif %}
+  <option value="True">Oui</option>
+  <option value="False">Non</option>
+</select>
+    </p>
     <p>
         <p><label for="">Champ Personnalisé 1
-			(empty to disable): </label></p>
+			(laisser vide pour désactiver): </label></p>
         <input type="text" name="customFieldName1" value="{{ config.customFieldName1 }}">
     </p>
     <p>
         <p><label for="">Champ Personnalisé 2
-			(empty to disable): </label></p>
+			(laisser vide pour désactiver): </label></p>
         <input type="text" name="customFieldName2" value="{{ config.customFieldName2 }}">
     </p>
 

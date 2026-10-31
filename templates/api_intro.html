@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>API Key Management</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+<p>The ubiblio API allows you to request books and make searches, with JSON results instead of HTML. To use it, you will need to create an API key. Your API key will be shown to you only once, it is not stored in the database, so be prepared to copy it comewhere secure. The API endpoints are as follows:</p>
+<ul>
+	<li>Fetch a book by ID: GET /api/bookDetails/{bookId}/{apiKey}</li>
+	<li>Fetch a random book: GET /api/randomBook/{apiKey}</li>
+	<li>Fetch the 10 most recently added books: GET /api/recentBooks/{apiKey}</li>
+	<li>Fetch the cover images for a book, if any: GET /api/bookCoverImages/{bookId}/{apiKey}</li>
+	<li>Library stats: GET /api/stats/{apiKey}</li>
+	<li>Search by author: GET /api/searchByAuthor</li>
+	<li>Search by Title: GET /api/searchByTitle</li>
+	<li>Search by Title or Author (both need to be specified): GET /api/searchByTitleOrAuthor</li>
+		</ul>
+		
+		<p>The search endpoints expect you to URL-encode any search terms. The search terms are:</p>
+		<ul>
+			<li>key: your API key</li>
+			<li>title: a string to search for in titles. Disabled if searching only by author). String.</li>
+			<li>author: a string to search for in titles. Disabled if searching only for titles. String.</li>
+			<li>onlyEbooks: Only include ebooks in the search results, not physical books. Boolean.</li>
+			<li>noEbooks: Only include physical books in your search results, not ebooks. Boolean.</li>
+			<li>skip: Results are limited to 10 results. This lets you paginate. Unsigned integer.</li>
+		</ul>
+		<p>The Stats endpoint expects you to URL-encode the following terms as needed. None are required except your API key:</p>
+		<ul>
+			<li>key: your API key</li>
+			<li>isSum: Set to True if you are adding the values of all elements within a group. False if you want to count them only.</li>
+			<li>group: What field will you group results by? Defaults to genre.</li>
+			<li>target: What field will you sum within groups? Only applicable if isSum=True. For example, you can set the target to ISBN, and group by genre. This will add together all the ISBNs and give you the result by genre (yes, this is useless, but the feature is mainly for custom fields.)</li>
+			
+<p>Example: GET https://your-ubiblio.com/api/searchByTitleOrAuthor?key=f4816607-8d3a-4e73-83d5-225ef4e16db9&title=Alice&author=Lewis&onlyEbooks=False&noEbooks=False&skip=0</p>
+			
+<p> When fetching cover images, ubiblio returns the filename only. You'll need to fetch separately via HTTP GET, e.g. to [ubiblioURL]/static/bookImages/[filename]</p>	
+<p>If you lose your API key, you will need to reset it. To create or reset your API key, click the button below.<p>		
+<a style = "border:none;" href = "/resetMyAPI"> <button>Create or Reset my API Key</button></a>
+	</div>				
+</section>
+
+{% endblock %}

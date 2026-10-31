@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block main %}
+<!-- Banner -->
+<!-- Two -->
+<section id="two">
+	<div class="inner" style = "padding: 20px 0 1em 0;">
+		<header class="major">
+			<h2>API ubiblio</h2>
+		</header>
+		{% for error in errors %}
+		    <p style="color: red">{{ error }}</p>
+		{% endfor %}
+<p>Votre clé API est : {{ apiKey }}</p>
+
+<p>Copiez-la et conservez-la dans un endroit sécurisé ; nous ne l'afficherons plus (elle n'est pas stockée dans la base de données).</p>
+<p>Si vous la perdez, vous devrez générer une nouvelle clé. Accéder à cette page (ou la recharger) alors que vous êtes connecté entraînera l'expiration automatique de votre clé actuelle et la génération d'une nouvelle clé.</p>		
+
+	</div>				
+</section>
+
+{% endblock %}
