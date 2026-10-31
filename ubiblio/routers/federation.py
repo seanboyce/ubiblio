@@ -68,8 +68,7 @@ async def fed_search_books(body: bytes = Depends(get_body)):
         assert crud.haveKey(db, signedRequest["vkey"])
         REMOTE_VERIFY_KEY = VerifyKey(signedRequest["vkey"], encoder=HexEncoder)
         message = REMOTE_VERIFY_KEY.verify(signedRequest["signature"], encoder=HexEncoder)
-        #message = json.dumps(signedRequest["message"]) # No longer needed, message is serialized
-        searchRequest = json.dumps(message)
+        searchRequest = json.loads(message.decode("utf-8"))
         title = searchRequest["title"]
         author = searchRequest["author"]
         onlyEbooks = searchRequest["onlyEbooks"]
@@ -115,7 +114,7 @@ async def fed_book_details(body: bytes = Depends(get_body)):
         assert crud.haveKey(db, signedRequest["vkey"])
         REMOTE_VERIFY_KEY = VerifyKey(signedRequest["vkey"], encoder=HexEncoder)
         message = REMOTE_VERIFY_KEY.verify(signedRequest["signature"], encoder=HexEncoder)
-        bookRequest= json.dumps(message)
+        bookRequest= json.loads(message.decode("utf-8"))
         bookId = bookRequest["bookId"]
         book = crud.getBookById(db, int(bookId))
         return json.dumps(jsonable_encoder(book))

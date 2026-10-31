@@ -51,6 +51,6 @@ signed_hex = SIGNING_KEY.sign(b"message", encoder=HexEncoder)
 try:
     assert VERIFY_KEY.verify(signed_hex, encoder=HexEncoder)
     assert len(SIGNING_KEY.encode(encoder=HexEncoder)) == 64
-    print("Key validation successfull. Federation features enabled.")
+    print("Key validation successful. Federation features enabled.")
 except BadSignatureError: 
     print("WARNING: uBiblio's verification key does not match it's signing key. Federation features will not work correctly.")
