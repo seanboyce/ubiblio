@@ -2,7 +2,7 @@
 
 # Development mode: if DEV=true, run uvicorn with reload and do not change ownership
 if [ "$DEV" = "true" ] || [ "$DEV" = "1" ]; then
-  exec uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload --forwarded-allow-ips '*' --proxy-headers --certfile= --keyfile=
+  exec uvicorn ubiblio.main:app --host 0.0.0.0 --port 8000 --reload --forwarded-allow-ips '*' --proxy-headers --ssl-certfile=certificate.pem --ssl-keyfile=private.key
 
 fi
 
