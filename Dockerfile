@@ -18,7 +18,7 @@ RUN \
   pip install -r requirements.txt --break-system-packages
 
 COPY . .
-RUN openssl req -x509 -newkey rsa:4096 -keyout private.key -out certificate.pem -days 6000 -nodes -subj "/C=/ST=/L=/O=/OU=/CN="
+RUN openssl req -x509 -newkey rsa:4096 -keyout private.key -out certificate.pem -days 365243 -nodes -subj "/C=/ST=/L=/O=/OU=/CN="
 RUN chmod +x entrypoint.sh
 
 ENV SECRET_KEY_FILE="/app/config/secret_key.txt"
