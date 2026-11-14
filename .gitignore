@@ -200,3 +200,4 @@ config/
 secret_key.txt
 sign_key.txt
 verify_key.txt
+sql_app.db
